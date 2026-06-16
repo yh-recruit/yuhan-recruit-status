@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>유한양행 · 채용 전형 현황 시스템</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<style>
+  @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+  :root{
+    --yh-green:#00833D;--yh-green-dark:#006A31;--yh-green-darker:#024d25;--yh-green-light:#E9F4ED;--yh-green-tint:#F4FAF6;
+    --yh-gold:#A8823F;--ink:#16241C;--text:#26352C;--muted:#6B7B71;--line:#E2E9E4;--bg:#F6F8F6;
+    --white:#ffffff;--danger:#B23A35;--blue:#3E8ED0;
+    --shadow:0 1px 2px rgba(16,40,26,.06),0 8px 24px rgba(16,40,26,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Pretendard","Pretendard Variable",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;line-height:1.5;}
+  button{font-family:inherit;cursor:pointer}
+  input,select,textarea{font-family:inherit;font-size:14px}
+  h1,h2,h3,h4{margin:0;color:var(--ink);font-weight:700}
+  .hidden{display:none !important}
+
+  .topbar{background:var(--white);border-bottom:1px solid var(--line);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:50;}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand .mark{width:38px;height:38px;border-radius:9px;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden}
+  .brand .mark img{width:100%;height:100%;object-fit:contain}
+  .brand .name{font-weight:800;color:var(--yh-green-dark);font-size:17px;letter-spacing:-.2px}
+  .brand .sub{font-size:12px;color:var(--muted);margin-top:1px}
+  .topbar-right{display:flex;align-items:center;gap:14px}
+  .who{font-size:13px;color:var(--muted)}.who b{color:var(--ink)}
+  .role-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--yh-green-light);color:var(--yh-green-dark);}
+  .role-pill.admin{background:#FBF1DD;color:#8a6a2c}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);padding:7px 13px;border-radius:8px;font-size:13px;font-weight:600;}
+  .btn-ghost:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
+
+  /* ===== 로그인 (유한양행 브랜드 2단 구성) ===== */
+  .login-wrap{min-height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;padding:24px}
+  .login-shell{width:100%;max-width:880px;display:grid;grid-template-columns:1.05fr .95fr;border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(16,40,26,.18);background:#fff}
+  .login-brand{position:relative;background:linear-gradient(160deg,rgba(2,77,37,.93),rgba(0,106,49,.84) 52%,rgba(0,131,61,.80)),url('assets/yh-hq.jpg') center top/cover no-repeat;color:#fff;padding:44px 40px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;min-height:480px}
+  .login-brand::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(2,77,37,.55),transparent 45%);pointer-events:none}
+  .lb-logo{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+  .lb-logo .lm{width:52px;height:52px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.22);overflow:hidden;padding:4px}
+  .lb-logo .lm img{width:100%;height:100%;object-fit:contain}
+  .lb-logo .lt{font-size:22px;font-weight:800;letter-spacing:-.3px}
+  .lb-logo .lt small{display:block;font-size:11.5px;font-weight:600;opacity:.8;letter-spacing:1px;margin-top:2px}
+  .lb-mid{position:relative;z-index:1}
+  .lb-mid h2{color:#fff;font-size:25px;line-height:1.35;font-weight:800;margin-bottom:14px}
+  .lb-mid p{font-size:14px;line-height:1.7;color:rgba(255,255,255,.86);max-width:320px}
+  .lb-bot{position:relative;z-index:1;border-top:1px solid rgba(255,255,255,.22);padding-top:16px;font-size:12px;color:rgba(255,255,255,.8);line-height:1.6}
+  .lb-bot b{color:#fff;font-weight:700}
+  .login-form{padding:46px 42px;display:flex;flex-direction:column;justify-content:center;background:#fff}
+  .login-form h3{font-size:20px;margin-bottom:4px}
+  .login-form p.desc{color:var(--muted);font-size:13px;margin:0 0 24px}
+  .field{margin-bottom:15px}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:6px}
+  .field input{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:#fff;outline:none;transition:border .15s,box-shadow .15s;}
+  .field input:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .btn-primary{width:100%;background:var(--yh-green);color:#fff;border:none;padding:13px;border-radius:11px;font-size:15px;font-weight:700;margin-top:8px;transition:background .15s;}
+  .btn-primary:hover{background:var(--yh-green-dark)}
+  .login-err{color:var(--danger);font-size:12.5px;margin-top:10px;min-height:16px}
+  .login-hint{margin-top:22px;padding-top:16px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}
+  .login-hint code{background:var(--yh-green-tint);padding:1px 6px;border-radius:5px;color:var(--yh-green-dark);font-weight:700}
+  @media(max-width:760px){.login-shell{grid-template-columns:1fr;max-width:420px}.login-brand{min-height:auto;padding:30px}.lb-mid{margin:18px 0}.login-form{padding:32px 28px}}
+
+  .app{max-width:1180px;margin:0 auto;padding:24px}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;flex-wrap:wrap}
+  .tab{background:none;border:none;padding:11px 16px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;}
+  .tab.active{color:var(--yh-green-dark);border-bottom-color:var(--yh-green)}
+  .tab:hover{color:var(--yh-green-dark)}
+
+  .page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap}
+  .page-head h1{font-size:22px}
+  .page-head .sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+  .stage-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px}
+  .chip{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:12px 15px;min-width:110px;flex:1 1 110px;cursor:pointer;transition:.15s;}
+  .chip:hover{border-color:var(--yh-green-light);background:var(--yh-green-tint)}
+  .chip.active{border-color:var(--yh-green);background:var(--yh-green-light)}
+  .chip .c-label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .chip .dot{width:8px;height:8px;border-radius:50%}
+  .chip .c-num{font-size:24px;font-weight:800;color:var(--ink);margin-top:4px}
+  .chip .c-num small{font-size:13px;font-weight:600;color:var(--muted)}
+
+  /* ===== 카드 크기 통일 ===== */
+  .dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+  .dept-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:396px}
+  .dc-clickable{cursor:pointer;border-radius:10px;margin:-6px -6px 0;padding:6px 6px 0;transition:.12s}
+  .dc-clickable:hover{background:var(--yh-green-tint)}
+  .dept-card .dc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+  .dept-card .dc-name{font-size:16px;font-weight:700}
+  .dept-card .dc-name .arrow{font-size:12px;color:var(--muted);margin-left:6px}
+  .dept-card .dc-type{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .type-tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--yh-green-light);color:var(--yh-green-dark);margin-right:6px}
+  .badge-done{background:var(--yh-green)!important;color:#fff!important}
+  .completed-card{background:linear-gradient(180deg,#fff,var(--yh-green-tint))}
+  .dc-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:10px 0 14px}
+  .dc-meta b{color:var(--text);font-weight:600}
+
+  .stepper{display:flex;align-items:flex-start;gap:0;margin:6px 0}
+  .step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;min-width:0}
+  .step .line{position:absolute;top:11px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0}
+  .step:first-child .line{display:none}
+  .step .node{width:24px;height:24px;border-radius:50%;background:var(--white);border:2px solid var(--line);z-index:1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);}
+  .step.done .node{background:var(--yh-green);border-color:var(--yh-green);color:#fff}
+  .step.done .line{background:var(--yh-green)}
+  .step.current .node{background:#fff;border-color:var(--yh-green);color:var(--yh-green-dark);box-shadow:0 0 0 4px var(--yh-green-light)}
+  .step.current .line{background:var(--yh-green)}
+  .step .label{font-size:10.5px;color:var(--muted);margin-top:7px;text-align:center;line-height:1.25;word-break:keep-all}
+  .step.current .label{color:var(--yh-green-dark);font-weight:700}
+  .step.done .label{color:var(--text)}
+
+  .stage-sched{font-size:11.5px;color:var(--muted);margin-top:12px;background:var(--yh-green-tint);border:1px solid var(--yh-green-light);border-radius:8px;padding:8px 11px}
+  .stage-sched b{color:var(--yh-green-dark);font-weight:700}
+  .counts-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .count-pill{background:var(--yh-green-tint);border:1px solid var(--yh-green-light);border-radius:8px;padding:6px 10px;font-size:11.5px;color:var(--text)}
+  .count-pill b{color:var(--yh-green-dark);font-weight:800;font-size:13px}
+  .dc-notes{margin-top:12px;font-size:12.5px;color:var(--text);background:var(--bg);border-radius:10px;padding:12px;line-height:1.65;border:1px solid var(--line);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+  .dc-next{margin-top:12px;background:linear-gradient(180deg,#FBF6EA,#FBF1DD);border:1px solid #ECD9AE;border-radius:10px;padding:10px 12px}
+  .dc-next .na-l{font-size:11px;font-weight:800;color:var(--yh-gold);letter-spacing:-.1px}
+  .dc-next .na-v{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:3px;line-height:1.4;word-break:keep-all}
+  .dc-next.done{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
+  .dc-next.done .na-l{color:var(--yh-green-dark)}
+  .dc-remark{margin-top:10px;font-size:12.5px;color:var(--text);background:var(--bg);border-radius:10px;padding:10px 12px;line-height:1.6;border:1px solid var(--line);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+  .dc-remark .rk-l{display:inline-block;font-size:10.5px;font-weight:800;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-right:7px;vertical-align:1px}
+  .dc-actions{margin-top:auto;padding-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:12px 14px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--yh-green-tint);color:var(--yh-green-dark);font-weight:700;font-size:12px;white-space:nowrap}
+  tr:last-child td{border-bottom:none}
+  td .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;background:var(--bg);padding:2px 6px;border-radius:5px}
+  .row-actions button{margin-right:6px}
+  .mini{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;font-weight:600;color:var(--text)}
+  .mini:hover{background:var(--yh-green-tint)}
+  .mini.danger{color:var(--danger);border-color:#eccecc}.mini.danger:hover{background:#fbf0ef}
+
+  .modal-back{position:fixed;inset:0;background:rgba(16,30,22,.5);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:100;overflow:auto}
+  .modal{background:#fff;border-radius:16px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal-head h3{font-size:17px}
+  .modal-body{padding:22px}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form-field{margin-bottom:14px}.form-field.full{grid-column:1/-1}
+  .form-field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px}
+  .form-field input,.form-field select,.form-field textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;outline:none;background:#fff;}
+  .form-field textarea{resize:vertical;min-height:96px;line-height:1.6}
+  .form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .x-btn{background:none;border:none;font-size:22px;color:var(--muted);line-height:1}
+  .hint-inline{color:var(--muted);font-weight:400;font-size:11.5px}
+
+  .sched-head{display:grid;grid-template-columns:120px 1fr 1fr;gap:8px;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px}
+  .sched-row{display:grid;grid-template-columns:120px 1fr 1fr;gap:8px;align-items:center;margin-bottom:7px}
+  .sched-row .sched-stage{font-size:12.5px;font-weight:600;color:var(--text)}
+  .sched-row input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:13px}
+  .sched-row input:focus,.sched-detail input:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light);outline:none}
+  .sched-na{font-size:12px;color:var(--muted);text-align:center}
+  .sched-detail{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 9px 128px}
+  .sched-detail input{padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fbfdfb}
+
+  .acct-row{display:grid;grid-template-columns:1fr 120px 36px;gap:8px;align-items:center;margin-bottom:8px}
+  .acct-row input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .acct-row input:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .acct-del{border:1px solid #eccecc;background:#fff;color:var(--danger);border-radius:8px;font-size:17px;line-height:1;height:36px}
+  .acct-del:hover{background:#fbf0ef}
+  .bulk-grid-head{display:grid;gap:8px;font-size:11px;color:var(--muted);font-weight:700;margin-bottom:6px;padding:0 2px}
+  .bulk-row{display:grid;gap:8px;align-items:center;margin-bottom:7px}
+  .bgh-dept,.br-dept{grid-template-columns:1.5fr 1.1fr .8fr 1.2fr 34px}
+  .bgh-acct,.br-acct{grid-template-columns:1fr 1fr 1fr 1.2fr 34px}
+  .bulk-row input,.bulk-row select{padding:8px 9px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;width:100%;outline:none}
+  .bulk-row input:focus,.bulk-row select:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .bulk-del{border:1px solid #eccecc;background:#fff;color:var(--danger);border-radius:8px;font-size:16px;height:34px;line-height:1}
+  .bulk-del:hover{background:#fbf0ef}
+  .acct-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .apick{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:10px;padding:9px 11px 9px 34px;position:relative;cursor:pointer;background:#fff;transition:.12s}
+  .apick:hover{border-color:var(--yh-green-light);background:var(--yh-green-tint)}
+  .apick.on{border-color:var(--yh-green);background:var(--yh-green-light)}
+  .apick input{position:absolute;left:11px;top:12px;width:15px;height:15px;accent-color:var(--yh-green)}
+  .apick-main{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .apick-main .mono{font-size:11px;background:var(--bg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .apick-sub{font-size:11px;color:var(--muted)}
+  @media(max-width:560px){.acct-pick{grid-template-columns:1fr}}
+
+  .ivs-row{display:flex;gap:10px;align-items:stretch;background:#fbfdfb;border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px}
+  .ivs-grid{flex:1;display:grid;grid-template-columns:84px 1fr 96px 96px;gap:9px}
+  .ivs-f.wide{grid-column:span 2}
+  .ivs-f label{font-size:10.5px;color:var(--muted);font-weight:700;display:block;margin-bottom:4px}
+  .ivs-f input,.ivs-f select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12.5px;background:#fff;outline:none}
+  .ivs-f input:focus,.ivs-f select:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .ivs-del{flex:0 0 auto;align-self:center;border:1px solid #eccecc;background:#fff;color:var(--danger);border-radius:8px;font-size:17px;line-height:1;width:34px;height:34px}
+  .ivs-del:hover{background:#fbf0ef}
+  .ivs-empty{font-size:12px;color:var(--muted);background:#fbfdfb;border:1px dashed var(--line);border-radius:10px;padding:12px;text-align:center;margin-bottom:9px}
+  @media(max-width:560px){.ivs-grid{grid-template-columns:1fr 1fr}.ivs-f.wide{grid-column:span 2}}
+
+  .sched-ro tr.cur td{background:var(--yh-green-light)}
+  .nowtag{font-size:10px;font-weight:700;color:#fff;background:var(--yh-green);padding:1px 7px;border-radius:999px;margin-left:6px}
+
+  .mail-layout{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+  .mail-form{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+  .mail-out{background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .mail-out .mo-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .mail-out .mo-head h4{font-size:14px}
+  .mo-section{padding:16px 18px;border-bottom:1px solid var(--line)}
+  .mo-section .lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+  .mo-subject{font-size:14px;font-weight:700;color:var(--ink);background:var(--yh-green-tint);padding:10px 12px;border-radius:8px;word-break:break-all}
+  .mo-body{white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--text);background:var(--bg);padding:14px;border-radius:8px;min-height:200px}
+  .copy-btn{font-size:11.5px;padding:5px 11px;border-radius:7px;border:1px solid var(--yh-green-light);background:var(--yh-green-light);color:var(--yh-green-dark);font-weight:700}
+  .copy-btn:hover{background:var(--yh-green);color:#fff;border-color:var(--yh-green)}
+  .copy-btn.copied{background:var(--yh-green);color:#fff}
+  .help-note{font-size:12px;color:var(--muted);background:var(--yh-green-tint);border:1px solid var(--yh-green-light);border-radius:10px;padding:10px 13px;margin-bottom:18px;line-height:1.55}
+
+  /* ===== 통계 ===== */
+  .stat-bar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .stat-bar .sf{display:flex;flex-direction:column;gap:6px}
+  .stat-bar .sf label{font-size:12px;font-weight:600;color:var(--text)}
+  .stat-bar .sf input{padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:150px}
+  .stat-bar .sf input:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light);outline:none}
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+  .kpi{background:linear-gradient(135deg,var(--yh-green-dark),var(--yh-green));color:#fff;border-radius:16px;padding:20px;min-height:118px;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--shadow)}
+  .kpi .l{font-size:13px;opacity:.9}
+  .kpi .v{font-size:34px;font-weight:800;margin-top:6px;line-height:1}
+  .kpi .v small{font-size:15px;font-weight:600;opacity:.85}
+  .stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+  .stat-c{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-height:92px;display:flex;flex-direction:column;justify-content:center}
+  .stat-c .l{font-size:12px;color:var(--muted)}
+  .stat-c .v{font-size:24px;font-weight:800;color:var(--ink);margin-top:4px}
+  .stat-c .v small{font-size:13px;font-weight:600;color:var(--muted)}
+  .viz{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:18px}
+  .viz h4{font-size:14px;margin-bottom:14px}
+  .bar-row{display:grid;grid-template-columns:96px 1fr 64px;gap:10px;align-items:center;margin-bottom:10px}
+  .bar-row .bl{font-size:12.5px;color:var(--text);font-weight:600}
+  .bar-track{background:var(--bg);border-radius:7px;height:22px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:7px;min-width:2px;transition:width .3s}
+  .bar-row .bv{font-size:13px;font-weight:800;color:var(--ink);text-align:right}
+  .funnel-row{display:grid;grid-template-columns:120px 1fr 56px;gap:10px;align-items:center;margin-bottom:9px}
+  .funnel-row .fl{font-size:12.5px;color:var(--text);font-weight:600}
+  .funnel-track{height:26px;border-radius:8px;background:var(--bg);overflow:hidden}
+  .funnel-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--yh-green),var(--yh-green-dark));min-width:3px}
+  .funnel-row .fv{font-size:13px;font-weight:800;text-align:right;color:var(--ink)}
+
+  /* ===== 일정표(Gantt) ===== */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .lg{font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px}
+  .lg-c{width:12px;height:12px;border-radius:3px;display:inline-block}
+  .cal-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+  .cal-nav{display:flex;align-items:center;gap:8px}
+  .cal-nav button{border:1px solid var(--line);background:#fff;border-radius:8px;width:34px;height:34px;font-size:17px;color:var(--text)}
+  .cal-nav button:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
+  .cal-title{font-size:17px;font-weight:800;color:var(--ink);min-width:96px;text-align:center}
+  .cal{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+  .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);background:var(--yh-green-tint)}
+  .cal-dow>div{padding:9px;text-align:center;font-size:12px;font-weight:700;color:var(--yh-green-dark);border-right:1px solid var(--line)}
+  .cal-dow>div:last-child{border-right:none}
+  .cal-week{position:relative}
+  .cal-week-bg{position:absolute;inset:0;display:grid;grid-template-columns:repeat(7,1fr)}
+  .cal-cell{border-right:1px solid var(--line);border-top:1px solid var(--line);padding:6px;cursor:pointer;transition:background .12s}
+  .cal-cell:nth-child(7n){border-right:none}
+  .cal-cell:hover:not(.empty){background:var(--yh-green-tint)}
+  .cal-cell.empty{background:#fafbfa;cursor:default}
+  .cal-date{font-size:12px;font-weight:700;color:var(--text);width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+  .cal-cell.cal-sun .cal-date{color:#c0504d}
+  .cal-cell.today .cal-date{background:var(--yh-green);color:#fff;border-radius:50%}
+  .cal-bars{position:absolute;inset:0;pointer-events:none}
+  .cal-bar{position:absolute;height:20px;border-radius:5px;font-size:10.5px;font-weight:700;display:flex;align-items:center;padding:0 7px;overflow:hidden;pointer-events:auto;cursor:pointer;transition:filter .12s}
+  .cal-bar:hover{filter:brightness(.94)}
+  .cal-bar .cb-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ===== 전형 상세 보드 ===== */
+  .board-back{position:fixed;inset:0;background:#eef1ee;z-index:120;display:flex;flex-direction:column}
+  .board-bar{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:0 0 auto}
+  .board-bar .bt{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--ink)}
+  .board-bar .pill{font-size:11px;font-weight:700;background:var(--yh-green-light);color:var(--yh-green-dark);padding:3px 10px;border-radius:999px}
+  .board-scroll{flex:1;overflow:auto;padding:22px;background-image:radial-gradient(#d7ddd8 1px,transparent 1px);background-size:18px 18px}
+  .board-cols{display:flex;gap:22px;align-items:flex-start;width:max-content;margin:0 auto}
+  .board-col{width:296px;flex:0 0 296px;position:relative}
+  .board-col:not(:last-child)::after{content:"›";position:absolute;right:-17px;top:54px;color:#b9c3bc;font-size:22px;font-weight:700}
+  .col-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+  .col-head{display:flex;flex-direction:column;align-items:center;text-align:center;padding-bottom:6px}
+  .col-icon{width:52px;height:52px;border-radius:50%;background:var(--yh-green-tint);display:flex;align-items:center;justify-content:center;font-size:25px;margin-bottom:8px}
+  .col-title{font-size:15px;font-weight:700;color:var(--ink)}
+  .col-card.active{border-color:var(--yh-green);box-shadow:0 0 0 2px var(--yh-green-light)}
+  .col-card.active .col-icon{background:var(--yh-green)}
+  .sum-row{display:flex;justify-content:space-between;font-size:12.5px;padding:8px 0;border-top:1px solid var(--line);gap:8px}
+  .sum-row .k{color:var(--muted)}.sum-row .v{font-weight:700;color:var(--text);text-align:right}
+  .sum-link{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--yh-green-dark);font-weight:700;padding-top:10px;margin-top:4px;border-top:1px solid var(--line)}
+  .sum-link span.ic{color:#b9c3bc}
+  .col-prog{font-size:11px;font-weight:700;color:var(--yh-green-dark);background:var(--yh-green-light);padding:3px 11px;border-radius:999px;margin-top:9px}
+  .chk-conn{width:2px;height:9px;background:#cfd8d2;margin:0 auto}
+  .chk-item{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px;box-shadow:0 1px 2px rgba(0,0,0,.05);transition:.15s}
+  .chk-box{width:25px;height:25px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--muted);flex:0 0 auto}
+  .chk-mid{flex:1;min-width:0}
+  .chk-label{font-size:13px;font-weight:600;color:var(--ink);word-break:keep-all;line-height:1.4}
+  .chk-next{font-size:10.5px;font-weight:800;color:var(--yh-gold);margin-top:3px;display:flex;align-items:center;gap:4px}
+  .chk-next::before{content:"▶";font-size:8px}
+  .chk-btn{flex:0 0 auto;font-size:11.5px;font-weight:700;padding:6px 12px;border-radius:8px;border:1px solid var(--yh-green);background:#fff;color:var(--yh-green-dark)}
+  .chk-btn:hover{background:var(--yh-green-tint)}
+  .chk-btn.on{background:var(--yh-green);color:#fff;border-color:var(--yh-green)}
+  .chk-item.done{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
+  .chk-item.done .chk-box{background:var(--yh-green);border-color:var(--yh-green);color:#fff}
+  .chk-item.done .chk-label{color:var(--muted);text-decoration:line-through}
+  .chk-item.next{border-color:var(--yh-gold);box-shadow:0 0 0 3px rgba(168,130,63,.2)}
+  .chk-item.next .chk-box{border-color:var(--yh-gold);color:var(--yh-gold)}
+  .rep-row{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--line);font-size:14px;color:var(--text)}
+  .rep-row:last-child{border-bottom:none}
+  .rep-row b{color:var(--yh-green-dark);font-size:18px}
+  .cev-row{display:flex;justify-content:space-between;gap:12px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:13px}
+  .cev-row .k{color:var(--muted)}.cev-row .v{font-weight:700;color:var(--text);text-align:right}
+  .cev-sub{font-size:11.5px;font-weight:800;color:var(--yh-green-dark);margin:14px 0 8px;letter-spacing:.2px}
+  .cev-sess{background:var(--yh-green-tint);border:1px solid var(--yh-green-light);border-radius:10px;padding:11px 13px;margin-bottom:8px}
+  .cev-sess-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;color:var(--ink)}
+  .cev-sess-h b{color:var(--yh-green-dark)}
+  .cev-sess-h span{font-size:12px;color:var(--text);font-weight:600}
+  .cev-sess-d{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+
+  .tl-hero{background:linear-gradient(120deg,var(--yh-green-dark),var(--yh-green));color:#fff;border-radius:18px;padding:26px 28px;margin-bottom:22px;box-shadow:var(--shadow)}
+  .tl-hero .eyebrow{font-size:12px;opacity:.85;font-weight:600}
+  .tl-hero h1{color:#fff;font-size:26px;margin:4px 0 6px}
+  .tl-hero .now{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;margin-top:6px}
+  .tl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+  .tl-stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-height:84px}
+  .tl-stat .s-l{font-size:12px;color:var(--muted)}
+  .tl-stat .s-v{font-size:20px;font-weight:800;color:var(--ink);margin-top:4px}
+  .iv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .iv-c{background:var(--yh-green-tint);border:1px solid var(--yh-green-light);border-radius:10px;padding:12px 14px}
+  .iv-c .l{font-size:11.5px;color:var(--muted)}.iv-c .v{font-size:14px;font-weight:700;color:var(--ink);margin-top:3px}
+  .section-title{font-size:14px;font-weight:700;color:var(--ink);margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .section-title::before{content:"";width:4px;height:15px;background:var(--yh-green);border-radius:2px}
+  .footer{max-width:1180px;margin:0 auto;padding:20px 24px 40px;color:var(--muted);font-size:11.5px;text-align:center}
+  @media(max-width:820px){.mail-layout{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr}}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="mark"><img src="assets/yh-symbol.jpg" alt="유한양행 심볼" /></div>
+    <div><div class="name">유한양행</div><div class="sub">채용 전형 현황 시스템</div></div>
+  </div>
+  <div class="topbar-right" id="topRight"></div>
+</header>
+
+<!-- LOGIN -->
+<section id="loginView" class="login-wrap">
+  <div class="login-shell">
+    <div class="login-brand">
+      <div class="lb-logo"><div class="lm"><img src="assets/yh-symbol.jpg" alt="유한양행 심볼" /></div><div class="lt">유한양행<small>YUHAN CORPORATION</small></div></div>
+      <div class="lb-mid"><h2>가장 좋은 인재를<br>가장 투명한 절차로</h2><p>유한양행과 함께 성장할 인재를 찾는 채용 여정의 모든 단계를, 한 곳에서 확인하고 관리합니다.</p></div>
+      <div class="lb-bot"><b>Since 1926.</b> 건강한 사회를 위한 가치를 이어온 유한양행의 채용 전형 현황 시스템입니다.</div>
+    </div>
+    <div class="login-form">
+      <h3>전형 현황 로그인</h3>
+      <p class="desc">접속 아이디와 코드를 입력해 주세요.</p>
+      <div class="field"><label for="inUser">접속 아이디</label><input id="inUser" type="text" autocomplete="off" placeholder="아이디 입력" /></div>
+      <div class="field"><label for="inCode">접속 코드</label><input id="inCode" type="password" autocomplete="off" placeholder="접속 코드 입력" /></div>
+      <button class="btn-primary" onclick="doLogin()">로그인</button>
+      <div class="login-err" id="loginErr"></div>
+      <div class="login-hint">체험용 · 관리자 <code>admin / 0000</code> · 팀장(예) <code>sales1 / 0000</code></div>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN -->
+<main id="adminView" class="hidden">
+  <div class="app">
+    <div class="tabs">
+      <button class="tab active" data-tab="dash" onclick="switchTab('dash')">전형 현황</button>
+      <button class="tab" data-tab="completed" onclick="switchTab('completed')">완료된 전형</button>
+      <button class="tab" data-tab="manage" onclick="switchTab('manage')">계정 관리</button>
+      <button class="tab" data-tab="mail" onclick="switchTab('mail')">메일 작성</button>
+      <button class="tab" data-tab="stats" onclick="switchTab('stats')">통계</button>
+      <button class="tab" data-tab="sched" onclick="switchTab('sched')">일정표</button>
+    </div>
+
+    <section id="tab-dash">
+      <div class="page-head">
+        <div><h1>전형 진행 현황</h1><div class="sub">부서 카드를 클릭하면 전형 상세 보드가 열립니다. 카드 하단에서 단계를 바로 변경할 수 있습니다.</div></div>
+        <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="openBulkModal()">⊕ 전형 일괄 등록</button><button class="btn-ghost" onclick="openDeptModal()">+ 전형 추가</button></div>
+      </div>
+      <div class="stage-summary" id="stageSummary"></div>
+      <div class="dept-grid" id="deptGrid"></div>
+    </section>
+
+    <section id="tab-completed" class="hidden">
+      <div class="page-head">
+        <div><h1>완료된 전형</h1><div class="sub">‘채용 종료 → 그룹웨어 게시판 게재’까지 완료한 전형입니다. 통계에는 계속 포함됩니다.</div></div>
+      </div>
+      <div class="dept-grid" id="completedGrid"></div>
+    </section>
+
+    <section id="tab-manage" class="hidden">
+      <div class="page-head">
+        <div><h1>계정 관리</h1><div class="sub">시스템 접속 계정을 관리합니다. 관리자 외 계정은 ‘일반’으로, 본인 부서 현황을 조회 전용으로 봅니다.</div></div>
+        <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="openAcctBulkModal()">⊕ 계정 일괄 관리</button><button class="btn-ghost" onclick="openAcctModal()">+ 계정 추가</button></div>
+      </div>
+      <div class="panel"><table><thead><tr><th>구분</th><th>아이디</th><th>성명</th><th>부서</th><th>직책/직급</th><th>등록일</th><th>관리</th></tr></thead><tbody id="manageBody"></tbody></table></div>
+    </section>
+
+    <section id="tab-mail" class="hidden">
+      <div class="page-head"><div><h1>전형 결과 메일 작성</h1><div class="sub">단계별 양식에 숫자만 입력하면 제목·본문이 자동 완성됩니다.</div></div></div>
+      <div class="help-note">💡 부서와 전형 단계를 고르면 입력칸이 나타납니다. 값을 채우면 오른쪽 미리보기가 실시간 갱신되고, <b>복사</b> 버튼으로 가져갈 수 있습니다. (정형 템플릿은 추후 교체 예정)</div>
+      <div class="mail-layout">
+        <div class="mail-form">
+          <div class="form-field"><label>부서 선택</label><select id="mailDept" onchange="onMailDeptChange()"></select></div>
+          <div class="form-field"><label>전형 단계(메일 종류)</label><select id="mailTemplate" onchange="renderMailFields()"></select></div>
+          <div id="mailFields"></div>
+        </div>
+        <div class="mail-out">
+          <div class="mo-head"><h4>메일 미리보기</h4><span style="font-size:11px;color:var(--muted)" id="mailRecipientHint"></span></div>
+          <div class="mo-section"><div class="lbl">제목 <button class="copy-btn" onclick="copyText('mailSubject',this)">제목 복사</button></div><div class="mo-subject" id="mailSubject"></div></div>
+          <div class="mo-section" style="border-bottom:none"><div class="lbl">본문 <button class="copy-btn" onclick="copyText('mailBody',this)">본문 복사</button></div><div class="mo-body" id="mailBody"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-stats" class="hidden">
+      <div class="page-head"><div><h1>채용 통계</h1><div class="sub">기간을 지정하면 채용형태·전형 퍼널 등 집계를 한눈에 확인할 수 있습니다.</div></div></div>
+      <div class="stat-bar">
+        <div class="sf"><label>시작일</label><input id="statFrom" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" oninput="this.value=maskDate(this.value)"></div>
+        <div class="sf"><label>종료일</label><input id="statTo" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" oninput="this.value=maskDate(this.value)"></div>
+        <button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="computeStats()">조회</button>
+        <button class="btn-ghost" onclick="document.getElementById('statFrom').value='';document.getElementById('statTo').value='';computeStats()">전체기간</button>
+        <div class="hint-inline" style="align-self:center">· 비워두면 전체 기간 / 기준일 = 공고 진행 시작일</div>
+      </div>
+      <div id="statResult"></div>
+    </section>
+
+    <section id="tab-sched" class="hidden">
+      <div class="page-head"><div><h1>전형 일정표</h1><div class="sub">전형별 색상과 기간을 타임라인으로 표시합니다. 면접 장소·면접관·배석자도 함께 확인할 수 있습니다.</div></div></div>
+      <div id="schedResult"></div>
+    </section>
+  </div>
+  <div class="footer">유한양행 채용 전형 현황 시스템 · 프로토타입 · 데이터는 이 브라우저에만 저장됩니다.</div>
+</main>
+
+<!-- TEAM -->
+<main id="teamView" class="hidden">
+  <div class="app"><div id="teamContent"></div></div>
+  <div class="footer">유한양행 채용 전형 현황 시스템 · 본 화면은 조회 전용입니다.</div>
+</main>
+
+<!-- DEPT MODAL -->
+<div id="deptModal" class="modal-back hidden">
+  <div class="modal">
+    <div class="modal-head"><h3 id="deptModalTitle">전형 추가</h3><button class="x-btn" onclick="closeDeptModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="form-field"><label>부서명</label><input id="f_name" placeholder="예: 영업1팀" /></div>
+        <div class="form-field"><label>채용형태</label><select id="f_type"></select></div>
+        <div class="form-field"><label>채용요청인원</label><input id="f_req" type="number" min="0" placeholder="예: 2" /></div>
+        <div class="form-field"><label>정규직 TO <span class="hint-inline">· 인턴 등 전환 TO</span></label><input id="f_fto" type="number" min="0" placeholder="예: 1" /></div>
+        <div class="form-field full"><label>현재 전형 단계</label><select id="f_stage"></select></div>
+      </div>
+      <div class="section-title" style="margin-top:6px">전형별 일정 <span class="hint-inline" style="margin-left:6px">· 숫자 8자리 입력 시 자동 정렬 (예: 20260418 → 2026-04-18)</span></div>
+      <div id="f_schedule" style="margin-bottom:6px"></div>
+      <div class="section-title" style="margin-top:18px">면접 정보 <span class="hint-inline" style="margin-left:6px">· 마감일이 공란이면 시작일 당일만 진행</span></div>
+      <div id="iv_sessions"></div>
+      <button type="button" class="mini" onclick="addIvSession()">+ 면접 세션 추가</button>
+      <div class="form-field full" style="margin-top:14px"><label>배석자 <span class="hint-inline">· 전체 공통</span></label><textarea id="iv_obs" style="min-height:52px" placeholder="예: 인사팀 김주임"></textarea></div>
+      <div class="section-title" style="margin-top:18px">등록 계정 <span class="hint-inline" style="margin-left:6px">· 이 전형을 조회할 수 있는 계정을 선택하세요. 계정은 ‘계정 관리’ 탭에서 만듭니다.</span></div>
+      <div id="f_accounts"></div>
+      <div class="form-field full" style="margin-top:18px"><label>비고 <span class="hint-inline">· 진행 단계는 전형 상세 보드 체크리스트로 자동 표시됩니다. 여기에는 특이사항만 적어주세요.</span></label><textarea id="f_notes" placeholder="특이사항, 메모 등 (선택)"></textarea></div>
+      <div class="section-title" style="margin-top:6px">전형 인원 현황 (선택 입력)</div>
+      <div class="grid2">
+        <div class="form-field"><label>지원자 수</label><input id="f_c_applicants" type="number" min="0" /></div>
+        <div class="form-field"><label>서류 합격</label><input id="f_c_doc" type="number" min="0" /></div>
+        <div class="form-field"><label>AI역량검사 합격</label><input id="f_c_ai" type="number" min="0" /></div>
+        <div class="form-field"><label>채용 인원</label><input id="f_c_hired" type="number" min="0" /></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button id="deptDeleteBtn" class="mini danger" style="margin-right:auto" onclick="deleteDept(editingId)">부서 삭제</button><button class="btn-ghost" onclick="closeDeptModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveDept()">저장</button></div>
+  </div>
+</div>
+
+<!-- BULK MODAL -->
+<div id="bulkModal" class="modal-back hidden">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-head"><h3>전형 일괄 등록</h3><button class="x-btn" onclick="closeBulkModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="help-note" style="margin-bottom:16px">행을 추가해 전형(부서)을 입력하세요. <b>부서명만 필수</b>입니다. 각 전형의 접속 계정은 자동 생성되며(접속코드 0000), 생성 후 ‘상세편집’에서 계정을 추가 등록할 수 있습니다.</div>
+      <div class="bulk-grid-head bgh-dept"><span>부서명 *</span><span>채용형태</span><span>요청인원</span><span>현재 단계</span><span></span></div>
+      <div id="bulkRows"></div>
+      <button type="button" class="mini" onclick="addBulkRow()" style="margin-top:2px">+ 행 추가</button>
+      <div id="bulkPreview" style="font-size:12.5px;color:var(--muted);margin-top:14px">부서명을 입력하면 미리보기가 표시됩니다.</div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeBulkModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveBulk()">일괄 등록</button></div>
+  </div>
+</div>
+
+<!-- ACCOUNT MODAL -->
+<div id="acctModal" class="modal-back hidden">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h3 id="acctModalTitle">계정 추가</h3><button class="x-btn" onclick="closeAcctModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="grid2">
+        <div class="form-field"><label>구분</label><select id="a_role"><option value="normal">일반</option><option value="admin">관리자</option></select></div>
+        <div class="form-field"><label>소속 부서 <span class="hint-inline">· 정보용</span></label><input id="a_dept" placeholder="예: 인사팀" /></div>
+        <div class="form-field"><label>아이디</label><input id="a_user" placeholder="예: sales2" /></div>
+        <div class="form-field"><label>접속 코드</label><input id="a_code" placeholder="0000" /></div>
+        <div class="form-field"><label>성명</label><input id="a_name" placeholder="예: 홍길동" /></div>
+        <div class="form-field"><label>직책/직급</label><input id="a_title" placeholder="예: 인사팀장" /></div>
+      </div>
+      <div class="help-note" style="margin:4px 0 0">여기서 계정을 만든 뒤, <b>전형 추가·편집</b> 화면에서 해당 계정을 전형에 등록합니다. 한 계정을 여러 전형에 등록할 수 있습니다(예: 인사팀장). 소속 부서는 정보용 표기이며 조회 권한과 무관합니다.</div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeAcctModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveAcct()">저장</button></div>
+  </div>
+</div>
+
+<!-- ACCOUNT BULK MODAL -->
+<div id="acctBulkModal" class="modal-back hidden">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-head"><h3>계정 일괄 관리</h3><button class="x-btn" onclick="closeAcctBulkModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="help-note" style="margin-bottom:16px">행을 추가해 계정을 입력하세요. <b>아이디만 필수</b>이며, 부서는 정보용 표기입니다. 접속코드는 <b>0000</b>으로 설정됩니다. 생성 후 전형 추가·편집에서 등록하세요.</div>
+      <div class="bulk-grid-head bgh-acct"><span>아이디 *</span><span>성명</span><span>부서</span><span>직책/직급</span><span></span></div>
+      <div id="acctBulkRows"></div>
+      <button type="button" class="mini" onclick="addAcctBulkRow()" style="margin-top:2px">+ 행 추가</button>
+      <div id="acctBulkPreview" style="font-size:12.5px;color:var(--muted);margin-top:14px">아이디를 입력하면 미리보기가 표시됩니다.</div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeAcctBulkModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveAcctBulk()">일괄 등록</button></div>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div id="boardModal" class="board-back hidden">
+  <div class="board-bar"><div class="bt"><button class="x-btn" style="font-size:24px" onclick="closeBoard()">&larr;</button><span id="boardTitle"></span><span class="pill" id="boardStage"></span></div>
+    <div style="font-size:12px;color:var(--muted)">전형 워크플로우 · 조회용 (커스터마이징 추후)</div></div>
+  <div class="board-scroll"><div class="board-cols" id="boardCols"></div></div>
+</div>
+
+<!-- REPORT POPUP -->
+<div id="reportModal" class="modal-back hidden" style="z-index:140">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h3 id="reportTitle">채용 성과 리포트</h3><button class="x-btn" onclick="closeReport()">&times;</button></div>
+    <div class="modal-body"><div id="reportBody"></div></div>
+    <div class="modal-foot"><button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="closeReport()">닫기</button></div>
+  </div>
+</div>
+
+<!-- CALENDAR EVENT POPUP -->
+<div id="calEventModal" class="modal-back hidden" style="z-index:150">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head"><h3 id="calEventTitle">일정 상세</h3><button class="x-btn" onclick="closeCalEvent()">&times;</button></div>
+    <div class="modal-body"><div id="calEventBody"></div></div>
+    <div class="modal-foot"><button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="closeCalEvent()">닫기</button></div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/* ===== 상수 ===== */
+const STAGES = ["공고준비","공고 진행","서류전형","AI역량검사","면접전형","입사"];
+const STAGE_COLORS = {"공고준비":"#9AA8A0","공고 진행":"#3E8ED0","서류전형":"#7A6FD0","AI역량검사":"#C28A2B","면접전형":"#C0392B","입사":"#1F7A3D"};
+const STAGE_SCHED = {"공고준비":{s:false,e:false},"공고 진행":{s:true,e:true},"서류전형":{s:true,e:true},"AI역량검사":{s:true,e:true},"면접전형":{s:true,e:true},"입사":{s:true,e:false}};
+const IV_ROUNDS = ["통합","1차","2차","3차"];
+const STAGE_DETAIL = {"면접전형":true}; // 장소/면접관/배석자 입력 단계
+const EMP_TYPES = ["인턴","경력","계약직(일반)","계약직(대체)","계약직(보훈)","계약직(장애)"];
+const ADMIN = { user:"admin", code:"0000" };
+const LS3="yh_recruit_state_v3", LS2="yh_recruit_state_v2", LS1="yh_recruit_state_v1";
+
+/* ===== 유틸 ===== */
+function id(){ return "d"+Math.random().toString(36).slice(2,9); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function hexA(hex,a){ const n=hex.replace('#',''); return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`; }
+function emptySchedule(){ const o={}; STAGES.forEach(s=>o[s]={s:"",e:"",place:"",panel:"",observers:"",timeStart:"",timeEnd:"",sessions:[]}); return o; }
+function maskDate(v){ const d=String(v).replace(/\D/g,"").slice(0,8); let o=d.slice(0,4); if(d.length>4)o+="-"+d.slice(4,6); if(d.length>6)o+="-"+d.slice(6,8); return o; }
+function di(i,field,val){ return `<input class="datein" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" id="sch_${i}_${field}" value="${val||''}" oninput="this.value=maskDate(this.value)">`; }
+function dnum(s){ if(!s) return null; const t=Date.parse(s+"T00:00:00Z"); return isNaN(t)?null:Math.floor(t/86400000); }
+
+/* ===== 시드/마이그레이션 ===== */
+function seed(){
+  const sc=(obj)=>{ const s=emptySchedule(); Object.keys(obj).forEach(k=>Object.assign(s[k],obj[k])); return s; };
+  const mk=(o)=>Object.assign({id:id(),ftTO:0,notes:"",updated:today(),schedule:emptySchedule(),counts:{applicants:0,doc:0,ai:0,hired:0}},o);
+  return { departments:[
+    mk({name:"영업1팀",type:"경력",reqCount:3,stage:"AI역량검사",
+      schedule:sc({"공고 진행":{s:"2026-05-10",e:"2026-05-20"},"서류전형":{s:"2026-05-21",e:"2026-05-28"},"AI역량검사":{s:"2026-06-10",e:"2026-06-16"},"면접전형":{s:"2026-06-23",e:"2026-06-24",observers:"인사팀 김주임",sessions:[{round:"1차",date:"2026-06-23",ts:"14:00",te:"16:00",place:"본사 3층 면접실 A",panel:"영업1팀장, 인사팀장"},{round:"2차",date:"2026-06-24",ts:"10:00",te:"11:30",place:"본사 7층 임원회의실",panel:"영업본부장"}]},"입사":{s:"2026-07-01"}}),
+      accounts:[{user:"sales1",code:"0000",name:"김영수",title:"영업1팀장"},{user:"sales1-lead",code:"0000",name:"박상무",title:"영업본부장"},{user:"hrlead",code:"0000",name:"정인사",title:"인사팀장",dept:"인사팀"}],
+      notes:"AI역량검사 응시 마감 D-1. 적합자 위주로 면접 일정 조율 예정.",
+      counts:{applicants:42,doc:18,ai:0,hired:0},updated:"2026-06-12"}),
+    mk({name:"마케팅팀",type:"경력",reqCount:1,stage:"서류전형",
+      schedule:sc({"공고 진행":{s:"2026-05-25",e:"2026-06-05"},"서류전형":{s:"2026-06-06",e:"2026-06-16"},"면접전형":{s:"2026-06-26",timeStart:"13:00",timeEnd:"15:00",place:"본사 5층 회의실 2",panel:"마케팅팀장",observers:""}}),
+      accounts:[{user:"mkt1",code:"0000",name:"이지은",title:"마케팅팀장"},{user:"hrlead",code:"0000",name:"정인사",title:"인사팀장",dept:"인사팀"}],
+      notes:"서류 접수 마감 후 1차 검토 중. 포트폴리오 비중 높게 평가.",
+      counts:{applicants:67,doc:0,ai:0,hired:0},updated:"2026-06-13"}),
+    mk({name:"중앙연구소",type:"경력",reqCount:2,stage:"면접전형",
+      schedule:sc({"공고 진행":{s:"2026-04-10",e:"2026-04-24"},"서류전형":{s:"2026-04-25",e:"2026-05-02"},"AI역량검사":{s:"2026-05-08",e:"2026-05-14"},"면접전형":{s:"2026-06-18",timeStart:"10:00",timeEnd:"12:30",place:"중앙연구소 세미나실",panel:"연구소장, 신약개발팀장",observers:"인사팀 이대리"}}),
+      accounts:[{user:"rnd1",code:"0000",name:"정현우",title:"중앙연구소 책임연구원"},{user:"hrlead",code:"0000",name:"정인사",title:"인사팀장",dept:"인사팀"}],
+      notes:"1차 실무면접 완료, 2차 임원면접 6/18 예정.",
+      counts:{applicants:35,doc:12,ai:7,hired:0},updated:"2026-06-11"}),
+    mk({name:"생산관리팀",type:"계약직(일반)",reqCount:2,stage:"공고 진행",
+      schedule:sc({"공고 진행":{s:"2026-06-08",e:"2026-06-22"}}),
+      accounts:[{user:"prod1",code:"0000",name:"최민호",title:"생산관리팀장"}],
+      notes:"채용공고 게시 완료(잡코리아/사람인). 공고 마감 6/22.",
+      counts:{applicants:0,doc:0,ai:0,hired:0},updated:"2026-06-10"}),
+    mk({name:"품질관리팀",type:"인턴",reqCount:2,ftTO:1,stage:"공고준비",schedule:emptySchedule(),
+      accounts:[{user:"qa1",code:"0000",name:"한소희",title:"품질관리팀장"}],
+      notes:"인턴 2명 모집 → 정규직 전환 TO 1명. 공고 문안 준비 중.",
+      counts:{applicants:0,doc:0,ai:0,hired:0},updated:"2026-06-14"}),
+    mk({name:"경영지원팀",type:"경력",reqCount:1,stage:"입사",
+      schedule:sc({"공고 진행":{s:"2026-03-20",e:"2026-04-02"},"서류전형":{s:"2026-04-03",e:"2026-04-10"},"AI역량검사":{s:"2026-04-15",e:"2026-04-21"},"면접전형":{s:"2026-04-29",timeStart:"15:00",timeEnd:"16:30",place:"본사 7층 임원회의실",panel:"경영지원본부장",observers:""},"입사":{s:"2026-06-16"}}),
+      accounts:[{user:"hr1",code:"0000",name:"오정민",title:"경영지원팀장"}],
+      notes:"최종합격자 1명 입사 확정. 6/16 입사 예정.",
+      counts:{applicants:54,doc:15,ai:9,hired:1},updated:"2026-06-09"})
+  ]};
+}
+function migrateV1(old){
+  return { departments:(old.departments||[]).map(d=>{
+    const s=emptySchedule(); if(d.start) s["공고 진행"].s=d.start;
+    return { id:d.id||id(), name:d.name||"", type:"경력", reqCount:d.head||1, ftTO:0, stage:d.stage||STAGES[0], schedule:s,
+      accounts:(d.user?[{user:d.user,code:d.code||"0000"}]:[]), notes:d.notes||"",
+      counts:{applicants:(d.counts&&d.counts.applicants)||0,doc:(d.counts&&d.counts.doc)||0,ai:(d.counts&&d.counts.ai)||0,hired:(d.counts&&d.counts.interview)||0},
+      updated:d.updated||today() };
+  })};
+}
+function normalize(st){
+  if(!Array.isArray(st.accounts)) st.accounts=[];
+  (st.departments||[]).forEach(d=>{
+    if(d.stage==="충원요청") d.stage="공고준비";
+    const old=d.schedule||{}; if(old["충원요청"]&&!old["공고준비"]) old["공고준비"]=old["충원요청"];
+    const ns=emptySchedule(); STAGES.forEach(s=>{ const o=old[s]||{}; ns[s]={s:o.s||"",e:o.e||"",place:o.place||"",panel:o.panel||"",observers:o.observers||"",timeStart:o.timeStart||"",timeEnd:o.timeEnd||"",sessions:Array.isArray(o.sessions)?o.sessions:[]}; });
+    // 면접 정보: 구버전 단일 필드(timeStart/place/panel) → 세션 배열로 1회 이관
+    const iv=ns["면접전형"];
+    if(!iv.sessions.length && (iv.timeStart||iv.place||iv.panel)){
+      iv.sessions=[{round:"통합",date:iv.s||"",ts:iv.timeStart||"",te:iv.timeEnd||"",place:iv.place||"",panel:iv.panel||""}];
+    }
+    d.schedule=ns;
+    // 계정: 구버전 dept.accounts(전형 종속) → 전역 state.accounts + dept.accountUsers(참조)로 이관
+    if(!Array.isArray(d.accountUsers)) d.accountUsers=[];
+    if(Array.isArray(d.accounts)){
+      d.accounts.forEach(a=>{ if(!a||!a.user) return;
+        let g=st.accounts.find(x=>x.user===a.user);
+        if(!g){ g={user:a.user,code:a.code||"0000",name:a.name||"",title:a.title||"",dept:a.dept||d.name||"",role:a.role||"normal",createdAt:a.createdAt||d.updated||today()}; st.accounts.push(g); }
+        if(!d.accountUsers.includes(a.user)) d.accountUsers.push(a.user);
+      });
+      delete d.accounts;
+    }
+    if(!d.type) d.type="경력"; if(d.reqCount==null) d.reqCount=1; if(d.ftTO==null) d.ftTO=0;
+    if(!d.counts) d.counts={applicants:0,doc:0,ai:0,hired:0};
+    if(!d.checklist || typeof d.checklist!=="object") d.checklist={};
+    if(typeof d.completed!=="boolean") d.completed=false;
+    if(d.completedAt==null) d.completedAt="";
+  });
+  // 전역 계정 정규화 + 존재하지 않는 참조 정리
+  st.accounts.forEach(a=>{ if(a.code==null)a.code="0000"; if(a.name==null)a.name=""; if(a.title==null)a.title=""; if(a.dept==null)a.dept=""; if(!a.role)a.role="normal"; if(!a.createdAt)a.createdAt=today(); });
+  const userSet=new Set(st.accounts.map(a=>a.user));
+  (st.departments||[]).forEach(d=>{ d.accountUsers=(d.accountUsers||[]).filter(u=>userSet.has(u)); });
+  return st;
+}
+let state=(function(){
+  try{ const v=localStorage.getItem(LS3); if(v) return JSON.parse(v); }catch(e){}
+  try{ const v=localStorage.getItem(LS2); if(v) return normalize(JSON.parse(v)); }catch(e){}
+  try{ const v=localStorage.getItem(LS1); if(v) return normalize(migrateV1(JSON.parse(v))); }catch(e){}
+  return null;
+})();
+if(!state || !state.departments) state=seed();
+state=normalize(state);
+function saveState(){ try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){} }
+saveState();
+
+let session=null;
+function getDept(i){ return state.departments.find(x=>x.id===i); }
+function getAccount(u){ return (state.accounts||[]).find(a=>a.user===u); }
+function deptsForUser(u){ return state.departments.filter(d=>(d.accountUsers||[]).includes(u)); }
+function allUsers(exceptUser){ const s=new Set(); (state.accounts||[]).forEach(a=>{ if(a.user!==exceptUser) s.add(a.user); }); return s; }
+
+/* ===== 인증 ===== */
+function doLogin(){
+  const u=document.getElementById("inUser").value.trim(), c=document.getElementById("inCode").value.trim();
+  const err=document.getElementById("loginErr"); err.textContent="";
+  if(!u||!c){ err.textContent="아이디와 접속 코드를 입력하세요."; return; }
+  if(u===ADMIN.user && c===ADMIN.code){ session={role:"admin"}; enterApp(); return; }
+  const acc=(state.accounts||[]).find(a=>a.user===u && a.code===c);
+  if(acc){ session=(acc.role==="admin")?{role:"admin"}:{role:"team",user:u}; enterApp(); return; }
+  err.textContent="아이디 또는 접속 코드가 올바르지 않습니다.";
+}
+function logout(){ session=null; document.getElementById("inUser").value=""; document.getElementById("inCode").value=""; document.getElementById("loginErr").textContent="";
+  document.getElementById("loginView").classList.remove("hidden"); document.getElementById("adminView").classList.add("hidden"); document.getElementById("teamView").classList.add("hidden"); document.getElementById("topRight").innerHTML=""; }
+function enterApp(){
+  document.getElementById("loginView").classList.add("hidden");
+  if(session.role==="admin"){
+    document.getElementById("adminView").classList.remove("hidden"); document.getElementById("teamView").classList.add("hidden");
+    document.getElementById("topRight").innerHTML=`<span class="who"><b>관리자</b>님</span><span class="role-pill admin">관리자 · 다중접속</span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
+    renderAll(); switchTab("dash");
+  }else{
+    const acc=getAccount(session.user)||{};
+    document.getElementById("teamView").classList.remove("hidden"); document.getElementById("adminView").classList.add("hidden");
+    document.getElementById("topRight").innerHTML=`<span class="who"><b>${esc(acc.name||acc.user||"")}</b>${acc.title?(" · "+esc(acc.title)):""}</span><span class="role-pill">조회 전용</span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
+    renderTeamHome();
+  }
+}
+
+/* ===== 탭 ===== */
+function switchTab(t){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+  ["dash","completed","manage","mail","stats","sched"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("hidden",x!==t));
+  if(t==="completed") renderCompleted();
+  if(t==="mail") initMail();
+  if(t==="stats") computeStats();
+  if(t==="sched"){ const t0=new Date(); adminCal={y:t0.getFullYear(),m:t0.getMonth()}; renderScheduleTab(); }
+}
+
+/* ===== 대시보드 ===== */
+let stageFilter=null;
+function activeDepts(){ return state.departments.filter(d=>!d.completed); }
+function completedDepts(){ return state.departments.filter(d=>d.completed); }
+function renderAll(){ renderSummary(); renderDeptGrid(); renderCompleted(); renderManage(); }
+function renderSummary(){
+  const c={}; STAGES.forEach(s=>c[s]=0); activeDepts().forEach(d=>c[d.stage]++);
+  document.getElementById("stageSummary").innerHTML=STAGES.map(s=>`<div class="chip ${stageFilter===s?'active':''}" onclick="toggleFilter('${s}')"><div class="c-label"><span class="dot" style="background:${STAGE_COLORS[s]}"></span>${s}</div><div class="c-num">${c[s]}<small> 부서</small></div></div>`).join("");
+}
+function toggleFilter(s){ stageFilter=(stageFilter===s)?null:s; renderSummary(); renderDeptGrid(); }
+function stepperHTML(stage){
+  const cur=STAGES.indexOf(stage);
+  return `<div class="stepper">`+STAGES.map((s,i)=>{ const cls=i<cur?"done":(i===cur?"current":""); return `<div class="step ${cls}"><div class="line"></div><div class="node">${i<cur?'✓':(i+1)}</div><div class="label">${s}</div></div>`; }).join("")+`</div>`;
+}
+function badgeHTML(stage){ const col=STAGE_COLORS[stage]||"#888"; return `<span class="badge" style="background:${hexA(col,.14)};color:${col}">${stage}</span>`; }
+function countsHTML(d){ const c=d.counts||{}; const p=[];
+  if(c.applicants) p.push(`<span class="count-pill">지원 <b>${c.applicants}</b></span>`);
+  if(c.doc) p.push(`<span class="count-pill">서류합격 <b>${c.doc}</b></span>`);
+  if(c.ai) p.push(`<span class="count-pill">AI합격 <b>${c.ai}</b></span>`);
+  if(c.hired) p.push(`<span class="count-pill">채용 <b>${c.hired}</b></span>`);
+  return p.length?`<div class="counts-row">${p.join("")}</div>`:""; }
+function curScheduleHTML(d){
+  const cfg=STAGE_SCHED[d.stage]||{}; const v=(d.schedule&&d.schedule[d.stage])||{};
+  if(!cfg.s || (!v.s && !v.e)) return "";
+  const txt=cfg.e?`${v.s||'-'} ~ ${v.e||'-'}`:`${v.s||'-'}`;
+  return `<div class="stage-sched">현재 단계(${d.stage}) 일정 · <b>${txt}</b></div>`;
+}
+function renderDeptGrid(){
+  const base=activeDepts();
+  const list=stageFilter?base.filter(d=>d.stage===stageFilter):base;
+  const el=document.getElementById("deptGrid");
+  if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">해당 단계의 부서가 없습니다.</div>`; return; }
+  el.innerHTML=list.map(d=>`
+    <div class="dept-card">
+      <div class="dc-clickable" onclick="openBoard('${d.id}')">
+        <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
+          <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
+        <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span><span>등록 계정 <b>${(d.accountUsers||[]).length}개</b></span></div>
+        ${stepperHTML(d.stage)}
+        ${curScheduleHTML(d)}
+        ${countsHTML(d)}
+        ${nextActionHTML(d)}
+        ${remarkHTML(d)}
+      </div>
+      <div class="dc-actions">
+        <select class="mini" style="padding:6px 8px" onchange="quickStage('${d.id}',this.value)">${STAGES.map(s=>`<option ${s===d.stage?'selected':''}>${s}</option>`).join("")}</select>
+        <button class="mini" onclick="openDeptModal('${d.id}')">상세 편집</button>
+        <button class="mini" onclick="goMailFor('${d.id}')">메일 작성</button>
+      </div>
+    </div>`).join("");
+}
+function quickStage(i,stage){ const d=getDept(i); d.stage=stage; d.updated=today(); saveState(); renderAll(); toast(`${d.name} → ${stage} 단계로 변경됨`); }
+
+/* ===== 완료된 전형 ===== */
+function renderCompleted(){
+  const el=document.getElementById("completedGrid"); if(!el) return;
+  const list=completedDepts();
+  if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">완료된 전형이 없습니다. 전형 상세 보드의 ‘채용 종료 → 그룹웨어 게시판 게재’를 완료하면 이곳으로 이동합니다.</div>`; return; }
+  el.innerHTML=list.map(d=>{ const c=d.counts||{}; return `
+    <div class="dept-card completed-card">
+      <div class="dc-clickable" onclick="openBoard('${d.id}')">
+        <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
+          <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>
+          <span class="badge badge-done">채용 완료</span></div>
+        <div class="dc-meta"><span>완료일 <b>${d.completedAt||d.updated||'-'}</b></span><span>등록 계정 <b>${(d.accountUsers||[]).length}개</b></span></div>
+        ${stepperHTML(d.stage)}
+        <div class="counts-row" style="margin-top:14px">
+          <span class="count-pill">지원 <b>${c.applicants||0}</b></span><span class="count-pill">서류합격 <b>${c.doc||0}</b></span><span class="count-pill">AI합격 <b>${c.ai||0}</b></span><span class="count-pill">채용 <b>${c.hired||0}</b></span>
+        </div>
+        ${remarkHTML(d)}
+      </div>
+      <div class="dc-actions">
+        <button class="mini" onclick="openBoard('${d.id}')">전형 상세 보기</button>
+        <button class="mini" onclick="reopenDept('${d.id}')">전형 재개</button>
+      </div>
+    </div>`; }).join("");
+}
+function reopenDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 다시 진행 상태로 되돌릴까요?`)) return;
+  d.completed=false; d.completedAt=""; const cols=boardColumns(d); const dc=cols.find(x=>x.id==="done"); if(dc&&d.checklist) d.checklist["done:"+(dc.items.length-1)]=false;
+  d.updated=today(); saveState(); renderAll(); toast("전형을 재개했습니다. ‘전형 현황’에서 확인하세요."); }
+
+function renderManage(){
+  const rows=[`<tr>
+    <td><span class="role-pill admin">관리자</span></td>
+    <td><span class="mono">${esc(ADMIN.user)}</span></td>
+    <td>시스템 관리자</td>
+    <td><span style="color:var(--muted)">전체</span></td>
+    <td>시스템 관리자</td>
+    <td><span style="color:var(--muted)">-</span></td>
+    <td class="row-actions"><span style="color:var(--muted);font-size:12px">기본 계정</span></td></tr>`];
+  (state.accounts||[]).forEach((a,ai)=>{
+    const isAdmin=a.role==="admin";
+    const regCount=deptsForUser(a.user).length;
+    const deptCell=isAdmin
+      ? '<span style="color:var(--muted)">전체</span>'
+      : `${a.dept?esc(a.dept):'<span style="color:var(--muted)">-</span>'}${regCount?` <span class="hint-inline">· 전형 ${regCount}건 등록</span>`:' <span class="hint-inline">· 미등록</span>'}`;
+    rows.push(`<tr>
+      <td><span class="role-pill ${isAdmin?'admin':''}">${isAdmin?'관리자':'일반'}</span></td>
+      <td><span class="mono">${esc(a.user)}</span></td>
+      <td>${a.name?esc(a.name):'<span style="color:var(--muted)">-</span>'}</td>
+      <td>${deptCell}</td>
+      <td>${a.title?esc(a.title):'<span style="color:var(--muted)">-</span>'}</td>
+      <td>${a.createdAt||'-'}</td>
+      <td class="row-actions"><button class="mini" onclick="openAcctModal(${ai})">편집</button><button class="mini danger" onclick="deleteAcct(${ai})">삭제</button></td></tr>`);
+  });
+  document.getElementById("manageBody").innerHTML=rows.join("");
+}
+function deleteDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 삭제할까요? 등록된 계정은 ‘계정 관리’에 그대로 유지됩니다.`)) return; state.departments=state.departments.filter(x=>x.id!==i); saveState(); closeDeptModal(); renderAll(); toast("전형이 삭제되었습니다."); }
+
+/* ===== 계정 관리 (전역 계정) ===== */
+let editingAcctIdx=null;
+function openAcctModal(idx){
+  editingAcctIdx=(idx!=null)?+idx:null;
+  document.getElementById("acctModalTitle").textContent=(editingAcctIdx!=null)?"계정 편집":"계정 추가";
+  let a={user:"",code:"0000",name:"",title:"",dept:"",role:"normal"};
+  if(editingAcctIdx!=null){ a=(state.accounts||[])[editingAcctIdx]||a; }
+  document.getElementById("a_user").value=a.user||"";
+  document.getElementById("a_code").value=a.code||"0000";
+  document.getElementById("a_name").value=a.name||"";
+  document.getElementById("a_title").value=a.title||"";
+  document.getElementById("a_dept").value=a.dept||"";
+  document.getElementById("a_role").value=a.role||"normal";
+  document.getElementById("acctModal").classList.remove("hidden");
+}
+function closeAcctModal(){ document.getElementById("acctModal").classList.add("hidden"); }
+function saveAcct(){
+  const user=document.getElementById("a_user").value.trim();
+  const code=document.getElementById("a_code").value.trim()||"0000";
+  const name=document.getElementById("a_name").value.trim();
+  const title=document.getElementById("a_title").value.trim();
+  const dept=document.getElementById("a_dept").value.trim();
+  const role=document.getElementById("a_role").value||"normal";
+  if(!user){ toast("아이디를 입력하세요."); return; }
+  if(user===ADMIN.user){ toast("관리자 아이디(admin)는 사용할 수 없습니다."); return; }
+  const dup=(state.accounts||[]).some((a,i)=>a.user===user && i!==editingAcctIdx);
+  if(dup){ toast("이미 사용 중인 아이디입니다: "+user); return; }
+  if(editingAcctIdx!=null){
+    const a=state.accounts[editingAcctIdx]; const prevUser=a.user;
+    Object.assign(a,{user,code,name,title,dept,role});
+    // 아이디 변경 시 전형 등록 참조도 갱신
+    if(prevUser!==user) state.departments.forEach(d=>{ d.accountUsers=(d.accountUsers||[]).map(u=>u===prevUser?user:u); });
+  } else {
+    state.accounts.push({user,code,name,title,dept,role,createdAt:today()});
+  }
+  saveState(); closeAcctModal(); renderAll(); toast(editingAcctIdx!=null?"계정이 수정되었습니다.":"계정이 추가되었습니다.");
+}
+function deleteAcct(idx){ const a=(state.accounts||[])[idx]; if(!a) return;
+  const reg=deptsForUser(a.user);
+  const msg=reg.length?`계정 '${a.user}'을(를) 삭제할까요?\n현재 ${reg.length}개 전형(${reg.map(d=>d.name).join(", ")})에 등록되어 있으며, 등록도 함께 해제됩니다.`:`계정 '${a.user}'을(를) 삭제할까요?`;
+  if(!confirm(msg)) return;
+  state.accounts.splice(idx,1);
+  state.departments.forEach(d=>{ d.accountUsers=(d.accountUsers||[]).filter(u=>u!==a.user); });
+  saveState(); renderAll(); toast("계정이 삭제되었습니다.");
+}
+
+function acctBulkRowHTML(r){ r=r||{};
+  return `<div class="bulk-row br-acct">
+    <input class="ab-user" placeholder="예: 240169" value="${esc(r.user||'')}" oninput="renderAcctBulkPreview()">
+    <input class="ab-name" placeholder="홍길동" value="${esc(r.name||'')}">
+    <input class="ab-dept" placeholder="인사팀" value="${esc(r.dept||'')}">
+    <input class="ab-title" placeholder="팀장" value="${esc(r.title||'')}">
+    <button type="button" class="bulk-del" title="행 삭제" onclick="this.closest('.bulk-row').remove();renderAcctBulkPreview()">×</button>
+  </div>`;
+}
+function addAcctBulkRow(r){ document.getElementById("acctBulkRows").insertAdjacentHTML("beforeend", acctBulkRowHTML(r)); }
+function openAcctBulkModal(){ const c=document.getElementById("acctBulkRows"); c.innerHTML=""; for(let i=0;i<3;i++) addAcctBulkRow(); document.getElementById("acctBulkPreview").innerHTML="아이디를 입력하면 미리보기가 표시됩니다."; document.getElementById("acctBulkModal").classList.remove("hidden"); }
+function closeAcctBulkModal(){ document.getElementById("acctBulkModal").classList.add("hidden"); }
+function collectAcctBulkRows(){ const rows=[]; document.querySelectorAll("#acctBulkRows .bulk-row").forEach(r=>{ const user=r.querySelector(".ab-user").value.trim(); if(!user) return; rows.push({ user, name:r.querySelector(".ab-name").value.trim(), dept:r.querySelector(".ab-dept").value.trim(), title:r.querySelector(".ab-title").value.trim() }); }); return rows; }
+function renderAcctBulkPreview(){
+  const rows=collectAcctBulkRows(); const el=document.getElementById("acctBulkPreview");
+  if(!rows.length){ el.innerHTML="아이디를 입력하면 미리보기가 표시됩니다."; return; }
+  const existing=new Set([ADMIN.user]); (state.accounts||[]).forEach(a=>existing.add(a.user)); const seen=new Set();
+  let ok=0; const bad=[];
+  rows.forEach(r=>{ if(existing.has(r.user)||seen.has(r.user)){ bad.push(`${r.user}(중복)`); } else { ok++; seen.add(r.user); } });
+  el.innerHTML=`<b style="color:var(--yh-green-dark)">${ok}개 계정</b> 생성 예정 · 접속코드 0000. <span class="hint-inline">생성 후 전형 추가·편집에서 등록하세요.</span>${bad.length?`<br><span style="color:var(--danger)">제외 ${bad.length}건: ${esc(bad.join(", "))}</span>`:""}`;
+}
+function saveAcctBulk(){
+  const rows=collectAcctBulkRows(); if(!rows.length){ toast("아이디를 1개 이상 입력하세요."); return; }
+  const existing=new Set([ADMIN.user]); (state.accounts||[]).forEach(a=>existing.add(a.user));
+  let cnt=0;
+  rows.forEach(r=>{ if(existing.has(r.user)) return; state.accounts.push({user:r.user,code:"0000",name:r.name,title:r.title,dept:r.dept,role:"normal",createdAt:today()}); existing.add(r.user); cnt++; });
+  saveState(); closeAcctBulkModal(); renderAll(); toast(`${cnt}개 계정이 생성되었습니다.`);
+}
+
+/* ===== 부서 모달 ===== */
+let editingId=null;
+function scheduleInputsHTML(sched){
+  let h=`<div class="sched-head"><span>전형 단계</span><span>시작일</span><span>마감일</span></div>`;
+  STAGES.forEach((s,i)=>{
+    const cfg=STAGE_SCHED[s]; if(!cfg.s && !cfg.e) return;
+    const v=(sched&&sched[s])||{};
+    const sIn=cfg.s?di(i,'s',v.s):`<div class="sched-na">—</div>`;
+    const eIn=cfg.e?di(i,'e',v.e):`<div class="sched-na">당일</div>`;
+    h+=`<div class="sched-row"><div class="sched-stage">${s}</div>${sIn}${eIn}</div>`;
+  });
+  return h;
+}
+function accountPickHTML(selected){
+  const sel=new Set(selected||[]);
+  if(!(state.accounts||[]).length){
+    return `<div class="ivs-empty">등록된 계정이 없습니다. 상단 ‘계정 관리’ 탭에서 계정을 먼저 만든 뒤 여기서 선택하세요.</div>`;
+  }
+  return `<div class="acct-pick">`+state.accounts.map(a=>{
+    const on=sel.has(a.user); const adminTag=a.role==="admin"?'<span class="role-pill admin" style="font-size:10px;padding:1px 6px">관리자</span>':'';
+    return `<label class="apick ${on?'on':''}"><input type="checkbox" class="apick-cb" value="${esc(a.user)}" ${on?'checked':''} onchange="this.closest('.apick').classList.toggle('on',this.checked)">`+
+      `<span class="apick-main"><b>${esc(a.name||a.user)}</b> <span class="mono">${esc(a.user)}</span>${adminTag}</span>`+
+      `<span class="apick-sub">${esc(a.title||'-')}${a.dept?(' · '+esc(a.dept)):''}</span></label>`;
+  }).join("")+`</div>`;
+}
+function ivSessionRowHTML(s){ s=s||{};
+  return `<div class="ivs-row"><div class="ivs-grid">
+    <div class="ivs-f"><label>회차</label><select class="ivs-round">${IV_ROUNDS.map(r=>`<option ${s.round===r?'selected':''}>${r}</option>`).join("")}</select></div>
+    <div class="ivs-f"><label>면접일</label><input class="ivs-date" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" value="${esc(s.date||'')}" oninput="this.value=maskDate(this.value)"></div>
+    <div class="ivs-f"><label>시작</label><input class="ivs-ts" type="text" maxlength="5" placeholder="14:00" value="${esc(s.ts||'')}"></div>
+    <div class="ivs-f"><label>종료</label><input class="ivs-te" type="text" maxlength="5" placeholder="15:30" value="${esc(s.te||'')}"></div>
+    <div class="ivs-f wide"><label>장소</label><input class="ivs-place" value="${esc(s.place||'')}" placeholder="예: 본사 3층 면접실 A"></div>
+    <div class="ivs-f wide"><label>참석 면접관 <span style="font-weight:400">· 여러 명 쉼표로</span></label><input class="ivs-panel" value="${esc(s.panel||'')}" placeholder="예: 영업1팀장, 인사팀장"></div>
+  </div><button type="button" class="ivs-del" title="삭제" onclick="this.closest('.ivs-row').remove()">×</button></div>`;
+}
+function addIvSession(){ document.getElementById("iv_sessions").insertAdjacentHTML("beforeend", ivSessionRowHTML({round:"통합"})); }
+function openDeptModal(i){
+  editingId=i||null; const d=i?getDept(i):null;
+  document.getElementById("deptModalTitle").textContent=i?"상세편집":"전형 추가";
+  document.getElementById("f_type").innerHTML=EMP_TYPES.map(t=>`<option>${t}</option>`).join("");
+  document.getElementById("f_stage").innerHTML=STAGES.map(s=>`<option>${s}</option>`).join("");
+  document.getElementById("f_name").value=d?d.name:"";
+  document.getElementById("f_type").value=d?d.type:EMP_TYPES[1];
+  document.getElementById("f_req").value=d?d.reqCount:"";
+  document.getElementById("f_fto").value=d?(d.ftTO||""):"";
+  document.getElementById("f_stage").value=d?d.stage:STAGES[0];
+  document.getElementById("f_schedule").innerHTML=scheduleInputsHTML(d?d.schedule:emptySchedule());
+  const ivv=(d&&d.schedule&&d.schedule["면접전형"])||{};
+  const ivSessions=(ivv.sessions&&ivv.sessions.length)?ivv.sessions:[];
+  document.getElementById("iv_sessions").innerHTML = ivSessions.length ? ivSessions.map(s=>ivSessionRowHTML(s)).join("") : `<div class="ivs-empty">등록된 면접 세션이 없습니다. 아래 ‘+ 면접 세션 추가’로 등록하세요.</div>`;
+  document.getElementById("iv_obs").value=ivv.observers||"";
+  document.getElementById("f_accounts").innerHTML=accountPickHTML(d?d.accountUsers:[]);
+  document.getElementById("f_notes").value=d?d.notes:"";
+  const c=(d&&d.counts)||{};
+  document.getElementById("f_c_applicants").value=c.applicants||"";
+  document.getElementById("f_c_doc").value=c.doc||"";
+  document.getElementById("f_c_ai").value=c.ai||"";
+  document.getElementById("f_c_hired").value=c.hired||"";
+  document.getElementById("deptDeleteBtn").style.display=i?"":"none";
+  document.getElementById("deptModal").classList.remove("hidden");
+}
+function closeDeptModal(){ document.getElementById("deptModal").classList.add("hidden"); }
+function saveDept(){
+  const name=document.getElementById("f_name").value.trim();
+  if(!name){ toast("부서명을 입력하세요."); return; }
+  const accountUsers=[];
+  document.querySelectorAll("#f_accounts .apick-cb:checked").forEach(cb=>accountUsers.push(cb.value));
+  const schedule=emptySchedule();
+  STAGES.forEach((s,i)=>{ const se=document.getElementById(`sch_${i}_s`), ee=document.getElementById(`sch_${i}_e`);
+    schedule[s]={ s:se?se.value:"", e:ee?ee.value:"", place:"", panel:"", observers:"", timeStart:"", timeEnd:"", sessions:[] }; });
+  const ivSessions=[];
+  document.querySelectorAll("#iv_sessions .ivs-row").forEach(r=>{
+    const date=r.querySelector(".ivs-date").value.trim(); const round=r.querySelector(".ivs-round").value;
+    const ts=r.querySelector(".ivs-ts").value, te=r.querySelector(".ivs-te").value;
+    const place=r.querySelector(".ivs-place").value.trim(), panel=r.querySelector(".ivs-panel").value.trim();
+    if(date||ts||te||place||panel) ivSessions.push({round,date,ts,te,place,panel});
+  });
+  schedule["면접전형"].sessions=ivSessions;
+  schedule["면접전형"].observers=document.getElementById("iv_obs").value.trim();
+  const obj={ name, type:document.getElementById("f_type").value, reqCount:+document.getElementById("f_req").value||1, ftTO:+document.getElementById("f_fto").value||0,
+    stage:document.getElementById("f_stage").value, schedule, accountUsers, notes:document.getElementById("f_notes").value.trim(),
+    counts:{ applicants:+document.getElementById("f_c_applicants").value||0, doc:+document.getElementById("f_c_doc").value||0, ai:+document.getElementById("f_c_ai").value||0, hired:+document.getElementById("f_c_hired").value||0 }, updated:today() };
+  if(editingId){ Object.assign(getDept(editingId),obj); } else{ obj.id=id(); state.departments.push(obj); }
+  saveState(); closeDeptModal(); renderAll(); toast(editingId?"저장되었습니다.":"전형이 추가되었습니다.");
+}
+
+/* ===== 자동 계정 + 일괄 등록 ===== */
+function genUser(){ let n=1; const used=allUsers(null); while(used.has("tm"+pad2(n))) n++; return "tm"+pad2(n); }
+function bulkRowHTML(r){ r=r||{};
+  return `<div class="bulk-row br-dept">
+    <input class="bk-name" placeholder="예: 영업1팀" value="${esc(r.name||'')}" oninput="renderBulkPreview()">
+    <select class="bk-type">${EMP_TYPES.map(t=>`<option ${r.type===t?'selected':''}>${t}</option>`).join("")}</select>
+    <input class="bk-req" type="number" min="0" placeholder="1" value="${r.reqCount!=null?r.reqCount:''}">
+    <select class="bk-stage">${STAGES.map(s=>`<option ${r.stage===s?'selected':''}>${s}</option>`).join("")}</select>
+    <button type="button" class="bulk-del" title="행 삭제" onclick="this.closest('.bulk-row').remove();renderBulkPreview()">×</button>
+  </div>`;
+}
+function addBulkRow(r){ document.getElementById("bulkRows").insertAdjacentHTML("beforeend", bulkRowHTML(r||{type:"경력",stage:"공고준비"})); }
+function openBulkModal(){ const c=document.getElementById("bulkRows"); c.innerHTML=""; for(let i=0;i<3;i++) addBulkRow(); document.getElementById("bulkPreview").innerHTML="부서명을 입력하면 미리보기가 표시됩니다."; document.getElementById("bulkModal").classList.remove("hidden"); }
+function closeBulkModal(){ document.getElementById("bulkModal").classList.add("hidden"); }
+function collectBulkRows(){ const rows=[]; document.querySelectorAll("#bulkRows .bulk-row").forEach(r=>{ const name=r.querySelector(".bk-name").value.trim(); if(!name) return; rows.push({ name, type:r.querySelector(".bk-type").value, reqCount:+r.querySelector(".bk-req").value||1, stage:r.querySelector(".bk-stage").value }); }); return rows; }
+function renderBulkPreview(){ const rows=collectBulkRows(); const el=document.getElementById("bulkPreview"); el.innerHTML=rows.length?`<b style="color:var(--yh-green-dark)">${rows.length}개 전형</b>이 등록됩니다. 계정 아이디는 자동 생성, 접속코드는 0000으로 설정됩니다.`:"부서명을 입력하면 미리보기가 표시됩니다."; }
+function saveBulk(){ const rows=collectBulkRows(); if(!rows.length){ toast("부서명을 1개 이상 입력하세요."); return; }
+  rows.forEach(r=>{ const u=genUser(); state.accounts.push({user:u,code:"0000",name:"",title:"",dept:r.name,role:"normal",createdAt:today()});
+    state.departments.push({ id:id(), name:r.name, type:r.type, reqCount:r.reqCount, ftTO:0, stage:r.stage, schedule:emptySchedule(), accountUsers:[u], notes:"", counts:{applicants:0,doc:0,ai:0,hired:0}, updated:today() }); });
+  saveState(); closeBulkModal(); renderAll(); toast(`${rows.length}개 전형이 등록되었습니다.`); }
+
+/* ===== 다음 진행 항목(현황 자동화) ===== */
+function nextAction(d){
+  const cols=boardColumns(d); const ck=d.checklist||{};
+  for(const col of cols){ for(let i=0;i<col.items.length;i++){ if(!ck[col.id+":"+i]) return {col:col.title,label:col.items[i]}; } }
+  return null;
+}
+function nextActionHTML(d){
+  const n=nextAction(d);
+  if(!n) return `<div class="dc-next done"><div class="na-l">진행 상태</div><div class="na-v">✓ 전형 절차 완료</div></div>`;
+  return `<div class="dc-next"><div class="na-l">▶ 지금 진행할 차례</div><div class="na-v">${esc(n.label)}</div></div>`;
+}
+function remarkHTML(d){ return d.notes?`<div class="dc-remark"><span class="rk-l">비고</span>${esc(d.notes)}</div>`:""; }
+
+/* ===== 전형 상세 보드 ===== */
+const STAGE_TO_COL={"공고준비":"지원서 접수","공고 진행":"지원서 접수","서류전형":"서류전형","AI역량검사":"AI역량검사","면접전형":"면접전형","입사":"채용 종료"};
+function boardColumns(d){
+  const c=d.counts||{}, sc=d.schedule||{};
+  const ds=(stg,f)=>(sc[stg]&&sc[stg][f])||"";
+  const sess=(sc["면접전형"]&&sc["면접전형"].sessions)||[];
+  const ivPeriod=ds("면접전형","e")?`${ds("면접전형","s")||'-'} ~ ${ds("면접전형","e")}`:(ds("면접전형","s")||"-");
+  const ivSummary=[["전형명","면접전형"],["면접 일정",ivPeriod],["면접 회차",sess.length?`${sess.length}회 (${sess.map(s=>s.round).join("·")})`:"-"]];
+  return [
+    { id:"apply", icon:"📋", title:"지원서 접수",
+      summary:[["채용형태",d.type],["채용요청인원",`${d.reqCount}명${d.ftTO?` (정규직 TO ${d.ftTO})`:''}`],["총 지원자 수",`${c.applicants||0}명`]],
+      items:["공고 문안 협의","사내통신 결재","(ATS)공고전형 세팅","무료공고 요청","헤드헌터 요청(선택)","공고마감"] },
+    { id:"doc", icon:"📁", title:"서류전형",
+      summary:[["전형명","서류전형"],["지원자 수",`${c.applicants||0}명`],["일정",`${ds("서류전형","s")||'-'} ~ ${ds("서류전형","e")||'-'}`]],
+      items:["(ATS)서류전형 세팅","대상자 명단 제작","각 부서 안내","합격자 협의 및 확정","서류전형 합격자 보고 결재","(ATS)AI역량검사 전형 세팅","(ATS)합격자 발표"] },
+    { id:"ai", icon:"🧠", title:"AI역량검사",
+      summary:[["전형명","AI역량검사"],["대상자 수",`${c.doc||0}명`],["일정",`${ds("AI역량검사","s")||'-'} ~ ${ds("AI역량검사","e")||'-'}`]],
+      items:["평가 결과 분석 및 정리","각 부서 안내 및 면접대상자 협의","참석 면접관 확인 및 면접일정 종합","면접실 예약","(ATS)합격자 발표"] },
+    { id:"interview", icon:"✅", title:"면접전형", summary:ivSummary,
+      items:["면접자료 제작 및 인사팀장님 전달","면접비 신청","면접관 리마인드 메일 발송","기면접자 확인","(PT면접)발표 자료 준비","면접 진행","평가 결과 확인 및 대상자 확정","입사일 협의","(경력)처우협의","면접전형 결과 보고 및 채용기안 결재","(ATS)합격자 발표"] },
+    { id:"done", icon:"🪪", title:"채용 종료", report:true,
+      summary:[["입사 예정일",ds("입사","s")||"-"],["최종 합격",`${c.hired||0}명`],["정규직 TO",`${d.ftTO||0}명`]],
+      items:["입사예정자 입사안내 메일 발송","각 부서 입사자 안내","입사자 교육","(선택)그룹웨어 게시판 게재"] }
+  ];
+}
+function renderBoardCols(d){
+  const cols=boardColumns(d); const ck=d.checklist||{};
+  let nextKey=null;
+  outer: for(const col of cols){ for(let i=0;i<col.items.length;i++){ if(!ck[col.id+":"+i]){ nextKey=col.id+":"+i; break outer; } } }
+  const activeCol=STAGE_TO_COL[d.stage];
+  return cols.map(col=>{
+    const total=col.items.length; let doneCount=0;
+    const items=col.items.map((label,i)=>{
+      const key=col.id+":"+i; const done=!!ck[key]; if(done) doneCount++; const isNext=(key===nextKey);
+      return `<div class="chk-item ${done?'done':(isNext?'next':'todo')}">
+        <div class="chk-box">${done?'✓':(i+1)}</div>
+        <div class="chk-mid"><div class="chk-label">${esc(label)}</div>${isNext?`<div class="chk-next">지금 진행할 차례</div>`:''}</div>
+        <button class="chk-btn ${done?'on':''}" onclick="toggleCheck('${d.id}','${col.id}',${i})">${done?'완료됨 ✓':'완료'}</button>
+      </div>`;
+    }).join('<div class="chk-conn"></div>');
+    const link= col.report ? `<div class="sum-link" onclick="openReport('${d.id}')" style="cursor:pointer"><span>채용 성과 리포트</span><span class="ic">↗</span></div>` : '';
+    return `<div class="board-col"><div class="col-card ${col.title===activeCol?'active':''}">
+      <div class="col-head"><div class="col-icon">${col.icon}</div><div class="col-title">${esc(col.title)}</div><div class="col-prog">${doneCount}/${total} 완료</div></div>
+      ${col.summary.map(r=>`<div class="sum-row"><span class="k">${esc(r[0])}</span><span class="v">${esc(r[1])}</span></div>`).join("")}${link}
+    </div>${items}</div>`;
+  }).join("");
+}
+let boardDeptId=null;
+function openBoard(i){
+  const d=getDept(i); if(!d) return; boardDeptId=i;
+  document.getElementById("boardTitle").textContent=`${d.name} · ${d.type}`;
+  document.getElementById("boardStage").textContent=`현재 단계 · ${d.stage}`;
+  document.getElementById("boardCols").innerHTML=renderBoardCols(d);
+  document.getElementById("boardModal").classList.remove("hidden");
+}
+function toggleCheck(deptId,colId,idx){
+  const d=getDept(deptId); if(!d) return; if(!d.checklist) d.checklist={};
+  const key=colId+":"+idx; d.checklist[key]=!d.checklist[key];
+  const cols=boardColumns(d); const doneCol=cols.find(c=>c.id==="done"); const lastIdx=doneCol?doneCol.items.length-1:-1;
+  let justCompleted=false;
+  if(colId==="done" && idx===lastIdx){ d.completed=!!d.checklist[key]; d.completedAt=d.completed?today():""; justCompleted=d.completed; }
+  d.updated=today(); saveState();
+  const sc=document.querySelector(".board-scroll"); const sl=sc?sc.scrollLeft:0;
+  document.getElementById("boardCols").innerHTML=renderBoardCols(d);
+  if(sc) sc.scrollLeft=sl;
+  renderAll();
+  if(justCompleted) toast(`${d.name} 채용 전형이 완료 처리되었습니다. ‘완료된 전형’ 탭으로 이동했습니다.`);
+}
+function openReport(deptId){
+  const d=getDept(deptId); if(!d) return; const c=d.counts||{};
+  document.getElementById("reportTitle").textContent=`채용 성과 리포트 · ${d.name}`;
+  document.getElementById("reportBody").innerHTML=
+    `<div class="rep-row"><span>지원자</span><b>${c.applicants||0}명</b></div>`+
+    `<div class="rep-row"><span>서류전형 합격자</span><b>${c.doc||0}명</b></div>`+
+    `<div class="rep-row"><span>AI역량검사 합격자</span><b>${c.ai||0}명</b></div>`+
+    `<div class="rep-row"><span>면접전형 합격자</span><b>${c.hired||0}명</b></div>`;
+  document.getElementById("reportModal").classList.remove("hidden");
+}
+function closeReport(){ document.getElementById("reportModal").classList.add("hidden"); }
+function closeBoard(){ document.getElementById("boardModal").classList.add("hidden"); renderAll(); }
+
+/* ===== 캘린더 일정 클릭 팝업 ===== */
+function openCalEvent(deptId,stage){
+  const d=getDept(deptId); if(!d) return;
+  const col=STAGE_COLORS[stage]||"#888"; const v=(d.schedule&&d.schedule[stage])||{}; const cfg=STAGE_SCHED[stage]||{};
+  document.getElementById("calEventTitle").innerHTML=`<span class="badge" style="background:${hexA(col,.14)};color:${col};margin-right:8px">${esc(stage)}</span>${esc(d.name)}`;
+  const period=cfg.e?(v.s?`${v.s}${v.e?(' ~ '+v.e):' (당일)'}`:'-'):(v.s?`${v.s} (당일)`:'-');
+  let body=`<div class="cev-row"><span class="k">부서 · 채용형태</span><span class="v">${esc(d.name)} · ${esc(d.type)}</span></div>`+
+    `<div class="cev-row"><span class="k">전형 단계</span><span class="v">${esc(stage)}</span></div>`+
+    `<div class="cev-row"><span class="k">일정</span><span class="v">${esc(period)}</span></div>`;
+  if(stage==="면접전형"){
+    const sess=v.sessions||[];
+    if(sess.length){
+      body+=`<div class="cev-sub">면접 세션 (${sess.length}회)</div>`;
+      sess.slice().sort((a,b)=>(a.date||"").localeCompare(b.date||"")).forEach(s=>{
+        body+=`<div class="cev-sess"><div class="cev-sess-h"><b>${esc(s.round||'면접')}</b><span>${esc(s.date||'-')}${sessTime(s)?(' · '+esc(sessTime(s))):''}</span></div>`+
+          `${(s.place||s.panel)?`<div class="cev-sess-d">${s.place?`장소 · ${esc(s.place)}`:''}${(s.place&&s.panel)?'<br>':''}${s.panel?`참석 면접관 · ${esc(s.panel)}`:''}</div>`:''}</div>`;
+      });
+    }
+    if(v.observers) body+=`<div class="cev-row"><span class="k">배석자</span><span class="v">${esc(v.observers)}</span></div>`;
+  }
+  document.getElementById("calEventBody").innerHTML=body;
+  document.getElementById("calEventModal").classList.remove("hidden");
+}
+function closeCalEvent(){ document.getElementById("calEventModal").classList.add("hidden"); }
+
+/* ===== 통계 ===== */
+function repDate(d){ const sc=d.schedule||{}; if(sc["공고 진행"]&&sc["공고 진행"].s) return sc["공고 진행"].s; for(const s of STAGES){ if(sc[s]&&sc[s].s) return sc[s].s; } return d.updated||""; }
+function computeStats(){
+  const from=document.getElementById("statFrom").value.trim(), to=document.getElementById("statTo").value.trim();
+  const list=state.departments.filter(d=>{ const r=repDate(d); if(from&&(!r||r<from)) return false; if(to&&(!r||r>to)) return false; return true; });
+  const sum=(f)=>list.reduce((a,d)=>a+(d.counts&&d.counts[f]||0),0);
+  const byType={}; EMP_TYPES.forEach(t=>byType[t]={cnt:0,req:0,app:0,hired:0});
+  list.forEach(d=>{ const t=byType[d.type]||(byType[d.type]={cnt:0,req:0,app:0,hired:0}); t.cnt++; t.req+=d.reqCount||0; t.app+=(d.counts&&d.counts.applicants)||0; t.hired+=(d.counts&&d.counts.hired)||0; });
+  const intern=byType["인턴"]?byType["인턴"].cnt:0, career=byType["경력"]?byType["경력"].cnt:0;
+  const contract=Object.keys(byType).filter(k=>k.startsWith("계약직")).reduce((a,k)=>a+byType[k].cnt,0);
+  const period=(from||"전체")+" ~ "+(to||"전체");
+  const ap=sum("applicants"),dc=sum("doc"),ai=sum("ai"),hd=sum("hired");
+
+  let html=`<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">조회 기간 · <b style="color:var(--text)">${esc(period)}</b> · 기준일(공고 진행 시작일) 기준</div>`;
+  html+=`<div class="kpi-grid">
+    <div class="kpi"><div class="l">공고 진행 건</div><div class="v">${list.length}<small> 건</small></div></div>
+    <div class="kpi"><div class="l">총 지원자</div><div class="v">${ap}<small> 명</small></div></div>
+    <div class="kpi"><div class="l">최종 채용 인원</div><div class="v">${hd}<small> 명</small></div></div></div>`;
+  html+=`<div class="stat-cards">
+    <div class="stat-c"><div class="l">서류 합격</div><div class="v">${dc}<small> 명</small></div></div>
+    <div class="stat-c"><div class="l">AI역량검사 합격</div><div class="v">${ai}<small> 명</small></div></div>
+    <div class="stat-c"><div class="l">채용요청인원</div><div class="v">${list.reduce((a,d)=>a+(d.reqCount||0),0)}<small> 명</small></div></div>
+    <div class="stat-c"><div class="l">정규직 TO</div><div class="v">${list.reduce((a,d)=>a+(d.ftTO||0),0)}<small> 명</small></div></div></div>`;
+
+  const tmax=Math.max(1,intern,career,contract);
+  const tb=(label,val,col)=>`<div class="bar-row"><div class="bl">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${val/tmax*100}%;background:${col}"></div></div><div class="bv">${val}</div></div>`;
+  html+=`<div class="viz"><h4>채용형태 분포 (부서 수)</h4>${tb("인턴",intern,"#C28A2B")}${tb("경력",career,"#00833D")}${tb("계약직",contract,"#3E8ED0")}</div>`;
+
+  const fmax=Math.max(1,ap);
+  const fr=(label,val)=>`<div class="funnel-row"><div class="fl">${label}</div><div class="funnel-track"><div class="funnel-fill" style="width:${val/fmax*100}%"></div></div><div class="fv">${val}</div></div>`;
+  html+=`<div class="viz"><h4>전형 퍼널 (전체 합계)</h4>${fr("지원자",ap)}${fr("서류 합격",dc)}${fr("AI 합격",ai)}${fr("최종 채용",hd)}</div>`;
+
+  const typeRows=EMP_TYPES.filter(t=>byType[t]&&byType[t].cnt).map(t=>`<tr><td><span class="type-tag">${t}</span></td><td>${byType[t].cnt}</td><td>${byType[t].req}</td><td>${byType[t].app}</td><td>${byType[t].hired}</td></tr>`).join("");
+  html+=`<div class="section-title">채용형태별 집계</div><div class="panel" style="margin-bottom:18px"><table><thead><tr><th>채용형태</th><th>부서 수</th><th>채용요청인원</th><th>지원자</th><th>채용인원</th></tr></thead><tbody>${typeRows||`<tr><td colspan="5" style="color:var(--muted)">기간 내 데이터가 없습니다.</td></tr>`}</tbody></table></div>`;
+  const deptRows=list.map(d=>`<tr><td><b>${esc(d.name)}</b></td><td><span class="type-tag">${esc(d.type)}</span></td><td>${badgeHTML(d.stage)}</td><td>${repDate(d)||'-'}</td><td>${(d.counts&&d.counts.applicants)||0}</td><td>${(d.counts&&d.counts.hired)||0}</td></tr>`).join("");
+  html+=`<div class="section-title">부서별 상세</div><div class="panel"><table><thead><tr><th>부서</th><th>채용형태</th><th>현재 단계</th><th>기준일</th><th>지원자</th><th>채용</th></tr></thead><tbody>${deptRows||`<tr><td colspan="6" style="color:var(--muted)">기간 내 데이터가 없습니다.</td></tr>`}</tbody></table></div>`;
+  document.getElementById("statResult").innerHTML=html;
+}
+
+/* ===== 일정표 (Gantt) ===== */
+function legendHTML(){ return `<div class="legend">`+STAGES.filter(s=>STAGE_SCHED[s].s).map(s=>`<span class="lg"><span class="lg-c" style="background:${STAGE_COLORS[s]}"></span>${s}</span>`).join("")+`</div>`; }
+function ivTimeStr(v){ if(!v) return ""; const a=v.timeStart||"", b=v.timeEnd||""; return (a&&b)?(a+"~"+b):(a||b||""); }
+function sessTime(s){ if(!s) return ""; const a=s.ts||"", b=s.te||""; return (a&&b)?(a+"~"+b):(a||b||""); }
+let adminCal=null, teamCal=null;
+function defMonth(depts){
+  const tally={}; depts.forEach(d=>STAGES.forEach(s=>{ const v=d.schedule&&d.schedule[s]; if(!v||!v.s) return; const t=Date.parse(v.s+"T00:00:00Z"); if(isNaN(t)) return; const dt=new Date(t); const k=dt.getUTCFullYear()+"_"+dt.getUTCMonth(); tally[k]=(tally[k]||0)+1; }));
+  let best=null,bn=-1; Object.keys(tally).forEach(k=>{ if(tally[k]>bn){bn=tally[k];best=k;} });
+  if(best){ const p=best.split("_"); return {y:+p[0],m:+p[1]}; }
+  const t=new Date(); return {y:t.getFullYear(),m:t.getMonth()};
+}
+function calendarHTML(depts,y,m,navFn){
+  // 동일 단계+동일 기간(시작·마감 동일)은 하나의 바로 합치고, 마감일이 다르면 별도 바로 분리
+  const groups={};
+  depts.forEach(d=>STAGES.forEach(s=>{ const v=d.schedule&&d.schedule[s]; if(!v||!v.s) return; const cfg=STAGE_SCHED[s]; const sd=dnum(v.s); if(sd==null) return; const ed=(cfg.e&&v.e)?(dnum(v.e)||sd):sd; const key=s+"|"+sd+"|"+ed; (groups[key]||(groups[key]={stage:s,sd,ed,depts:[]})).depts.push({id:d.id,name:d.name}); }));
+  const events=Object.values(groups);
+  const dim=new Date(Date.UTC(y,m+1,0)).getUTCDate();
+  const first=new Date(Date.UTC(y,m,1)).getUTCDay();
+  const todayStr=today();
+  const monthStart=dnum(`${y}-${pad2(m+1)}-01`);
+  const weeks=Math.ceil((first+dim)/7);
+  const dows=["일","월","화","수","목","금","토"];
+  let html=`<div class="cal-head"><div class="cal-nav"><button onclick="${navFn}(-1)">‹</button><div class="cal-title">${y}.${pad2(m+1)}</div><button onclick="${navFn}(1)">›</button></div>${legendHTML()}</div>`;
+  html+=`<div class="cal"><div class="cal-dow">${dows.map((d,i)=>`<div style="${i===0?'color:#c0504d':''}">${d}</div>`).join("")}</div>`;
+  for(let w=0;w<weeks;w++){
+    const weekStartDay=w*7-first+1;        // 이 주 일요일 칸의 '일(day)' 값(달 범위를 벗어날 수 있음)
+    const weekSd=monthStart+(weekStartDay-1);
+    const weekEd=weekSd+6;
+    let cellsHtml="";
+    for(let i=0;i<7;i++){ const day=weekStartDay+i;
+      if(day<1||day>dim){ cellsHtml+=`<div class="cal-cell empty"></div>`; }
+      else{ const ds=`${y}-${pad2(m+1)}-${pad2(day)}`; cellsHtml+=`<div class="cal-cell ${i===0?'cal-sun':''} ${ds===todayStr?'today':''}" onclick="openDayPopup('${ds}')"><div class="cal-date">${day}</div></div>`; }
+    }
+    const segs=[];
+    events.forEach(ev=>{ if(ev.ed<weekSd||ev.sd>weekEd) return; segs.push({startCol:Math.max(0,ev.sd-weekSd),endCol:Math.min(6,ev.ed-weekSd),ev}); });
+    segs.sort((a,b)=>a.startCol-b.startCol||(b.endCol-b.startCol)-(a.endCol-a.startCol));
+    const lanes=[];
+    segs.forEach(seg=>{ let lane=0; while(lane<lanes.length&&lanes[lane]>=seg.startCol) lane++; if(lane===lanes.length) lanes.push(seg.endCol); else lanes[lane]=seg.endCol; seg.lane=lane; });
+    const barsHtml=segs.map(seg=>{ const ev=seg.ev; const col=STAGE_COLORS[ev.stage]; const left=seg.startCol/7*100; const width=(seg.endCol-seg.startCol+1)/7*100; const top=28+seg.lane*23;
+      const names=ev.depts.map(x=>x.name).join(", "); const ids=ev.depts.map(x=>x.id).join(",");
+      const isStart=ev.sd>=weekSd; const isEnd=ev.ed<=weekEd;
+      const bl=isStart?`border-left:3px solid ${col}`:`border-left:none`;
+      const br=isEnd?`;border-right:3px solid ${col}`:``;
+      return `<div class="cal-bar" style="left:calc(${left}% + 3px);width:calc(${width}% - 6px);top:${top}px;background:${hexA(col,.16)};color:${col};${bl}${br}" title="${esc(names)} · ${ev.stage}" onclick="event.stopPropagation();openCalGroup('${ids}','${esc(ev.stage)}')"><span class="cb-t">${esc(names)} ${esc(ev.stage)}</span></div>`;
+    }).join("");
+    const minH=34+Math.max(1,lanes.length)*23;
+    html+=`<div class="cal-week" style="min-height:${minH}px"><div class="cal-week-bg">${cellsHtml}</div><div class="cal-bars">${barsHtml}</div></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+function openDayPopup(ds){
+  const dn=dnum(ds); if(dn==null) return;
+  const items=[];
+  state.departments.forEach(d=>STAGES.forEach(s=>{ const v=d.schedule&&d.schedule[s]; if(!v||!v.s) return; const cfg=STAGE_SCHED[s]; const sd=dnum(v.s); if(sd==null) return; const ed=(cfg.e&&v.e)?(dnum(v.e)||sd):sd; if(dn>=sd&&dn<=ed){ let extra=""; if(s==="면접전형"){ const ss=(v.sessions||[]).find(x=>x.date===ds); if(ss) extra=`${ss.round||''} ${sessTime(ss)||''}`.trim(); } items.push({d,stage:s,extra}); } }));
+  const p=ds.split("-");
+  document.getElementById("calEventTitle").innerHTML=`${+p[1]}월 ${+p[2]}일 채용 진행 현황`;
+  document.getElementById("calEventBody").innerHTML = items.length? items.map(it=>{ const col=STAGE_COLORS[it.stage]; return `<div class="cev-row" style="cursor:pointer" onclick="openCalEvent('${it.d.id}','${esc(it.stage)}')"><span class="v">${esc(it.d.name)} · ${esc(it.d.type)}</span><span><span class="badge" style="background:${hexA(col,.14)};color:${col}">${esc(it.stage)}</span>${it.extra?` <span style="font-size:12px;color:var(--muted)">${esc(it.extra)}</span>`:''}</span></div>`; }).join("") : `<div style="color:var(--muted);padding:10px 2px">이 날짜에 예정된 전형이 없습니다.</div>`;
+  document.getElementById("calEventModal").classList.remove("hidden");
+}
+function openCalGroup(ids,stage){
+  const list=String(ids).split(",").filter(Boolean);
+  if(list.length<=1){ openCalEvent(list[0],stage); return; }
+  const col=STAGE_COLORS[stage]||"#888";
+  document.getElementById("calEventTitle").innerHTML=`<span class="badge" style="background:${hexA(col,.14)};color:${col};margin-right:8px">${esc(stage)}</span>${list.length}개 부서`;
+  document.getElementById("calEventBody").innerHTML=list.map(id=>{ const d=getDept(id); if(!d) return ""; const v=(d.schedule&&d.schedule[stage])||{}; const cfg=STAGE_SCHED[stage]||{}; const period=cfg.e?(v.s?`${v.s}${v.e?(' ~ '+v.e):''}`:'-'):(v.s||'-'); return `<div class="cev-row" style="cursor:pointer" onclick="openCalEvent('${d.id}','${esc(stage)}')"><span class="v">${esc(d.name)} · ${esc(d.type)}</span><span style="font-size:12px;color:var(--muted)">${esc(period)}</span></div>`; }).join("");
+  document.getElementById("calEventModal").classList.remove("hidden");
+}
+function adminCalMove(delta){ let m=adminCal.m+delta,y=adminCal.y; if(m<0){m=11;y--;} if(m>11){m=0;y++;} adminCal={y,m}; renderScheduleTab(); }
+function teamCalMove(delta){ let m=teamCal.m+delta,y=teamCal.y; if(m<0){m=11;y--;} if(m>11){m=0;y++;} teamCal={y,m}; const d=getDept(teamViewDeptId); if(!d) return; document.getElementById("teamCalWrap").innerHTML=calendarHTML([d],teamCal.y,teamCal.m,"teamCalMove"); }
+function interviewAgendaHTML(depts,title){
+  const items=[];
+  depts.forEach(d=>{ const iv=(d.schedule&&d.schedule["면접전형"])||{}; (iv.sessions||[]).forEach(s=>{ if(s.date||s.ts||s.place||s.panel) items.push({name:d.name,round:s.round,date:s.date,time:sessTime(s),place:s.place,panel:s.panel,obs:iv.observers}); }); });
+  items.sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(a.time||"").localeCompare(b.time||""));
+  if(!items.length) return "";
+  return `<div class="section-title" style="margin-top:22px">${title||"면접 일정 상세"}</div><div class="panel"><table><thead><tr><th>면접일</th><th>회차</th><th>진행 시간</th><th>부서</th><th>장소</th><th>참석 면접관</th><th>배석자</th></tr></thead><tbody>`+
+    items.map(i=>`<tr><td><b>${i.date||'-'}</b></td><td>${esc(i.round||'-')}</td><td>${esc(i.time||'-')}</td><td>${esc(i.name)}</td><td>${esc(i.place||'-')}</td><td>${esc(i.panel||'-')}</td><td>${esc(i.obs||'-')}</td></tr>`).join("")+`</tbody></table></div>`;
+}
+function renderScheduleTab(){
+  if(!adminCal) adminCal=defMonth(state.departments);
+  document.getElementById("schedResult").innerHTML = calendarHTML(state.departments,adminCal.y,adminCal.m,"adminCalMove")+interviewAgendaHTML(state.departments);
+}
+
+/* ===== 메일 ===== */
+const MAIL_TEMPLATES = [
+  { key:"notice-posting", label:"🔔 [부서안내] 공고 문안 확인 요청", stageRef:"공고준비",
+    fields:[
+      {k:"writer",label:"작성자(인사팀)",type:"text",ph:"예: 신상옥 사원",default:"OOO 사원"},
+      {k:"edu",label:"학력/전공",type:"text",ph:"예: 석사 학위 이상 / 생명공학·생화학·생물학 및 관련 전공"},
+      {k:"qual",label:"자격요건 (한 줄에 하나씩)",type:"textarea",rows:4,ph:"CMO협업 또는 QA 업무 경험자 우대\nHPLC, ELISA, CE-SDS 등 시험 경험자 우대\n중앙연구소(경기 용인) 근무 가능자"},
+      {k:"duty",label:"담당업무 (한 줄에 하나씩)",type:"textarea",rows:3,ph:"바이오신약과제 QA 업무\n단순 분석 업무(부서 내, 교육 예정)"}
+    ],
+    build:(d,f)=>{
+      const bullet=(s)=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map(x=>"· "+x).join("\n");
+      const num=(s)=>String(s||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean).map((x,i)=>(i+1)+") "+x).join("\n");
+      const w=f.writer||"OOO 사원";
+      return { subject:`[인사팀] 채용공고 문안 확인 요청(${d.name})`,
+      body:`팀장님, 안녕하세요.\n인사팀 ${w} 입니다.\n\n아래 채용공고 내용 확인 후, 회신 부탁드립니다.\n\n* 구분: ${d.type}\n\n* 채용요청인원: ${d.reqCount}명\n\n* 학력/전공: ${f.edu||"-"}\n\n* 자격요건\n${bullet(f.qual)||"· -"}\n\n* 담당업무\n${num(f.duty)||"1) -"}\n\n감사합니다.\n${w.replace(/\s*사원$/,"")} 드림` };
+    } },
+  { key:"notice-doc", label:"🔔 [부서안내] 평가자 계정·서류전형 안내", stageRef:"서류전형",
+    fields:[
+      {k:"writer",label:"작성자(인사팀)",type:"text",ph:"예: 신상옥 사원",default:"OOO 사원"},
+      {k:"deadline",label:"평가 입력 완료 기한",type:"text",ph:"예: 6월 27일 금요일 18:00"},
+      {k:"docMult",label:"서류합격 선정 배수",type:"text",ph:"예: 5~6배수",default:"5~6배수"},
+      {k:"aiMult",label:"AI역량검사 진행 배수",type:"text",ph:"예: 4~5배수",default:"4~5배수"}
+    ],
+    build:(d,f)=>{
+      const w=f.writer||"OOO 사원"; const dl=f.deadline||"O월 O일 O요일 OO:OO"; const dm=f.docMult||"5~6배수"; const am=f.aiMult||"4~5배수";
+      return { subject:`[인사팀] 평가자 계정 및 서류전형 안내(${d.name})`,
+      body:`안녕하세요,\n인사팀 ${w}입니다.\n\n채용공고 마감됨에 따라\n평가자 아이디 및 비밀번호 송부드립니다.\n\n1) ATS 평가자 시스템 링크\n: https://yuhan-cms.recruiter.co.kr/cus/login\n\n2) 평가자 계정 전달\n ID : 사번(예: 240169)\n 초기 PW : yh2025@@ (핸드폰 본인인증 후 변경가능)\n* 비밀번호를 변경하시고 분실하셨다면, 재설정 도와드리겠습니다.\n\n3) 평가 입력 완료 기한\n서류합격 대상자를 ${dl} 전까지 선정을 부탁드립니다.\n(서류합격 대상자를 PASS로 평가)\n* 평가 기간이 촉박할 경우, 요청 주시면 기간 연장 도와드리겠습니다.\n* 그 전에 완료하실 경우, 메일 회신 부탁드리겠습니다.\n\n서류합격 대상자는 채용 인원의 ${dm} 정도를 선정 부탁드립니다.\n\n* 지원자 이력서 조회 및 평가는 현재부터 가능합니다.\n\n추가 사항으로\n1) 인사팀에서도 서류 병행 검토 중에 있습니다.\n2) 이에 따라서 AI역량검사는 ${am}로 진행할 예정입니다.\n    * 기존 요청 : 서류평가 ${dm}\n3) 대상자 선정 후, ATS 내에서만 평가해주시면 되겠습니다.\n    * 모든 탈락자들에게 'Fail'를 누르지 않아도 되며, 합격자들에게만 'Pass' / 나머지는 '미평가'로 두셔도 무방합니다.\n\n감사합니다.\n${w.replace(/\s*사원$/,"")}드림` };
+    } },
+  { key:"join-doc-career", label:"🔔 [입사자안내] (경력) 입사 전 제출서류·절차", stageRef:"입사",
+    fields:[
+      {k:"name",label:"입사자 성명",type:"text",ph:"예: 홍길동"},
+      {k:"examDate",label:"채용검진 완료 기한",type:"text",ph:"예: 6월 30일 월요일",default:"O월 O일 월요일"},
+      {k:"docDeadline",label:"서류 제출 기한",type:"text",ph:"예: 6월 27일 금요일 18시",default:"O월 O일 O요일 OO시"},
+      {k:"replyMail",label:"서류 회신 메일",type:"text",ph:"예: sangok115@yuhan.co.kr",default:"sangok115@yuhan.co.kr"},
+      {k:"joinDateTime",label:"입사 당일 일시",type:"text",ph:"예: 7월 1일(화요일) 오전 8시 30분",default:"O월 O일(O요일) 오전 8시 30분"},
+      {k:"joinPlace",label:"입사 당일 장소",type:"text",ph:"예: 유한양행 본사 1층 로비"}
+    ],
+    build:(d,f)=>{
+      const nm=f.name||"OOO"; const ex=f.examDate||"O월 O일 월요일"; const dl=f.docDeadline||"O월 O일 O요일 OO시"; const rm=f.replyMail||"sangok115@yuhan.co.kr"; const jt=f.joinDateTime||"O월 O일(O요일) 오전 8시 30분"; const jp=f.joinPlace||"(직접입력)";
+      return { subject:`(주)유한양행 입사자 안내(${nm})`,
+      body:`[입사 전 제출 서류 및 절차 안내]\n\n안녕하세요, 유한양행 인사팀입니다.\n최종 합격을 진심으로 축하드립니다.\n입사 전 제출이 필요한 설문 및 서류를 아래와 같이 안내드립니다.\n\n1. 즉시 응답 (설문조사)\n네이버폼 링크: https://naver.me/Go2tDSxw\n메일 확인 즉시 설문조사 응답 부탁드립니다.\n\n2. 채용검진\n· 26년 정밀건강검진 결과지가 있는 경우 → 채용검진 면제\n  (해당 결과지를 다른 서류와 함께 제출)\n· 정밀검사 결과지가 없는 경우 → 회사 지정 병원에서 신체검사 진행(${ex} 전까지 실시)\n  (검사 전 8시간 이상 공복 유지, 전화 사전 예약 필수)\n[병원 안내] 성애병원 (서울 영등포구 여의대방로53길 22) / Tel: 02-840-7384\n방문 시 "유한양행 채용검진"이라고 말씀해 주세요.\n\n3. 제출 서류 (${dl}까지 제출)\n메일 회신처: ${rm}\n① 경력: 경력증명서/재직증명서(가장 최근 재직한 회사), 건강보험득실확인서(기제출 서류 활용)\n② 사진: 증명사진 파일\n③ 자격/면허/어학/장애/보훈: 각종 증명서 사본 (원본 사진 가능)\n④ 통장사본: 급여계좌 (설문조사와 동일 계좌)\n⑤ 학력: 성적증명서, 졸업증명서 (석·박사는 대학원 포함)\n⑥ 병역(남성 군필자): 병적증명서 또는 주민등록초본 (병적사항 포함)\n⑦ 가족:\n  - 주민등록등본\n  - 아버지 쪽 가족관계증명서 (조부·조모 확인용)\n  - 어머니 쪽 가족관계증명서 (외조부·외조모 확인용)\n  - (기혼자의 경우) 배우자 부모님 가족관계증명서\n  ※ 혼인신고 미등록 시 청첩장 등 증빙자료 첨부\n  ※ 주민등록등본·가족관계증명서는 구성원(사망자 제외)들의 주민등록번호 뒷자리 표기\n\n[발급 경로]\n· 주민등록등(초)본, 병적증명서: 정부24(https://www.gov.kr/portal/main)\n· 부모님 가족관계증명서: 전자가족관계등록시스템(https://efamily.scourt.go.kr/index.jsp)\n\n[파일 제출 형식]\n· 파일명: 서류명(성명)  예) 토익(홍길동), 아버지 가족관계증명서(홍길동)\n· 제출 형식: 사진 또는 PDF\n· 발송한 메일은 입사일까지 보관 바랍니다.\n· 경력, 어학, 자격, 면허, 학력 등이 없으신 경우에는 제외하고 송부 부탁드립니다.\n\n4. 입사 당일 안내\n· 일시: ${jt}\n· 장소: ${jp}\n\n5. 기타(입사자 교육 관련)\n입사일 전까지 다음 안내사항을 참고하여 준비해주시면 감사하겠습니다.\n· 고용24(www.work24.go.kr) 접속 후, 회원가입(개인회원)\n· 휴대폰에 고용노동부 직업훈련 출결관리 어플리케이션 설치\n  (교육 시작 시 어플 실행 후 입실 QR 체크, 교육종료 후 퇴실 QR 체크)\n\n감사합니다.\n유한양행 인사팀 드림` };
+    } },
+  { key:"posting", label:"① 공고 게시 안내(보고)", stageRef:"공고 진행",
+    fields:[{k:"channel",label:"공고 채널",type:"text",ph:"예: 잡코리아, 사람인"},{k:"period",label:"공고 기간",type:"text",ph:"예: 6/8 ~ 6/22"},{k:"prefer",label:"우대사항",type:"text",ph:"예: 제약 영업 경력 3년 이상"}],
+    build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - 채용공고 게시 안내`,
+      body:`안녕하십니까.\n${d.name} ${d.type}(${d.reqCount}명) 채용공고를 아래와 같이 게시하였음을 보고드립니다.\n\n■ 모집 부서: ${d.name}\n■ 채용 형태: ${d.type}\n■ 채용요청인원: ${d.reqCount}명${d.ftTO?`\n■ 정규직 TO: ${d.ftTO}명`:''}\n■ 공고 채널: ${f.channel||"-"}\n■ 공고 기간: ${f.period||"-"}\n■ 우대 사항: ${f.prefer||"-"}\n\n공고 마감 후 서류전형 일정을 별도 안내드리겠습니다.\n감사합니다.` }) },
+  { key:"doc-start", label:"② 서류 접수 마감 보고", stageRef:"서류전형",
+    fields:[{k:"applicants",label:"총 지원자 수",type:"number"},{k:"deadline",label:"접수 마감일",type:"text",ph:"예: 6/22"},{k:"reviewPeriod",label:"서류 검토 예정기간",type:"text",ph:"예: 6/23 ~ 6/27"}],
+    build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - 서류 접수 마감 (지원 ${f.applicants||0}명)`,
+      body:`안녕하십니까.\n${d.name} ${d.type} 채용 건 서류 접수가 마감되어 보고드립니다.\n\n■ 전형 단계: 서류 접수 마감\n■ 총 지원자: ${f.applicants||0}명\n■ 접수 마감일: ${f.deadline||"-"}\n■ 서류 검토 예정: ${f.reviewPeriod||"-"}\n\n검토 완료 후 서류전형 결과를 보고드리겠습니다.\n감사합니다.` }) },
+  { key:"doc-result", label:"③ 서류전형 결과 보고", stageRef:"서류전형",
+    fields:[{k:"applicants",label:"지원자",type:"number"},{k:"pass",label:"서류 합격",type:"number"},{k:"fail",label:"서류 불합격",type:"number"},{k:"failReason",label:"불합격 사유",type:"text",ph:"예: 직무 적합도 미달"},{k:"next",label:"AI역량검사 대상",type:"number"}],
+    build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - 서류전형 결과 보고`,
+      body:`안녕하십니까.\n${d.name} ${d.type} 채용 건 서류전형 결과를 아래와 같이 보고드립니다.\n\n■ 전형 단계: 서류전형\n■ 지원자: ${f.applicants||0}명\n■ 서류 합격: ${f.pass||0}명\n■ 서류 불합격: ${f.fail||0}명 (사유: ${f.failReason||"-"})\n■ AI역량검사 대상: ${f.next||0}명\n\n다음 단계(AI역량검사) 진행 예정입니다.\n감사합니다.` }) },
+  { key:"ai-result", label:"④ AI역량검사 결과 보고", stageRef:"AI역량검사",
+    fields:[{k:"taken",label:"응시자",type:"number"},{k:"fit",label:"적합자",type:"number"},{k:"unfit",label:"부적합자",type:"number"},{k:"unfitReason",label:"부적합 사유",type:"text",ph:"예: 직무 적합도 기준 미달"},{k:"absent",label:"미응시자",type:"number"}],
+    build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - AI역량검사 결과 보고`,
+      body:`안녕하십니까.\n${d.name} ${d.type} 채용 건 AI역량검사 전형 결과를 아래와 같이 보고드립니다.\n\n■ 전형 단계: AI역량검사\n■ 응시자: ${f.taken||0}명\n■ 적합자: ${f.fit||0}명\n■ 부적합자: ${f.unfit||0}명 (사유: ${f.unfitReason||"-"})\n■ 미응시자: ${f.absent||0}명\n\n다음 단계(면접전형) 진행 예정입니다.\n감사합니다.` }) },
+  { key:"interview-result", label:"⑤ 면접전형 결과 보고", stageRef:"면접전형",
+    fields:[{k:"target",label:"면접 대상",type:"number"},{k:"pass",label:"면접 합격",type:"number"},{k:"fail",label:"면접 불합격",type:"number"},{k:"failReason",label:"불합격 사유",type:"text",ph:"예: 직무 역량 부족"},{k:"absent",label:"면접 불참",type:"number"}],
+    build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - 면접전형 결과 보고`,
+      body:`안녕하십니까.\n${d.name} ${d.type} 채용 건 면접전형 결과를 아래와 같이 보고드립니다.\n\n■ 전형 단계: 면접전형\n■ 면접 대상: ${f.target||0}명\n■ 면접 합격: ${f.pass||0}명\n■ 면접 불합격: ${f.fail||0}명 (사유: ${f.failReason||"-"})\n■ 면접 불참: ${f.absent||0}명\n\n최종 합격자 대상 입사 절차를 진행할 예정입니다.\n감사합니다.` }) },
+  { key:"final", label:"⑥ 최종 합격 / 입사 확정 보고", stageRef:"입사",
+    fields:[{k:"finalCount",label:"최종 합격자",type:"number"},{k:"joinDate",label:"입사 예정일",type:"text",ph:"예: 7/1"},{k:"grade",label:"직급/처우",type:"text",ph:"예: 사원 / 협의 완료"},{k:"remark",label:"비고",type:"text",ph:"예: 결격사유 조회 완료"}],
+    build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - 최종 합격 및 입사 확정 보고`,
+      body:`안녕하십니까.\n${d.name} ${d.type} 채용 건 최종 결과 및 입사 확정 내용을 보고드립니다.\n\n■ 전형 단계: 입사 확정\n■ 최종 합격자: ${f.finalCount||0}명${d.ftTO?` (정규직 TO ${d.ftTO}명)`:''}\n■ 입사 예정일: ${f.joinDate||"-"}\n■ 직급/처우: ${f.grade||"-"}\n■ 비고: ${f.remark||"-"}\n\n입사 절차(온보딩) 진행 예정입니다.\n감사합니다.` }) }
+];
+function mailDeptLabel(d){
+  const s=(d.schedule&&d.schedule["공고 진행"]&&d.schedule["공고 진행"].s)||"";
+  const pre=s?(s.slice(2).replace(/-/g,".")+" "):"";   // 2026-06-16 → 26.06.16
+  return `${pre}${d.name}-${d.type}`;
+}
+function initMail(){
+  document.getElementById("mailDept").innerHTML=state.departments.map(d=>`<option value="${d.id}">${esc(mailDeptLabel(d))}</option>`).join("");
+  document.getElementById("mailTemplate").innerHTML=MAIL_TEMPLATES.map(t=>`<option value="${t.key}">${t.label}</option>`).join("");
+  onMailDeptChange();
+}
+function onMailDeptChange(){ const d=getDept(document.getElementById("mailDept").value); if(d){ const m=MAIL_TEMPLATES.find(t=>t.stageRef===d.stage); if(m) document.getElementById("mailTemplate").value=m.key; } renderMailFields(); }
+function currentTemplate(){ const k=document.getElementById("mailTemplate").value; return MAIL_TEMPLATES.find(t=>t.key===k); }
+function renderMailFields(){ const t=currentTemplate(); document.getElementById("mailFields").innerHTML=t.fields.map(f=>{
+    const ctrl = f.type==='textarea'
+      ? `<textarea id="mf_${f.k}" placeholder="${f.ph||''}" oninput="renderMailOut()" style="min-height:${f.rows?f.rows*22:72}px">${f.default||''}</textarea>`
+      : `<input id="mf_${f.k}" type="${f.type}" ${f.type==='number'?'min="0"':''} value="${f.default!=null?esc(f.default):''}" placeholder="${f.ph||''}" oninput="renderMailOut()" />`;
+    return `<div class="form-field"><label>${f.label}</label>${ctrl}</div>`;
+  }).join(""); renderMailOut(); }
+function renderMailOut(){ const t=currentTemplate(); const d=getDept(document.getElementById("mailDept").value); if(!d) return; const f={}; t.fields.forEach(x=>{ const el=document.getElementById("mf_"+x.k); f[x.k]=el?el.value:""; }); const out=t.build(d,f);
+  document.getElementById("mailSubject").textContent=out.subject; document.getElementById("mailBody").textContent=out.body; document.getElementById("mailRecipientHint").textContent=`${d.name} · 현재 ${d.stage}`; }
+function goMailFor(i){ switchTab("mail"); initMail(); document.getElementById("mailDept").value=i; onMailDeptChange(); }
+
+/* ===== 일반 계정(팀장 등) 조회 화면 ===== */
+let teamViewDeptId=null;
+function renderTeamHome(){
+  teamViewDeptId=null;
+  const acc=getAccount(session.user)||{};
+  const list=deptsForUser(session.user);
+  const active=list.filter(d=>!d.completed), done=list.filter(d=>d.completed);
+  const cardHTML=(d)=>`<div class="dept-card ${d.completed?'completed-card':''}" style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">
+      <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">현황 보기 ›</span></div>
+        <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${d.completed?'<span class="badge badge-done">채용 완료</span>':badgeHTML(d.stage)}</div>
+      <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span></div>
+      ${stepperHTML(d.stage)}
+      ${curScheduleHTML(d)}
+    </div>`;
+  let html=`<div class="tl-hero"><div class="eyebrow">조회 전용 계정${acc.dept?` · ${esc(acc.dept)}`:''}</div><h1>${esc(acc.name||acc.user||"")}${acc.title?` · ${esc(acc.title)}`:''}</h1>
+    <div class="now"><span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block"></span>등록된 전형 ${list.length}건</div></div>`;
+  if(!list.length){ html+=`<div class="panel" style="padding:30px;color:var(--muted)">등록된 전형이 없습니다. 관리자가 전형에 본 계정을 등록하면 이곳에서 조회할 수 있습니다.</div>`; }
+  else{
+    html+=`<div class="section-title">진행 중인 전형</div>`;
+    html+= active.length?`<div class="dept-grid" style="margin-bottom:22px">${active.map(cardHTML).join("")}</div>`:`<div class="panel" style="padding:20px;color:var(--muted);margin-bottom:22px">진행 중인 전형이 없습니다.</div>`;
+    if(done.length){ html+=`<div class="section-title">완료된 전형</div><div class="dept-grid">${done.map(cardHTML).join("")}</div>`; }
+  }
+  document.getElementById("teamContent").innerHTML=html;
+}
+function renderTeamDetail(deptId){
+  const d=getDept(deptId); if(!d){ renderTeamHome(); return; } teamViewDeptId=deptId; const c=d.counts||{};
+  teamCal=defMonth([d]);
+  const rows=STAGES.filter(s=>STAGE_SCHED[s].s||STAGE_SCHED[s].e).map(s=>{ const cfg=STAGE_SCHED[s]; const v=(d.schedule&&d.schedule[s])||{}; const cur=s===d.stage;
+    return `<tr class="${cur?'cur':''}"><td>${s}${cur?' <span class="nowtag">진행중</span>':''}</td><td>${v.s||'-'}</td><td>${cfg.e?(v.e||'-'):'<span style="color:var(--muted)">당일</span>'}</td></tr>`; }).join("");
+  const iv=(d.schedule&&d.schedule["면접전형"])||{}; const sess=(iv.sessions||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  const ivBlock=(sess.length||iv.observers)?`<div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">면접 정보</div>
+    ${sess.length?`<table class="sched-ro"><thead><tr><th>면접일</th><th>회차</th><th>진행 시간</th><th>장소</th><th>참석 면접관</th></tr></thead><tbody>${sess.map(s=>`<tr><td><b>${s.date||'-'}</b></td><td>${esc(s.round||'-')}</td><td>${esc(sessTime(s)||'-')}</td><td>${esc(s.place||'-')}</td><td>${esc(s.panel||'-')}</td></tr>`).join("")}</tbody></table>`:`<div style="font-size:13px;color:var(--muted)">등록된 면접 세션이 없습니다.</div>`}
+    ${iv.observers?`<div style="margin-top:12px;font-size:13px;color:var(--text)"><span style="color:var(--muted)">배석자 · </span><b>${esc(iv.observers)}</b></div>`:""}</div>`:"";
+  document.getElementById("teamContent").innerHTML=`
+    <button class="btn-ghost" style="margin-bottom:16px" onclick="renderTeamHome()">← 전형 목록</button>
+    <div class="tl-hero"><div class="eyebrow">${esc(d.type)} · 채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}명`:''}</div><h1>${esc(d.name)} 채용 현황</h1>
+      <div class="now"><span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block"></span>현재 단계 · ${d.stage}</div></div>
+    <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 진행 단계</div>${stepperHTML(d.stage)}</div>
+    <div class="tl-grid">
+      <div class="tl-stat"><div class="s-l">채용 형태</div><div class="s-v">${esc(d.type)}</div></div>
+      <div class="tl-stat"><div class="s-l">채용요청인원</div><div class="s-v">${d.reqCount}명</div></div>
+      <div class="tl-stat"><div class="s-l">정규직 TO</div><div class="s-v">${d.ftTO||0}명</div></div>
+      <div class="tl-stat"><div class="s-l">최근 업데이트</div><div class="s-v">${d.updated||'-'}</div></div>
+    </div>
+    <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 일정 (캘린더)</div><div id="teamCalWrap">${calendarHTML([d],teamCal.y,teamCal.m,"teamCalMove")}</div></div>
+    <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형별 일정</div>
+      <table class="sched-ro"><thead><tr><th>전형 단계</th><th>시작일</th><th>마감일</th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${ivBlock}
+    ${(c.applicants||c.doc||c.ai||c.hired)?`<div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 인원 현황</div>
+      <div class="counts-row"><span class="count-pill">지원자 <b>${c.applicants||0}</b></span><span class="count-pill">서류 합격 <b>${c.doc||0}</b></span><span class="count-pill">AI역량검사 합격 <b>${c.ai||0}</b></span><span class="count-pill">채용 인원 <b>${c.hired||0}</b></span></div></div>`:""}
+    <div class="panel" style="padding:22px 24px"><div class="section-title">진행 메모</div>
+      <div style="font-size:13.5px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word">${d.notes?esc(d.notes):'<span style="color:var(--muted)">등록된 메모가 없습니다.</span>'}</div></div>`;
+}
+
+/* ===== 복사/토스트 ===== */
+function copyText(elId,btn){
+  const txt=document.getElementById(elId).textContent;
+  const done=()=>{ btn.classList.add("copied"); const o=btn.textContent; btn.textContent="복사됨 ✓"; setTimeout(()=>{btn.classList.remove("copied");btn.textContent=o;},1400); };
+  if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done)); } else{ fallbackCopy(txt,done); }
+}
+function fallbackCopy(txt,cb){ const ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); cb&&cb(); }catch(e){ toast("복사 실패 — 직접 선택해 주세요."); } document.body.removeChild(ta); }
+let toastT;
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"),2000); }
+
+document.getElementById("inCode").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+document.getElementById("inUser").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("inCode").focus(); });
+</script>
+</body>
+</html>
