@@ -323,6 +323,26 @@
   .tl-stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);min-height:84px}
   .tl-stat .s-l{font-size:12px;color:var(--muted)}
   .tl-stat .s-v{font-size:20px;font-weight:800;color:var(--ink);margin-top:4px}
+  /* 팀 홈 히어로(조회 계정) */
+  .tl-hero-home{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 28px}
+  .tl-hero-home .th-l h1{margin:0 0 6px}
+  .tl-hero-home .th-title{font-size:15px;font-weight:600;opacity:.9}
+  .tl-hero-home .th-sub{font-size:13px;opacity:.85}
+  .tl-hero-home .th-r{display:flex;gap:12px;flex-shrink:0}
+  .tl-hero-home .th-stat{background:rgba(255,255,255,.16);border-radius:14px;padding:12px 18px;text-align:center;min-width:78px}
+  .tl-hero-home .th-stat .th-n{display:block;font-size:24px;font-weight:800;line-height:1.1}
+  .tl-hero-home .th-stat .th-k{display:block;font-size:11.5px;opacity:.9;margin-top:2px}
+  @media(max-width:560px){ .tl-hero-home{flex-direction:column;align-items:stretch} .tl-hero-home .th-r{justify-content:flex-start} }
+  /* ATS 평가 시스템 바로가기 패널 */
+  .ats-panel{padding:20px 24px;margin-bottom:22px;border:1px solid var(--yh-green-light);background:var(--yh-green-tint)}
+  .ats-panel .ats-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .ats-panel .ats-desc{font-size:13px;color:var(--text);margin:2px 0 0}
+  .ats-btn{display:inline-flex;align-items:center;gap:8px;background:var(--yh-green);color:#fff;font-weight:700;font-size:14px;padding:11px 20px;border-radius:10px;text-decoration:none;white-space:nowrap;box-shadow:var(--shadow);transition:background .15s}
+  .ats-btn:hover{background:var(--yh-green-dark)}
+  .ats-info{margin-top:14px;background:#fff;border:1px solid var(--yh-green-light);border-radius:10px;padding:13px 16px;font-size:13px;line-height:1.85}
+  .ats-info b{color:var(--yh-green-dark)}
+  .ats-info .ats-mono{font-family:var(--mono,monospace);background:#f1f6f2;padding:1px 7px;border-radius:6px;font-weight:700}
+  .ats-info .ats-note{color:var(--muted);font-size:12px}
   .iv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
   .iv-c{background:var(--yh-green-tint);border:1px solid var(--yh-green-light);border-radius:10px;padding:12px 14px}
   .iv-c .l{font-size:11.5px;color:var(--muted)}.iv-c .v{font-size:14px;font-weight:700;color:var(--ink);margin-top:3px}
@@ -1341,8 +1361,9 @@ function renderTeamHome(){
       ${stepperHTML(d.stage)}
       ${curScheduleHTML(d)}
     </div>`;
-  let html=`<div class="tl-hero"><div class="eyebrow">조회 전용 계정${acc.dept?` · ${esc(acc.dept)}`:''}</div><h1>${esc(acc.name||acc.user||"")}${acc.title?` · ${esc(acc.title)}`:''}</h1>
-    <div class="now"><span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block"></span>등록된 전형 ${list.length}건</div></div>`;
+  let html=`<div class="tl-hero tl-hero-home"><div class="th-l"><h1>${esc(acc.name||acc.user||"")}${acc.title?` <span class="th-title">${esc(acc.title)}</span>`:''}</h1>
+    <div class="th-sub">${acc.dept?esc(acc.dept)+" · ":""}담당 전형을 선택하면 진행 현황과 면접 정보를 확인할 수 있습니다.</div></div>
+    <div class="th-r"><div class="th-stat"><span class="th-n">${active.length}</span><span class="th-k">진행 중</span></div><div class="th-stat"><span class="th-n">${done.length}</span><span class="th-k">완료</span></div></div></div>`;
   if(!list.length){ html+=`<div class="panel" style="padding:30px;color:var(--muted)">등록된 전형이 없습니다. 관리자가 전형에 본 계정을 등록하면 이곳에서 조회할 수 있습니다.</div>`; }
   else{
     html+=`<div class="section-title">진행 중인 전형</div>`;
@@ -1353,7 +1374,7 @@ function renderTeamHome(){
 }
 function renderTeamDetail(deptId){
   const d=getDept(deptId); if(!d){ renderTeamHome(); return; } teamViewDeptId=deptId; const c=d.counts||{};
-  teamCal=defMonth([d]);
+  const t0=new Date(); teamCal={y:t0.getFullYear(),m:t0.getMonth()};
   const rows=STAGES.filter(s=>STAGE_SCHED[s].s||STAGE_SCHED[s].e).map(s=>{ const cfg=STAGE_SCHED[s]; const v=(d.schedule&&d.schedule[s])||{}; const cur=s===d.stage;
     return `<tr class="${cur?'cur':''}"><td>${s}${cur?' <span class="nowtag">진행중</span>':''}</td><td>${v.s||'-'}</td><td>${cfg.e?(v.e||'-'):'<span style="color:var(--muted)">당일</span>'}</td></tr>`; }).join("");
   const iv=(d.schedule&&d.schedule["면접전형"])||{}; const sess=(iv.sessions||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
@@ -1365,19 +1386,22 @@ function renderTeamDetail(deptId){
     <div class="tl-hero"><div class="eyebrow">${esc(d.type)} · 채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}명`:''}</div><h1>${esc(d.name)} 채용 현황</h1>
       <div class="now"><span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block"></span>현재 단계 · ${d.stage}</div></div>
     <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 진행 단계</div>${stepperHTML(d.stage)}</div>
+    <div class="panel ats-panel"><div class="ats-head"><div><div class="section-title" style="margin-bottom:0">평가 시스템(ATS) 바로가기</div><p class="ats-desc">각 전형 평가는 ATS(마이다스) 시스템에서 진행합니다.</p></div>
+      <a class="ats-btn" href="https://yuhan-cms.recruiter.co.kr/cus/login" target="_blank" rel="noopener">ATS 평가자 시스템 접속 →</a></div>
+      <div class="ats-info"><b>평가자 계정</b><br>· ID : 사번 <span class="ats-mono">예) 240169</span><br>· 초기 PW : <span class="ats-mono">yh2025@@</span> <span class="ats-note">(휴대폰 본인인증 후 변경 가능)</span><br><span class="ats-note">* 비밀번호를 변경 후 분실하셨다면 채용담당자에게 연락 부탁드립니다.</span></div></div>
     <div class="tl-grid">
       <div class="tl-stat"><div class="s-l">채용 형태</div><div class="s-v">${esc(d.type)}</div></div>
       <div class="tl-stat"><div class="s-l">채용요청인원</div><div class="s-v">${d.reqCount}명</div></div>
       <div class="tl-stat"><div class="s-l">정규직 TO</div><div class="s-v">${d.ftTO||0}명</div></div>
       <div class="tl-stat"><div class="s-l">최근 업데이트</div><div class="s-v">${d.updated||'-'}</div></div>
     </div>
-    <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 일정 (캘린더)</div><div id="teamCalWrap">${calendarHTML([d],teamCal.y,teamCal.m,"teamCalMove")}</div></div>
+    <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">캘린더</div><div id="teamCalWrap">${calendarHTML([d],teamCal.y,teamCal.m,"teamCalMove")}</div></div>
+    ${ivBlock}
     <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형별 일정</div>
       <table class="sched-ro"><thead><tr><th>전형 단계</th><th>시작일</th><th>마감일</th></tr></thead><tbody>${rows}</tbody></table></div>
-    ${ivBlock}
     ${(c.applicants||c.doc||c.ai||c.hired)?`<div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 인원 현황</div>
       <div class="counts-row"><span class="count-pill">지원자 <b>${c.applicants||0}</b></span><span class="count-pill">서류 합격 <b>${c.doc||0}</b></span><span class="count-pill">AI역량검사 합격 <b>${c.ai||0}</b></span><span class="count-pill">채용 인원 <b>${c.hired||0}</b></span></div></div>`:""}
-    <div class="panel" style="padding:22px 24px"><div class="section-title">진행 메모</div>
+    <div class="panel" style="padding:22px 24px"><div class="section-title">메모</div>
       <div style="font-size:13.5px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word">${d.notes?esc(d.notes):'<span style="color:var(--muted)">등록된 메모가 없습니다.</span>'}</div></div>`;
 }
 
