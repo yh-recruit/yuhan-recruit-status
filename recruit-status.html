@@ -110,6 +110,21 @@
   .status-tbl .st-list .st-dept b{font-weight:700}
   .status-tbl .st-list .st-typeline{margin:2px 0}
   .status-tbl .st-list .st-type{display:inline-block;min-width:64px;font-weight:800;color:var(--yh-green-dark)}
+  .dc-meta .hh-on{color:var(--yh-green-dark)}.dc-meta .hh-on b{color:var(--yh-green-dark)}
+  /* 일괄 일정 편집 */
+  .bs-all{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px}
+  .bs-all input{width:16px;height:16px;accent-color:var(--yh-green)}
+  .bs-depts{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
+  .bs-dept{display:flex;align-items:center;gap:7px;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px;cursor:pointer}
+  .bs-dept input{width:15px;height:15px;accent-color:var(--yh-green);flex-shrink:0}
+  .bs-badge{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:5px;flex-shrink:0}
+  .bs-dept .bs-type{font-size:11px;color:var(--muted);margin-left:auto}
+  .bs-strow{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .bs-stname{flex-shrink:0;width:96px;font-size:13px;font-weight:700;color:var(--ink)}
+  .bs-din{flex:1;padding:8px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none;background:#fff}
+  .bs-din:focus{border-color:var(--yh-green-light)}
+  .bs-din-na{flex:1;font-size:12px;color:var(--muted);padding:8px 0}
+  @media(max-width:560px){.bs-depts{grid-template-columns:1fr}}
   .sb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
   .todo-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);font-size:13.5px}
   .todo-row:last-child{border-bottom:none}
@@ -330,6 +345,8 @@
   .cal-cell:nth-child(7n){border-right:none}
   .cal-cell:hover:not(.empty){background:var(--yh-green-tint)}
   .cal-cell.empty{background:#fafbfa;cursor:default}
+  .cal-cell.cal-out{background:#fafbfa;cursor:default}
+  .cal-cell.cal-out .cal-date{color:var(--muted);opacity:.4}
   .cal-date{font-size:12px;font-weight:700;color:var(--text);width:22px;height:22px;display:flex;align-items:center;justify-content:center}
   .cal-cell.cal-sun .cal-date{color:#c0504d}
   .cal-cell.today .cal-date{background:var(--yh-green);color:#fff;border-radius:50%}
@@ -548,7 +565,7 @@
     <section id="tab-dash">
       <div class="page-head">
         <div><h1>전형 진행 현황</h1><div class="sub">부서 카드를 클릭하면 전형 상세 보드가 열립니다. 카드 하단에서 단계를 바로 변경할 수 있습니다.</div></div>
-        <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="openBulkModal()">⊕ 전형 일괄 등록</button><button class="btn-ghost" onclick="openDeptModal()">+ 전형 추가</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="openBulkSchedModal()">🗓 일괄 일정 편집</button><button class="btn-ghost" onclick="openBulkModal()">⊕ 전형 일괄 등록</button><button class="btn-ghost" onclick="openDeptModal()">+ 전형 추가</button></div>
       </div>
       <div class="stage-summary" id="stageSummary"></div>
       <div class="status-board panel" id="statusBoard"></div>
@@ -567,7 +584,9 @@
         <div><h1>계정 관리</h1><div class="sub">시스템 접속 계정을 관리합니다. 관리자 외 계정은 ‘일반’으로, 본인 부서 현황을 조회 전용으로 봅니다.</div></div>
         <div style="display:flex;gap:8px"><button class="btn-ghost danger" onclick="deleteSelectedAccts()">🗑 선택 삭제</button><button class="btn-ghost" onclick="openAcctBulkModal()">⊕ 계정 일괄 관리</button><button class="btn-ghost" onclick="openAcctModal()">+ 계정 추가</button></div>
       </div>
-      <div class="panel"><table><thead><tr><th style="width:34px"><input type="checkbox" id="acctSelAll" onclick="toggleAllAcct(this)" title="전체 선택"></th><th>구분</th><th>아이디</th><th>성명</th><th>부서</th><th>직책/직급</th><th>등록일</th><th>관리</th></tr></thead><tbody id="manageBody"></tbody></table></div>
+      <div class="dd-bar" style="margin-top:4px"><input id="mgSearch" class="dd-search" placeholder="🔍 아이디·성명·부서 검색" oninput="mgSearch=this.value;mgPage=1;renderManage()">
+        <div class="dd-right"><span id="mgCount" class="dd-cnt"></span><select class="dd-size" onchange="mgPageSize=(this.value==='all'?'all':+this.value);mgPage=1;renderManage()"><option value="20">20개</option><option value="50">50개</option><option value="100">100개</option><option value="all">전체</option></select></div></div>
+      <div class="panel"><table><thead><tr><th style="width:34px"><input type="checkbox" id="acctSelAll" onclick="toggleAllAcct(this)" title="전체 선택"></th><th>구분</th><th>아이디</th><th>성명</th><th>부서</th><th>직책/직급</th><th>등록일</th><th>관리</th></tr></thead><tbody id="manageBody"></tbody></table><div id="mgPager"></div></div>
     </section>
 
     <section id="tab-mail" class="hidden">
@@ -724,6 +743,21 @@
     <div class="modal-head"><h3 id="reportTitle">채용 성과 리포트</h3><button class="x-btn" onclick="closeReport()">&times;</button></div>
     <div class="modal-body"><div id="reportBody"></div></div>
     <div class="modal-foot"><button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="closeReport()">닫기</button></div>
+  </div>
+</div>
+
+<div id="bulkSchedModal" class="modal-back hidden">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-head"><h3>일괄 일정 편집</h3><button class="x-btn" onclick="closeBulkSchedModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="help-note" style="margin-bottom:14px">진행 중인 전형을 선택하고, 아래에 입력한 일정만 선택 부서에 <b>한 번에 반영</b>합니다. 빈 칸은 변경하지 않습니다.</div>
+      <div class="section-title" style="margin-bottom:8px">부서 선택 <span class="hint-inline" style="margin-left:6px">· 같은 단계끼리 모아 표시</span></div>
+      <label class="bs-all"><input type="checkbox" id="bsAll" onclick="bsToggleAll(this)"> 전체 선택</label>
+      <div id="bsDepts" class="bs-depts"></div>
+      <div class="section-title" style="margin-top:18px;margin-bottom:8px">일괄 적용할 일정 <span class="hint-inline" style="margin-left:6px">· 입력한 항목만 반영</span></div>
+      <div id="bsStages"></div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeBulkSchedModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveBulkSched()">선택 부서에 반영</button></div>
   </div>
 </div>
 
@@ -904,6 +938,7 @@ function switchTab(t){
   document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
   ["dash","completed","manage","mail","stats","sched","tasks"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("hidden",x!==t));
   if(t==="completed") renderCompleted();
+  if(t==="manage") renderManage();
   if(t==="mail") initMail();
   if(t==="stats") computeStats();
   if(t==="sched"){ const t0=new Date(); adminCal={y:t0.getFullYear(),m:t0.getMonth()}; renderScheduleTab(); }
@@ -997,7 +1032,7 @@ function renderDeptGrid(){
       <div class="dc-clickable" onclick="openBoard('${d.id}')">
         <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
           <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
-        <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span><span>헤드헌팅 <b>${d.headhunt?'O':'X'}</b></span></div>
+        <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span>${d.headhunt?`<span class="hh-on">헤드헌팅 <b>O</b></span>`:''}</div>
         ${stepperHTML(d.stage)}
         ${curScheduleHTML(d)}
         ${countsHTML(d)}
@@ -1049,33 +1084,31 @@ function reopenDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.nam
   d.completed=false; d.completedAt=""; const cols=boardColumns(d); const dc=cols.find(x=>x.id==="done"); if(dc&&d.checklist) d.checklist["done:"+(dc.items.length-1)]=false;
   d.updated=today(); saveState(); renderAll(); toast("전형을 재개했습니다. ‘전형 현황’에서 확인하세요."); }
 
+let mgSearch="", mgPage=1, mgPageSize=20;
+function gotoMgPage(p){ mgPage=p; renderManage(); }
 function renderManage(){
-  const rows=[`<tr>
-    <td></td>
-    <td><span class="role-pill admin">관리자</span></td>
-    <td><span class="mono">${esc(ADMIN.user)}</span></td>
-    <td>시스템 관리자</td>
-    <td><span style="color:var(--muted)">전체</span></td>
-    <td>시스템 관리자</td>
-    <td><span style="color:var(--muted)">-</span></td>
-    <td class="row-actions"><span style="color:var(--muted);font-size:12px">기본 계정</span></td></tr>`];
-  (state.accounts||[]).forEach((a,ai)=>{
-    const isAdmin=a.role==="admin";
-    const regCount=deptsForUser(a.user).length;
-    const deptCell=isAdmin
-      ? '<span style="color:var(--muted)">전체</span>'
-      : `${a.dept?esc(a.dept):'<span style="color:var(--muted)">-</span>'}${regCount?` <span class="hint-inline">· 전형 ${regCount}건 등록</span>`:' <span class="hint-inline">· 미등록</span>'}`;
-    rows.push(`<tr>
-      <td><input type="checkbox" class="acct-cb" value="${ai}"></td>
-      <td><span class="role-pill ${isAdmin?'admin':''}">${isAdmin?'관리자':'일반'}</span></td>
-      <td><span class="mono">${esc(a.user)}</span></td>
-      <td>${a.name?esc(a.name):'<span style="color:var(--muted)">-</span>'}</td>
-      <td>${deptCell}</td>
-      <td>${a.title?esc(a.title):'<span style="color:var(--muted)">-</span>'}</td>
-      <td>${a.createdAt||'-'}</td>
-      <td class="row-actions"><button class="mini" onclick="openAcctModal(${ai})">편집</button><button class="mini danger" onclick="deleteAcct(${ai})">삭제</button></td></tr>`);
-  });
-  document.getElementById("manageBody").innerHTML=rows.join("");
+  // 항목: 시스템 관리자(고정) + 전역 계정. 정렬=관리자 먼저, 그 다음 일반
+  const entries=[{system:true, role:"admin", user:ADMIN.user, name:"시스템 관리자", dept:"", title:"시스템 관리자", createdAt:""}];
+  (state.accounts||[]).forEach((a,ai)=>entries.push(Object.assign({system:false, idx:ai}, a)));
+  const q=mgSearch.trim().toLowerCase();
+  let rows=entries.filter(e=>{ if(!q) return true; return [e.user,e.name,e.dept,e.title,(e.role==="admin"?"관리자":"일반")].some(v=>String(v||"").toLowerCase().includes(q)); });
+  const rank=e=>e.system?0:(e.role==="admin"?1:2);
+  rows.sort((a,b)=>rank(a)-rank(b));
+  const total=rows.length; const size=mgPageSize==="all"?(total||1):mgPageSize; const pages=Math.max(1,Math.ceil(total/size));
+  if(mgPage>pages) mgPage=pages; if(mgPage<1) mgPage=1;
+  const pageRows=rows.slice((mgPage-1)*size, (mgPage-1)*size+size);
+  const trs=pageRows.map(e=>{
+    if(e.system) return `<tr><td></td><td><span class="role-pill admin">관리자</span></td><td><span class="mono">${esc(e.user)}</span></td><td>시스템 관리자</td><td><span style="color:var(--muted)">전체</span></td><td>시스템 관리자</td><td><span style="color:var(--muted)">-</span></td><td class="row-actions"><span style="color:var(--muted);font-size:12px">기본 계정</span></td></tr>`;
+    const isAdmin=e.role==="admin"; const regCount=deptsForUser(e.user).length;
+    const deptCell=isAdmin?'<span style="color:var(--muted)">전체</span>':`${e.dept?esc(e.dept):'<span style="color:var(--muted)">-</span>'}${regCount?` <span class="hint-inline">· 전형 ${regCount}건 등록</span>`:' <span class="hint-inline">· 미등록</span>'}`;
+    return `<tr><td><input type="checkbox" class="acct-cb" value="${e.idx}"></td><td><span class="role-pill ${isAdmin?'admin':''}">${isAdmin?'관리자':'일반'}</span></td><td><span class="mono">${esc(e.user)}</span></td><td>${e.name?esc(e.name):'<span style="color:var(--muted)">-</span>'}</td><td>${deptCell}</td><td>${e.title?esc(e.title):'<span style="color:var(--muted)">-</span>'}</td><td>${e.createdAt||'-'}</td><td class="row-actions"><button class="mini" onclick="openAcctModal(${e.idx})">편집</button><button class="mini danger" onclick="deleteAcct(${e.idx})">삭제</button></td></tr>`;
+  }).join("");
+  document.getElementById("manageBody").innerHTML=trs;
+  const cnt=document.getElementById("mgCount"); if(cnt) cnt.textContent=`총 ${total}개`;
+  const pg=document.getElementById("mgPager");
+  if(pg){ if(pages>1){ const btn=(p,lbl,dis)=>`<button class="pg-btn" ${dis?'disabled':''} onclick="gotoMgPage(${p})">${lbl}</button>`;
+      pg.innerHTML=`<div class="pager">${btn(mgPage-1,'‹',mgPage<=1)}<span class="pg-info">${mgPage} / ${pages} 페이지</span>${btn(mgPage+1,'›',mgPage>=pages)}</div>`; } else pg.innerHTML=""; }
+  const sa=document.getElementById("acctSelAll"); if(sa) sa.checked=false;
 }
 function deleteDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 정말 삭제하시겠습니까?\n등록된 계정은 ‘계정 관리’에 그대로 유지됩니다.`)) return; state.departments=state.departments.filter(x=>x.id!==i); saveState(); closeDeptModal(); renderAll(); toast("전형이 삭제되었습니다."); }
 
@@ -1301,6 +1334,34 @@ function closeBulkModal(){ document.getElementById("bulkModal").classList.add("h
 function collectBulkRows(){ const rows=[]; document.querySelectorAll("#bulkRows .bulk-row").forEach(r=>{ const name=r.querySelector(".bk-name").value.trim(); if(!name) return; rows.push({ name, type:r.querySelector(".bk-type").value, reqCount:+r.querySelector(".bk-req").value||1, pstart:r.querySelector(".bk-pstart").value.trim(), pend:r.querySelector(".bk-pend").value.trim(), stage:r.querySelector(".bk-stage").value }); }); return rows; }
 function renderBulkPreview(){ const rows=collectBulkRows(); const el=document.getElementById("bulkPreview"); el.innerHTML=rows.length?`<b style="color:var(--yh-green-dark)">${rows.length}개 전형</b>이 등록됩니다. (계정은 ‘계정 관리’에서 별도로 만들어 전형에 등록하세요.)`:"부서명을 입력하면 미리보기가 표시됩니다."; }
 function sortDeptsByStage(){ state.departments.sort((a,b)=>STAGES.indexOf(b.stage)-STAGES.indexOf(a.stage)); }
+/* ===== 일괄 일정 편집 ===== */
+const BS_STAGES=["공고진행","서류전형","AI역량검사","면접전형","입사"];
+function openBulkSchedModal(){
+  const ds=activeDepts().slice().sort((a,b)=>STAGES.indexOf(a.stage)-STAGES.indexOf(b.stage)||String(a.name).localeCompare(b.name));
+  document.getElementById("bsDepts").innerHTML = ds.length? ds.map(d=>`<label class="bs-dept"><input type="checkbox" class="bs-cb" value="${d.id}"><span class="bs-badge" style="background:${hexA(STAGE_COLORS[d.stage],.14)};color:${STAGE_COLORS[d.stage]}">${esc(d.stage)}</span><b>${esc(d.name)}</b><span class="bs-type">${esc(d.type)}</span></label>`).join("") : `<div class="ivs-empty">진행 중인 전형이 없습니다.</div>`;
+  document.getElementById("bsStages").innerHTML = BS_STAGES.map((s,i)=>{
+    const hasEnd=STAGE_SCHED[s].e;
+    return `<div class="bs-strow"><span class="bs-stname"><span class="dot" style="background:${STAGE_COLORS[s]};display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px"></span>${esc(s)}</span>
+      <input id="bs_${i}_s" class="bs-din" type="text" inputmode="numeric" maxlength="10" placeholder="시작 YYYY-MM-DD" oninput="this.value=maskDate(this.value)">
+      ${hasEnd?`<input id="bs_${i}_e" class="bs-din" type="text" inputmode="numeric" maxlength="10" placeholder="마감 YYYY-MM-DD" oninput="this.value=maskDate(this.value)">`:`<span class="bs-din-na">마감 없음</span>`}</div>`;
+  }).join("");
+  document.getElementById("bsAll").checked=false;
+  document.getElementById("bulkSchedModal").classList.remove("hidden");
+}
+function closeBulkSchedModal(){ document.getElementById("bulkSchedModal").classList.add("hidden"); }
+function bsToggleAll(cb){ document.querySelectorAll("#bsDepts .bs-cb").forEach(x=>{ x.checked=cb.checked; }); }
+function saveBulkSched(){
+  const ids=[...document.querySelectorAll("#bsDepts .bs-cb:checked")].map(cb=>cb.value);
+  if(!ids.length){ toast("적용할 부서를 선택하세요."); return; }
+  const updates=[];
+  BS_STAGES.forEach((s,i)=>{ const se=document.getElementById("bs_"+i+"_s"), ee=document.getElementById("bs_"+i+"_e"); const sv=se?se.value.trim():"", ev=ee?ee.value.trim():""; if(sv||ev) updates.push({s,sv,ev}); });
+  if(!updates.length){ toast("입력한 일정이 없습니다."); return; }
+  let cnt=0;
+  ids.forEach(idv=>{ const d=getDept(idv); if(!d) return; if(!d.schedule) d.schedule=emptySchedule();
+    updates.forEach(u=>{ if(!d.schedule[u.s]) d.schedule[u.s]={s:"",e:"",place:"",panel:"",observers:"",timeStart:"",timeEnd:"",sessions:[]}; if(u.sv) d.schedule[u.s].s=u.sv; if(u.ev && STAGE_SCHED[u.s].e) d.schedule[u.s].e=u.ev; });
+    d.updated=today(); cnt++; });
+  saveState(); closeBulkSchedModal(); renderAll(); toast(`${cnt}개 부서의 일정을 일괄 반영했습니다.`);
+}
 function saveBulk(){ const rows=collectBulkRows(); if(!rows.length){ toast("부서명을 1개 이상 입력하세요."); return; }
   rows.forEach(r=>{ const sch=emptySchedule(); if(r.pstart) sch["공고진행"].s=r.pstart; if(r.pend) sch["공고진행"].e=r.pend;
     const dept={ id:id(), name:r.name, type:r.type, reqCount:r.reqCount, ftTO:0, headhunt:false, stage:r.stage, schedule:sch, accountUsers:[], notes:"", counts:{applicants:0,doc:0,ai:0,hired:0}, checklist:{}, updated:today() };
@@ -1340,7 +1401,7 @@ function boardColumns(d){
       summary:[["전형명","AI역량검사"],["대상자 수",`${c.doc||0}명`],["일정",`${ds("AI역량검사","s")||'-'} ~ ${ds("AI역량검사","e")||'-'}`]],
       items:["평가 결과 분석 및 정리","각 부서 안내 및 면접대상자 협의","참석 면접관 확인 및 면접일정 종합","면접실 예약","(ATS)합격자 발표"] },
     { id:"interview", icon:"✅", title:"면접전형", summary:ivSummary,
-      items:["면접자료 제작 및 인사팀장님 전달","면접비 신청","면접관 리마인드 메일 발송","기면접자 확인","(PT면접)발표 자료 준비","면접 진행","평가 결과 확인 및 대상자 확정","입사일 협의","(경력)처우협의","면접전형 결과 보고 및 채용기안 결재","(ATS)합격자 발표"] },
+      items:["(경력)레퍼런스 체크","면접자료 제작 및 인사팀장님 전달","면접비 신청","면접관 리마인드 메일 발송","기면접자 확인","(PT면접)발표 자료 준비","면접 진행","평가 결과 확인 및 대상자 확정","입사일 협의","(경력)처우협의","면접전형 결과 보고 및 채용기안 결재","(ATS)합격자 발표"] },
     { id:"done", icon:"🪪", title:"채용 종료", report:true,
       summary:[["입사 예정일",ds("입사","s")||"-"],["최종 합격",`${c.hired||0}명`],["정규직 TO",`${d.ftTO||0}명`]],
       items:["입사예정자 입사안내 메일 발송","각 부서 입사자 안내","입사자 교육","(선택)그룹웨어 게시판 게재"] }
@@ -1646,7 +1707,7 @@ function calendarHTML(depts,y,m,navFn){
     const weekEd=weekSd+6;
     let cellsHtml="";
     for(let i=0;i<7;i++){ const day=weekStartDay+i;
-      if(day<1||day>dim){ cellsHtml+=`<div class="cal-cell empty"></div>`; }
+      if(day<1||day>dim){ const od=new Date(Date.UTC(y,m,day)); cellsHtml+=`<div class="cal-cell cal-out"><div class="cal-date">${od.getUTCDate()}</div></div>`; }
       else{ const ds=`${y}-${pad2(m+1)}-${pad2(day)}`; cellsHtml+=`<div class="cal-cell ${i===0?'cal-sun':''} ${ds===todayStr?'today':''}" onclick="openDayPopup('${ds}')"><div class="cal-date">${day}</div></div>`; }
     }
     const segs=[];
