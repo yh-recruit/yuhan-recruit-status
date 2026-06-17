@@ -161,6 +161,8 @@
   .mini{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;font-weight:600;color:var(--text)}
   .mini:hover{background:var(--yh-green-tint)}
   .mini.danger{color:var(--danger);border-color:#eccecc}.mini.danger:hover{background:#fbf0ef}
+  .mini.ok{color:#fff;background:var(--yh-green);border-color:var(--yh-green);font-weight:700}.mini.ok:hover{background:var(--yh-green-dark)}
+  .mini.del{color:#fff;background:var(--danger);border-color:var(--danger);font-weight:700}.mini.del:hover{background:#b3261e}
 
   .modal-back{position:fixed;inset:0;background:rgba(16,30,22,.5);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:100;overflow:auto}
   .modal{background:#fff;border-radius:16px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.25)}
@@ -823,7 +825,7 @@ function countsHTML(d){ const c=d.counts||{}; const p=[];
 function curScheduleHTML(d){
   const cfg=STAGE_SCHED[d.stage]||{}; const v=(d.schedule&&d.schedule[d.stage])||{};
   if(!cfg.s || (!v.s && !v.e)) return "";
-  const txt=cfg.e?`${v.s||'-'} ~ ${v.e||'-'}`:`${v.s||'-'}`;
+  const txt=(cfg.e&&v.e)?`${v.s||'-'} ~ ${v.e}`:`${v.s||'-'}${(cfg.e&&v.s&&!v.e)?' <span style="color:var(--muted)">(당일)</span>':''}`;
   return `<div class="stage-sched">현재 단계(${d.stage}) 일정 · <b>${txt}</b></div>`;
 }
 function renderDeptGrid(){
@@ -846,11 +848,19 @@ function renderDeptGrid(){
       <div class="dc-actions">
         <select class="mini" style="padding:6px 8px" onchange="quickStage('${d.id}',this.value)">${STAGES.map(s=>`<option ${s===d.stage?'selected':''}>${s}</option>`).join("")}</select>
         <button class="mini" onclick="openDeptModal('${d.id}')">상세 편집</button>
-        <button class="mini" onclick="goMailFor('${d.id}')">메일 작성</button>
+        <button class="mini ok" onclick="completeDept('${d.id}')">완료</button>
+        <button class="mini del" onclick="deleteDept('${d.id}')">삭제</button>
       </div>
     </div>`).join("");
 }
 function quickStage(i,stage){ const d=getDept(i); d.stage=stage; d.updated=today(); saveState(); renderAll(); toast(`${d.name} → ${stage} 단계로 변경됨`); }
+function completeDept(i){ const d=getDept(i); if(!d) return;
+  if(!confirm(`'${d.name}' 전형을 정말 완료하시겠습니까?\n모든 체크리스트가 완료로 반영되고 ‘입사’ 단계로 전환된 뒤 ‘완료된 전형’으로 이동합니다.`)) return;
+  d.checklist=d.checklist||{};
+  boardColumns(d).forEach(col=>col.items.forEach((_,idx)=>{ d.checklist[col.id+":"+idx]=true; }));
+  d.stage="입사"; d.completed=true; d.completedAt=today(); d.updated=today();
+  saveState(); renderAll(); toast(`'${d.name}' 전형을 완료 처리했습니다.`);
+}
 
 /* ===== 완료된 전형 ===== */
 function renderCompleted(){
@@ -906,7 +916,7 @@ function renderManage(){
   });
   document.getElementById("manageBody").innerHTML=rows.join("");
 }
-function deleteDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 삭제할까요? 등록된 계정은 ‘계정 관리’에 그대로 유지됩니다.`)) return; state.departments=state.departments.filter(x=>x.id!==i); saveState(); closeDeptModal(); renderAll(); toast("전형이 삭제되었습니다."); }
+function deleteDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 정말 삭제하시겠습니까?\n등록된 계정은 ‘계정 관리’에 그대로 유지됩니다.`)) return; state.departments=state.departments.filter(x=>x.id!==i); saveState(); closeDeptModal(); renderAll(); toast("전형이 삭제되었습니다."); }
 
 /* ===== 계정 관리 (전역 계정) ===== */
 let editingAcctIdx=null;
