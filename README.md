@@ -11,10 +11,18 @@
 
 ## ✅ 현재 상태 (2026-06-17 기준)
 
-- **Firebase 실시간 동기화 연결 완료** (프로젝트: `yuhan-recruit`)
+- **Firebase 실시간 동기화 연결·검증 완료** (프로젝트 ID: `yuhan-recurit`)
   - 한 명이 데이터를 바꾸면 모든 접속자에게 몇 초 안에 자동 반영됩니다.
   - 데이터는 Firebase Firestore(`app/state` 문서)에 저장됩니다.
+  - 익명 로그인 + 보안 규칙(`request.auth != null`) 적용. 읽기/쓰기 동작 확인됨.
 - **GitHub Pages 호스팅 완료** — 위 주소로 누구나 접속 가능 (저장소 Public).
+
+### 트러블슈팅 기록 (해결됨)
+처음에 동기화가 안 됐던 원인 2가지를 잡았습니다:
+1. **Cloud Firestore API 미활성화** → Google Cloud Console에서 Enable 처리.
+   (재발 시: https://console.cloud.google.com/apis/library/firestore.googleapis.com?project=yuhan-recurit )
+2. **projectId 철자 오류** (`yuhan-recruit` → 실제값 `yuhan-recurit`) → HTML 설정값 수정.
+   ⚠️ 실제 프로젝트 ID는 `yuhan-recurit` (re-c**u-r**-it) 입니다. 헷갈리지 마세요.
 
 ## 🔧 구조 한눈에
 
