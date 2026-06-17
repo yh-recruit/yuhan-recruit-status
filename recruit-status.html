@@ -84,7 +84,27 @@
 
   /* ===== 카드 크기 통일 ===== */
   .dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-  .dept-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:396px}
+  .dept-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:396px;position:relative}
+  /* 카드 드래그 정렬 */
+  .dept-card.dragging{opacity:.4}
+  .dept-card.drop-before{box-shadow:inset 0 4px 0 -1px var(--yh-green),var(--shadow)}
+  .dept-card.drop-after{box-shadow:inset 0 -4px 0 -1px var(--yh-green),var(--shadow)}
+  .drag-grip{position:absolute;top:12px;right:14px;color:var(--muted);font-size:15px;line-height:1;cursor:grab;user-select:none;padding:2px 4px;border-radius:6px;z-index:2}
+  .drag-grip:hover{background:var(--yh-green-tint);color:var(--yh-green)}
+  .drag-grip:active{cursor:grabbing}
+  /* 채용 현황표 */
+  .status-board{padding:18px 20px;margin-bottom:18px}
+  .status-tbl{width:100%;border-collapse:collapse}
+  .status-tbl td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  .status-tbl tr:last-child td{border-bottom:none}
+  .status-tbl .st-stage{white-space:nowrap;width:1%;font-weight:700;font-size:13.5px}
+  .status-tbl .st-stage .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:middle}
+  .status-tbl .st-stage .st-n{color:var(--muted);font-weight:600;font-size:12px;margin-left:6px}
+  .status-tbl .st-list{font-size:13.5px;color:var(--text);line-height:1.7}
+  .status-tbl .st-list .st-dept{display:inline-block;margin-right:14px}
+  .status-tbl .st-list .st-dept b{font-weight:700}
+  .status-tbl .st-list .st-to{color:var(--yh-green-dark);font-weight:600}
+  .status-tbl .st-empty{color:var(--muted)}
   .dc-clickable{cursor:pointer;border-radius:10px;margin:-6px -6px 0;padding:6px 6px 0;transition:.12s}
   .dc-clickable:hover{background:var(--yh-green-tint)}
   .dept-card .dc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
@@ -402,6 +422,7 @@
         <div style="display:flex;gap:8px"><button class="btn-ghost" onclick="openBulkModal()">⊕ 전형 일괄 등록</button><button class="btn-ghost" onclick="openDeptModal()">+ 전형 추가</button></div>
       </div>
       <div class="stage-summary" id="stageSummary"></div>
+      <div class="status-board panel" id="statusBoard"></div>
       <div class="dept-grid" id="deptGrid"></div>
     </section>
 
@@ -444,7 +465,7 @@
         <div class="sf"><label>종료일</label><input id="statTo" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" oninput="this.value=maskDate(this.value)"></div>
         <button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="computeStats()">조회</button>
         <button class="btn-ghost" onclick="document.getElementById('statFrom').value='';document.getElementById('statTo').value='';computeStats()">전체기간</button>
-        <div class="hint-inline" style="align-self:center">· 비워두면 전체 기간 / 기준일 = 공고 진행 시작일</div>
+        <div class="hint-inline" style="align-self:center">· 비워두면 전체 기간 / 기준일 = 공고진행 시작일</div>
       </div>
       <div id="statResult"></div>
     </section>
@@ -574,9 +595,9 @@
 
 <script>
 /* ===== 상수 ===== */
-const STAGES = ["공고준비","공고 진행","서류전형","AI역량검사","면접전형","입사"];
-const STAGE_COLORS = {"공고준비":"#9AA8A0","공고 진행":"#3E8ED0","서류전형":"#7A6FD0","AI역량검사":"#C28A2B","면접전형":"#C0392B","입사":"#1F7A3D"};
-const STAGE_SCHED = {"공고준비":{s:false,e:false},"공고 진행":{s:true,e:true},"서류전형":{s:true,e:true},"AI역량검사":{s:true,e:true},"면접전형":{s:true,e:true},"입사":{s:true,e:false}};
+const STAGES = ["공고준비","공고진행","서류전형","AI역량검사","면접전형","입사"];
+const STAGE_COLORS = {"공고준비":"#9AA8A0","공고진행":"#3E8ED0","서류전형":"#7A6FD0","AI역량검사":"#C28A2B","면접전형":"#C0392B","입사":"#1F7A3D"};
+const STAGE_SCHED = {"공고준비":{s:false,e:false},"공고진행":{s:true,e:true},"서류전형":{s:true,e:true},"AI역량검사":{s:true,e:true},"면접전형":{s:true,e:true},"입사":{s:true,e:false}};
 const IV_ROUNDS = ["통합","1차","2차","3차"];
 const STAGE_DETAIL = {"면접전형":true}; // 장소/면접관/배석자 입력 단계
 const EMP_TYPES = ["인턴","경력","계약직(일반)","계약직(대체)","계약직(보훈)","계약직(장애)"];
@@ -600,22 +621,22 @@ function seed(){
   const mk=(o)=>Object.assign({id:id(),ftTO:0,notes:"",updated:today(),schedule:emptySchedule(),counts:{applicants:0,doc:0,ai:0,hired:0}},o);
   return { departments:[
     mk({name:"영업1팀",type:"경력",reqCount:3,stage:"AI역량검사",
-      schedule:sc({"공고 진행":{s:"2026-05-10",e:"2026-05-20"},"서류전형":{s:"2026-05-21",e:"2026-05-28"},"AI역량검사":{s:"2026-06-10",e:"2026-06-16"},"면접전형":{s:"2026-06-23",e:"2026-06-24",observers:"인사팀 김주임",sessions:[{round:"1차",date:"2026-06-23",ts:"14:00",te:"16:00",place:"본사 3층 면접실 A",panel:"영업1팀장, 인사팀장"},{round:"2차",date:"2026-06-24",ts:"10:00",te:"11:30",place:"본사 7층 임원회의실",panel:"영업본부장"}]},"입사":{s:"2026-07-01"}}),
+      schedule:sc({"공고진행":{s:"2026-05-10",e:"2026-05-20"},"서류전형":{s:"2026-05-21",e:"2026-05-28"},"AI역량검사":{s:"2026-06-10",e:"2026-06-16"},"면접전형":{s:"2026-06-23",e:"2026-06-24",observers:"인사팀 김주임",sessions:[{round:"1차",date:"2026-06-23",ts:"14:00",te:"16:00",place:"본사 3층 면접실 A",panel:"영업1팀장, 인사팀장"},{round:"2차",date:"2026-06-24",ts:"10:00",te:"11:30",place:"본사 7층 임원회의실",panel:"영업본부장"}]},"입사":{s:"2026-07-01"}}),
       accounts:[{user:"sales1",code:"0000",name:"김영수",title:"영업1팀장"},{user:"sales1-lead",code:"0000",name:"박상무",title:"영업본부장"},{user:"hrlead",code:"0000",name:"정인사",title:"인사팀장",dept:"인사팀"}],
       notes:"AI역량검사 응시 마감 D-1. 적합자 위주로 면접 일정 조율 예정.",
       counts:{applicants:42,doc:18,ai:0,hired:0},updated:"2026-06-12"}),
     mk({name:"마케팅팀",type:"경력",reqCount:1,stage:"서류전형",
-      schedule:sc({"공고 진행":{s:"2026-05-25",e:"2026-06-05"},"서류전형":{s:"2026-06-06",e:"2026-06-16"},"면접전형":{s:"2026-06-26",timeStart:"13:00",timeEnd:"15:00",place:"본사 5층 회의실 2",panel:"마케팅팀장",observers:""}}),
+      schedule:sc({"공고진행":{s:"2026-05-25",e:"2026-06-05"},"서류전형":{s:"2026-06-06",e:"2026-06-16"},"면접전형":{s:"2026-06-26",timeStart:"13:00",timeEnd:"15:00",place:"본사 5층 회의실 2",panel:"마케팅팀장",observers:""}}),
       accounts:[{user:"mkt1",code:"0000",name:"이지은",title:"마케팅팀장"},{user:"hrlead",code:"0000",name:"정인사",title:"인사팀장",dept:"인사팀"}],
       notes:"서류 접수 마감 후 1차 검토 중. 포트폴리오 비중 높게 평가.",
       counts:{applicants:67,doc:0,ai:0,hired:0},updated:"2026-06-13"}),
     mk({name:"중앙연구소",type:"경력",reqCount:2,stage:"면접전형",
-      schedule:sc({"공고 진행":{s:"2026-04-10",e:"2026-04-24"},"서류전형":{s:"2026-04-25",e:"2026-05-02"},"AI역량검사":{s:"2026-05-08",e:"2026-05-14"},"면접전형":{s:"2026-06-18",timeStart:"10:00",timeEnd:"12:30",place:"중앙연구소 세미나실",panel:"연구소장, 신약개발팀장",observers:"인사팀 이대리"}}),
+      schedule:sc({"공고진행":{s:"2026-04-10",e:"2026-04-24"},"서류전형":{s:"2026-04-25",e:"2026-05-02"},"AI역량검사":{s:"2026-05-08",e:"2026-05-14"},"면접전형":{s:"2026-06-18",timeStart:"10:00",timeEnd:"12:30",place:"중앙연구소 세미나실",panel:"연구소장, 신약개발팀장",observers:"인사팀 이대리"}}),
       accounts:[{user:"rnd1",code:"0000",name:"정현우",title:"중앙연구소 책임연구원"},{user:"hrlead",code:"0000",name:"정인사",title:"인사팀장",dept:"인사팀"}],
       notes:"1차 실무면접 완료, 2차 임원면접 6/18 예정.",
       counts:{applicants:35,doc:12,ai:7,hired:0},updated:"2026-06-11"}),
-    mk({name:"생산관리팀",type:"계약직(일반)",reqCount:2,stage:"공고 진행",
-      schedule:sc({"공고 진행":{s:"2026-06-08",e:"2026-06-22"}}),
+    mk({name:"생산관리팀",type:"계약직(일반)",reqCount:2,stage:"공고진행",
+      schedule:sc({"공고진행":{s:"2026-06-08",e:"2026-06-22"}}),
       accounts:[{user:"prod1",code:"0000",name:"최민호",title:"생산관리팀장"}],
       notes:"채용공고 게시 완료(잡코리아/사람인). 공고 마감 6/22.",
       counts:{applicants:0,doc:0,ai:0,hired:0},updated:"2026-06-10"}),
@@ -624,7 +645,7 @@ function seed(){
       notes:"인턴 2명 모집 → 정규직 전환 TO 1명. 공고 문안 준비 중.",
       counts:{applicants:0,doc:0,ai:0,hired:0},updated:"2026-06-14"}),
     mk({name:"경영지원팀",type:"경력",reqCount:1,stage:"입사",
-      schedule:sc({"공고 진행":{s:"2026-03-20",e:"2026-04-02"},"서류전형":{s:"2026-04-03",e:"2026-04-10"},"AI역량검사":{s:"2026-04-15",e:"2026-04-21"},"면접전형":{s:"2026-04-29",timeStart:"15:00",timeEnd:"16:30",place:"본사 7층 임원회의실",panel:"경영지원본부장",observers:""},"입사":{s:"2026-06-16"}}),
+      schedule:sc({"공고진행":{s:"2026-03-20",e:"2026-04-02"},"서류전형":{s:"2026-04-03",e:"2026-04-10"},"AI역량검사":{s:"2026-04-15",e:"2026-04-21"},"면접전형":{s:"2026-04-29",timeStart:"15:00",timeEnd:"16:30",place:"본사 7층 임원회의실",panel:"경영지원본부장",observers:""},"입사":{s:"2026-06-16"}}),
       accounts:[{user:"hr1",code:"0000",name:"오정민",title:"경영지원팀장"}],
       notes:"최종합격자 1명 입사 확정. 6/16 입사 예정.",
       counts:{applicants:54,doc:15,ai:9,hired:1},updated:"2026-06-09"})
@@ -632,7 +653,7 @@ function seed(){
 }
 function migrateV1(old){
   return { departments:(old.departments||[]).map(d=>{
-    const s=emptySchedule(); if(d.start) s["공고 진행"].s=d.start;
+    const s=emptySchedule(); if(d.start) s["공고진행"].s=d.start;
     return { id:d.id||id(), name:d.name||"", type:"경력", reqCount:d.head||1, ftTO:0, stage:d.stage||STAGES[0], schedule:s,
       accounts:(d.user?[{user:d.user,code:d.code||"0000"}]:[]), notes:d.notes||"",
       counts:{applicants:(d.counts&&d.counts.applicants)||0,doc:(d.counts&&d.counts.doc)||0,ai:(d.counts&&d.counts.ai)||0,hired:(d.counts&&d.counts.interview)||0},
@@ -643,7 +664,9 @@ function normalize(st){
   if(!Array.isArray(st.accounts)) st.accounts=[];
   (st.departments||[]).forEach(d=>{
     if(d.stage==="충원요청") d.stage="공고준비";
+    if(d.stage==="공고 진행") d.stage="공고진행";
     const old=d.schedule||{}; if(old["충원요청"]&&!old["공고준비"]) old["공고준비"]=old["충원요청"];
+    if(old["공고 진행"]&&!old["공고진행"]) old["공고진행"]=old["공고 진행"];
     const ns=emptySchedule(); STAGES.forEach(s=>{ const o=old[s]||{}; ns[s]={s:o.s||"",e:o.e||"",place:o.place||"",panel:o.panel||"",observers:o.observers||"",timeStart:o.timeStart||"",timeEnd:o.timeEnd||"",sessions:Array.isArray(o.sessions)?o.sessions:[]}; });
     // 면접 정보: 구버전 단일 필드(timeStart/place/panel) → 세션 배열로 1회 이관
     const iv=ns["면접전형"];
@@ -730,7 +753,33 @@ function switchTab(t){
 let stageFilter=null;
 function activeDepts(){ return state.departments.filter(d=>!d.completed); }
 function completedDepts(){ return state.departments.filter(d=>d.completed); }
-function renderAll(){ renderSummary(); renderDeptGrid(); renderCompleted(); renderManage(); }
+function renderAll(){ renderSummary(); renderStatusBoard(); renderDeptGrid(); renderCompleted(); renderManage(); }
+function renderStatusBoard(){
+  const el=document.getElementById("statusBoard"); if(!el) return;
+  const byStage={}; STAGES.forEach(s=>byStage[s]=[]);
+  activeDepts().forEach(d=>{ (byStage[d.stage]||(byStage[d.stage]=[])).push(d); });
+  const rows=STAGES.map(s=>{
+    const ds=byStage[s]||[];
+    const cell=ds.length? ds.map(d=>`<span class="st-dept"><b>${esc(d.name)}</b> ${esc(d.type)} 채용요청 ${d.reqCount}명${d.ftTO?`<span class="st-to">(정규직 TO ${d.ftTO})</span>`:''}</span>`).join("")
+      : `<span class="st-empty">해당 없음</span>`;
+    return `<tr><td class="st-stage"><span class="dot" style="background:${STAGE_COLORS[s]}"></span>${s}<span class="st-n">${ds.length}</span></td><td class="st-list">${cell}</td></tr>`;
+  }).join("");
+  el.innerHTML=`<div class="section-title">채용 현황표</div><table class="status-tbl"><tbody>${rows}</tbody></table>`;
+}
+/* 카드 드래그 정렬 */
+let dragDeptId=null;
+function cardDragStart(e){ const card=e.target.closest(".dept-card"); if(!card) return; dragDeptId=card.dataset.deptid; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragDeptId);}catch(_){} setTimeout(()=>card.classList.add("dragging"),0); }
+function cardDragOver(e){ if(!dragDeptId) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; const c=e.currentTarget; if(c.dataset.deptid===dragDeptId){ c.classList.remove("drop-before","drop-after"); return; } const r=c.getBoundingClientRect(); const before=(e.clientY-r.top)<r.height/2; c.classList.toggle("drop-before",before); c.classList.toggle("drop-after",!before); }
+function cardDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-after"); }
+function cardDrop(e){ if(!dragDeptId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.deptid; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after"); if(tgt&&dragDeptId!==tgt){ moveDept(dragDeptId,tgt,before); const dragged=dragDeptId; dragDeptId=null; if(session&&session.role==="team") renderTeamHome(); else { renderStatusBoard(); renderDeptGrid(); } } }
+function cardDragEnd(){ document.querySelectorAll(".dragging,.drop-before,.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragDeptId=null; }
+function moveDept(dragId,targetId,before){
+  const arr=state.departments; const di=arr.findIndex(d=>d.id===dragId); if(di<0) return;
+  const [m]=arr.splice(di,1); let ti=arr.findIndex(d=>d.id===targetId); if(ti<0){ arr.splice(di,0,m); return; }
+  if(!before) ti++; arr.splice(ti,0,m); saveState();
+}
+const dragAttrs='ondragover="cardDragOver(event)" ondragleave="cardDragLeave(event)" ondrop="cardDrop(event)" ondragend="cardDragEnd(event)"';
+const gripHTML='<span class="drag-grip" draggable="true" ondragstart="cardDragStart(event)" onclick="event.stopPropagation()" title="드래그하여 순서 변경">⠿</span>';
 function renderSummary(){
   const c={}; STAGES.forEach(s=>c[s]=0); activeDepts().forEach(d=>c[d.stage]++);
   document.getElementById("stageSummary").innerHTML=STAGES.map(s=>`<div class="chip ${stageFilter===s?'active':''}" onclick="toggleFilter('${s}')"><div class="c-label"><span class="dot" style="background:${STAGE_COLORS[s]}"></span>${s}</div><div class="c-num">${c[s]}<small> 부서</small></div></div>`).join("");
@@ -759,7 +808,7 @@ function renderDeptGrid(){
   const el=document.getElementById("deptGrid");
   if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">해당 단계의 부서가 없습니다.</div>`; return; }
   el.innerHTML=list.map(d=>`
-    <div class="dept-card">
+    <div class="dept-card" data-deptid="${d.id}" ${dragAttrs}>${gripHTML}
       <div class="dc-clickable" onclick="openBoard('${d.id}')">
         <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
           <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
@@ -1031,7 +1080,7 @@ function nextActionHTML(d){
 function remarkHTML(d){ return d.notes?`<div class="dc-remark"><span class="rk-l">비고</span>${esc(d.notes)}</div>`:""; }
 
 /* ===== 전형 상세 보드 ===== */
-const STAGE_TO_COL={"공고준비":"지원서 접수","공고 진행":"지원서 접수","서류전형":"서류전형","AI역량검사":"AI역량검사","면접전형":"면접전형","입사":"채용 종료"};
+const STAGE_TO_COL={"공고준비":"지원서 접수","공고진행":"지원서 접수","서류전형":"서류전형","AI역량검사":"AI역량검사","면접전형":"면접전형","입사":"채용 종료"};
 function boardColumns(d){
   const c=d.counts||{}, sc=d.schedule||{};
   const ds=(stg,f)=>(sc[stg]&&sc[stg][f])||"";
@@ -1137,7 +1186,7 @@ function openCalEvent(deptId,stage){
 function closeCalEvent(){ document.getElementById("calEventModal").classList.add("hidden"); }
 
 /* ===== 통계 ===== */
-function repDate(d){ const sc=d.schedule||{}; if(sc["공고 진행"]&&sc["공고 진행"].s) return sc["공고 진행"].s; for(const s of STAGES){ if(sc[s]&&sc[s].s) return sc[s].s; } return d.updated||""; }
+function repDate(d){ const sc=d.schedule||{}; if(sc["공고진행"]&&sc["공고진행"].s) return sc["공고진행"].s; for(const s of STAGES){ if(sc[s]&&sc[s].s) return sc[s].s; } return d.updated||""; }
 function computeStats(){
   const from=document.getElementById("statFrom").value.trim(), to=document.getElementById("statTo").value.trim();
   const list=state.departments.filter(d=>{ const r=repDate(d); if(from&&(!r||r<from)) return false; if(to&&(!r||r>to)) return false; return true; });
@@ -1149,9 +1198,9 @@ function computeStats(){
   const period=(from||"전체")+" ~ "+(to||"전체");
   const ap=sum("applicants"),dc=sum("doc"),ai=sum("ai"),hd=sum("hired");
 
-  let html=`<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">조회 기간 · <b style="color:var(--text)">${esc(period)}</b> · 기준일(공고 진행 시작일) 기준</div>`;
+  let html=`<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">조회 기간 · <b style="color:var(--text)">${esc(period)}</b> · 기준일(공고진행 시작일) 기준</div>`;
   html+=`<div class="kpi-grid">
-    <div class="kpi"><div class="l">공고 진행 건</div><div class="v">${list.length}<small> 건</small></div></div>
+    <div class="kpi"><div class="l">공고진행 건</div><div class="v">${list.length}<small> 건</small></div></div>
     <div class="kpi"><div class="l">총 지원자</div><div class="v">${ap}<small> 명</small></div></div>
     <div class="kpi"><div class="l">최종 채용 인원</div><div class="v">${hd}<small> 명</small></div></div></div>`;
   html+=`<div class="stat-cards">
@@ -1300,7 +1349,7 @@ const MAIL_TEMPLATES = [
       return { subject:`(주)유한양행 입사자 안내(${nm})`,
       body:`[입사 전 제출 서류 및 절차 안내]\n\n안녕하세요, 유한양행 인사팀입니다.\n최종 합격을 진심으로 축하드립니다.\n입사 전 제출이 필요한 설문 및 서류를 아래와 같이 안내드립니다.\n\n1. 즉시 응답 (설문조사)\n네이버폼 링크: https://naver.me/Go2tDSxw\n메일 확인 즉시 설문조사 응답 부탁드립니다.\n\n2. 채용검진\n· 26년 정밀건강검진 결과지가 있는 경우 → 채용검진 면제\n  (해당 결과지를 다른 서류와 함께 제출)\n· 정밀검사 결과지가 없는 경우 → 회사 지정 병원에서 신체검사 진행(${ex} 전까지 실시)\n  (검사 전 8시간 이상 공복 유지, 전화 사전 예약 필수)\n[병원 안내] 성애병원 (서울 영등포구 여의대방로53길 22) / Tel: 02-840-7384\n방문 시 "유한양행 채용검진"이라고 말씀해 주세요.\n\n3. 제출 서류 (${dl}까지 제출)\n메일 회신처: ${rm}\n① 경력: 경력증명서/재직증명서(가장 최근 재직한 회사), 건강보험득실확인서(기제출 서류 활용)\n② 사진: 증명사진 파일\n③ 자격/면허/어학/장애/보훈: 각종 증명서 사본 (원본 사진 가능)\n④ 통장사본: 급여계좌 (설문조사와 동일 계좌)\n⑤ 학력: 성적증명서, 졸업증명서 (석·박사는 대학원 포함)\n⑥ 병역(남성 군필자): 병적증명서 또는 주민등록초본 (병적사항 포함)\n⑦ 가족:\n  - 주민등록등본\n  - 아버지 쪽 가족관계증명서 (조부·조모 확인용)\n  - 어머니 쪽 가족관계증명서 (외조부·외조모 확인용)\n  - (기혼자의 경우) 배우자 부모님 가족관계증명서\n  ※ 혼인신고 미등록 시 청첩장 등 증빙자료 첨부\n  ※ 주민등록등본·가족관계증명서는 구성원(사망자 제외)들의 주민등록번호 뒷자리 표기\n\n[발급 경로]\n· 주민등록등(초)본, 병적증명서: 정부24(https://www.gov.kr/portal/main)\n· 부모님 가족관계증명서: 전자가족관계등록시스템(https://efamily.scourt.go.kr/index.jsp)\n\n[파일 제출 형식]\n· 파일명: 서류명(성명)  예) 토익(홍길동), 아버지 가족관계증명서(홍길동)\n· 제출 형식: 사진 또는 PDF\n· 발송한 메일은 입사일까지 보관 바랍니다.\n· 경력, 어학, 자격, 면허, 학력 등이 없으신 경우에는 제외하고 송부 부탁드립니다.\n\n4. 입사 당일 안내\n· 일시: ${jt}\n· 장소: ${jp}\n\n5. 기타(입사자 교육 관련)\n입사일 전까지 다음 안내사항을 참고하여 준비해주시면 감사하겠습니다.\n· 고용24(www.work24.go.kr) 접속 후, 회원가입(개인회원)\n· 휴대폰에 고용노동부 직업훈련 출결관리 어플리케이션 설치\n  (교육 시작 시 어플 실행 후 입실 QR 체크, 교육종료 후 퇴실 QR 체크)\n\n감사합니다.\n유한양행 인사팀 드림` };
     } },
-  { key:"posting", label:"① 공고 게시 안내(보고)", stageRef:"공고 진행",
+  { key:"posting", label:"① 공고 게시 안내(보고)", stageRef:"공고진행",
     fields:[{k:"channel",label:"공고 채널",type:"text",ph:"예: 잡코리아, 사람인"},{k:"period",label:"공고 기간",type:"text",ph:"예: 6/8 ~ 6/22"},{k:"prefer",label:"우대사항",type:"text",ph:"예: 제약 영업 경력 3년 이상"}],
     build:(d,f)=>({ subject:`[채용현황] ${d.name} ${d.type} - 채용공고 게시 안내`,
       body:`안녕하십니까.\n${d.name} ${d.type}(${d.reqCount}명) 채용공고를 아래와 같이 게시하였음을 보고드립니다.\n\n■ 모집 부서: ${d.name}\n■ 채용 형태: ${d.type}\n■ 채용요청인원: ${d.reqCount}명${d.ftTO?`\n■ 정규직 TO: ${d.ftTO}명`:''}\n■ 공고 채널: ${f.channel||"-"}\n■ 공고 기간: ${f.period||"-"}\n■ 우대 사항: ${f.prefer||"-"}\n\n공고 마감 후 서류전형 일정을 별도 안내드리겠습니다.\n감사합니다.` }) },
@@ -1326,7 +1375,7 @@ const MAIL_TEMPLATES = [
       body:`안녕하십니까.\n${d.name} ${d.type} 채용 건 최종 결과 및 입사 확정 내용을 보고드립니다.\n\n■ 전형 단계: 입사 확정\n■ 최종 합격자: ${f.finalCount||0}명${d.ftTO?` (정규직 TO ${d.ftTO}명)`:''}\n■ 입사 예정일: ${f.joinDate||"-"}\n■ 직급/처우: ${f.grade||"-"}\n■ 비고: ${f.remark||"-"}\n\n입사 절차(온보딩) 진행 예정입니다.\n감사합니다.` }) }
 ];
 function mailDeptLabel(d){
-  const s=(d.schedule&&d.schedule["공고 진행"]&&d.schedule["공고 진행"].s)||"";
+  const s=(d.schedule&&d.schedule["공고진행"]&&d.schedule["공고진행"].s)||"";
   const pre=s?(s.slice(2).replace(/-/g,".")+" "):"";   // 2026-06-16 → 26.06.16
   return `${pre}${d.name}-${d.type}`;
 }
@@ -1354,7 +1403,7 @@ function renderTeamHome(){
   const acc=getAccount(session.user)||{};
   const list=deptsForUser(session.user);
   const active=list.filter(d=>!d.completed), done=list.filter(d=>d.completed);
-  const cardHTML=(d)=>`<div class="dept-card ${d.completed?'completed-card':''}" style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">
+  const cardHTML=(d)=>`<div class="dept-card ${d.completed?'completed-card':''}" data-deptid="${d.id}" ${dragAttrs} style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">${gripHTML}
       <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">현황 보기 ›</span></div>
         <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${d.completed?'<span class="badge badge-done">채용 완료</span>':badgeHTML(d.stage)}</div>
       <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span></div>
