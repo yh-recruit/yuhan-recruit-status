@@ -398,6 +398,28 @@
   .tk-move{flex-shrink:0;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:7px;font-size:11.5px;font-weight:600;padding:5px 9px;cursor:pointer;white-space:nowrap}
   .tk-move:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light);color:var(--yh-green-dark)}
   .tk-carry{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#fdf6e9;color:#b5811f}
+  .tk-imp{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;padding:0 4px}
+  .tk-imp input{width:16px;height:16px;accent-color:var(--danger);cursor:pointer}
+  /* 필터 탭 */
+  .tk-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .tk-fbtn{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+  .tk-fbtn:hover{border-color:var(--yh-green-light);background:var(--yh-green-tint)}
+  .tk-fbtn.on{border-color:var(--yh-green);background:var(--yh-green);color:#fff}
+  .tk-fbtn span{font-size:11px;font-weight:800;background:rgba(0,0,0,.08);padding:1px 7px;border-radius:999px}
+  .tk-fbtn.on span{background:rgba(255,255,255,.25)}
+  /* 그립·중요·드래그 */
+  .tk-grip{flex-shrink:0;color:var(--muted);font-size:14px;line-height:1;cursor:grab;user-select:none;padding:3px 2px;margin-top:2px;border-radius:5px}
+  .tk-grip:hover{background:var(--yh-green-tint);color:var(--yh-green)}
+  .tk-grip:active{cursor:grabbing}
+  .tk-impbtn{flex-shrink:0;border:1px solid #eccecc;background:#fff;color:var(--muted);border-radius:7px;font-size:11.5px;font-weight:700;padding:5px 9px;cursor:pointer;white-space:nowrap}
+  .tk-impbtn:hover{background:#fbf0ef;color:var(--danger)}
+  .tk-impbtn.on{background:var(--danger);border-color:var(--danger);color:#fff}
+  .tk-impbadge{display:inline-block;font-size:10.5px;font-weight:800;color:#fff;background:var(--danger);padding:1px 7px;border-radius:5px;margin-right:7px;vertical-align:middle}
+  .tk-card.important{border-color:#f0c3bf;border-left:4px solid var(--danger);background:#fffafa}
+  .tk-card.important .tk-title{color:#9e241b}
+  .tk-card.dragging{opacity:.35;outline:2px dashed var(--yh-green);outline-offset:-2px}
+  .tk-card.drop-before{box-shadow:inset 0 5px 0 -1px var(--yh-green),var(--shadow)}
+  .tk-card.drop-after{box-shadow:inset 0 -5px 0 -1px var(--yh-green),var(--shadow)}
   .tk-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
   .tk-chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 15px;font-size:13px;color:var(--muted);font-weight:600}
   .tk-chip b{color:var(--ink);font-weight:800;margin-left:3px}
@@ -557,6 +579,7 @@
       <div class="page-head"><div><h1>기타 업무</h1><div class="sub">날짜 입력 없이 ‘오늘/내일’로 등록하면 됩니다. 끝내지 못한 일은 다음 날 아침(08:30 기준) ‘오늘 할 일’로 자동 이월되어 누락을 막습니다.</div></div></div>
       <div class="tk-add panel">
         <input id="taskTitle" class="tk-addtitle" placeholder="업무 내용 (예: OOO 사원 근로계약서 작성)" onkeydown="if(event.key==='Enter')addTask('today')">
+        <label class="tk-imp" title="급한 업무는 빨간색으로 표시됩니다"><input type="checkbox" id="taskImp"> 중요</label>
         <button class="tk-addbtn today" onclick="addTask('today')">+ 오늘</button>
         <button class="tk-addbtn tomorrow" onclick="addTask('tomorrow')">+ 내일</button>
       </div>
@@ -751,7 +774,7 @@ function migrateV1(old){
 function normalize(st){
   if(!Array.isArray(st.accounts)) st.accounts=[];
   if(!Array.isArray(st.tasks)) st.tasks=[];
-  st.tasks.forEach(t=>{ if(!Array.isArray(t.subs)) t.subs=[]; if(typeof t.done!=="boolean") t.done=false; if(!t.id) t.id="tk"+Math.random().toString(36).slice(2,9); if(!t.createdAt) t.createdAt=today();
+  st.tasks.forEach(t=>{ if(!Array.isArray(t.subs)) t.subs=[]; if(typeof t.done!=="boolean") t.done=false; if(typeof t.important!=="boolean") t.important=false; if(!t.id) t.id="tk"+Math.random().toString(36).slice(2,9); if(!t.createdAt) t.createdAt=today();
     if(!t.day) t.day=(t.due&&dnum(t.due)!=null)?t.due:today(); delete t.due;
     t.subs.forEach(s=>{ if(typeof s.done!=="boolean") s.done=false; if(!s.id) s.id="ts"+Math.random().toString(36).slice(2,9); }); });
   (st.departments||[]).forEach(d=>{
@@ -1327,13 +1350,26 @@ function dowK(ymd){ const p=String(ymd).split("-"); const d=new Date(+p[0],+p[1]
 function shortD(ymd){ const p=String(ymd).split("-"); return (+p[1])+"/"+(+p[2])+"("+dowK(ymd)+")"; }
 function carryOverTasks(){ const wt=workToday(); let changed=false; (state.tasks||[]).forEach(t=>{ if(!t.done && t.day && t.day<wt){ t.day=wt; changed=true; } }); if(changed) saveState(); }
 function addTask(bucket){
-  const ti=document.getElementById("taskTitle");
+  const ti=document.getElementById("taskTitle"), imp=document.getElementById("taskImp");
   const title=ti.value.trim(); if(!title){ toast("업무 내용을 입력하세요."); ti.focus(); return; }
   const wt=workToday(); const day=(bucket==='tomorrow')?addDays(wt,1):wt;
-  state.tasks.push({id:newTkId("tk"), title, day, done:false, createdAt:wt, subs:[]});
-  ti.value=""; saveState(); renderTasks(); ti.focus();
+  state.tasks.push({id:newTkId("tk"), title, day, done:false, important:!!(imp&&imp.checked), createdAt:wt, subs:[]});
+  ti.value=""; if(imp) imp.checked=false; saveState(); renderTasks(); ti.focus();
 }
 function moveTaskDay(id,bucket){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; const wt=workToday(); t.day=(bucket==='tomorrow')?addDays(wt,1):wt; saveState(); renderTasks(); }
+function toggleImportant(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.important=!t.important; saveState(); renderTasks(); }
+let taskFilter='all';
+function setTaskFilter(f){ taskFilter=f; renderTasks(); }
+/* 업무 카드 드래그 정렬 */
+let dragTaskId=null;
+function taskDragStart(e){ const c=e.target.closest(".tk-card"); if(!c) return; dragTaskId=c.dataset.id; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragTaskId);}catch(_){}
+  try{ const r=c.getBoundingClientRect(); e.dataTransfer.setDragImage(c, e.clientX-r.left, e.clientY-r.top); }catch(_){}
+  setTimeout(()=>c.classList.add("dragging"),0); }
+function taskDragOver(e){ if(!dragTaskId) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; const c=e.currentTarget; if(c.dataset.id===dragTaskId){ c.classList.remove("drop-before","drop-after"); return; } const r=c.getBoundingClientRect(); const before=(e.clientY-r.top)<r.height/2; c.classList.toggle("drop-before",before); c.classList.toggle("drop-after",!before); }
+function taskDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-after"); }
+function taskDrop(e){ if(!dragTaskId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.id; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after"); if(tgt&&dragTaskId!==tgt){ moveTask(dragTaskId,tgt,before); dragTaskId=null; renderTasks(); } }
+function taskDragEnd(){ document.querySelectorAll(".tk-card.dragging,.tk-card.drop-before,.tk-card.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragTaskId=null; }
+function moveTask(dragId,targetId,before){ const arr=state.tasks; const di=arr.findIndex(t=>t.id===dragId); if(di<0) return; const [m]=arr.splice(di,1); let ti=arr.findIndex(t=>t.id===targetId); if(ti<0){ arr.splice(di,0,m); return; } if(!before) ti++; arr.splice(ti,0,m); saveState(); }
 function toggleTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.done=!t.done; saveState(); renderTasks(); }
 function deleteTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; if(!confirm(`'${t.title}' 업무를 삭제하시겠습니까?`)) return; state.tasks=state.tasks.filter(x=>x.id!==id); saveState(); renderTasks(); }
 function addSub(id){ const inp=document.getElementById("sub_"+id); if(!inp) return; const text=inp.value.trim(); if(!text) return; const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.subs.push({id:newTkId("ts"), text, done:false}); saveState(); renderTasks(); const ni=document.getElementById("sub_"+id); if(ni) ni.focus(); }
@@ -1347,13 +1383,16 @@ function taskCardHTML(t,bucket){
     ? `<button class="tk-move" onclick="moveTaskDay('${t.id}','tomorrow')" title="내일로 미루기">내일로 →</button>`
     : `<button class="tk-move" onclick="moveTaskDay('${t.id}','today')" title="오늘로 가져오기">← 오늘로</button>`);
   const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}"><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="상세 업무 삭제">×</button></li>`).join("");
-  return `<div class="tk-card ${t.done?'done':''}" data-id="${t.id}">
+  const impBtn=`<button class="tk-impbtn ${t.important?'on':''}" onclick="toggleImportant('${t.id}')" title="${t.important?'중요 해제':'중요로 표시'}">중요</button>`;
+  return `<div class="tk-card ${t.done?'done':''} ${t.important?'important':''}" data-id="${t.id}" ondragover="taskDragOver(event)" ondragleave="taskDragLeave(event)" ondrop="taskDrop(event)" ondragend="taskDragEnd(event)">
     <div class="tk-main">
+      <span class="tk-grip" draggable="true" ondragstart="taskDragStart(event)" title="드래그하여 순서 변경">⠿</span>
       <button class="tk-check ${t.done?'on':''}" onclick="toggleTask('${t.id}')" title="${t.done?'완료 취소':'완료'}">${t.done?'✓':''}</button>
       <div class="tk-body">
-        <div class="tk-title">${esc(t.title)}</div>
+        <div class="tk-title">${t.important?'<span class="tk-impbadge">중요</span>':''}${esc(t.title)}</div>
         <div class="tk-meta">${carried?'<span class="tk-carry">이월</span>':''}${subTot?`<span class="tk-prog">상세 ${subDone}/${subTot} 완료</span>`:''}${t.done?`<span class="tk-prog">${esc(t.day)}</span>`:''}</div>
       </div>
+      ${t.done?'':impBtn}
       ${moveBtn}
       <button class="tk-del" onclick="deleteTask('${t.id}')" title="업무 삭제">삭제</button>
     </div>
@@ -1366,19 +1405,16 @@ function renderTasks(){
   carryOverTasks();
   const wt=workToday(), tm=addDays(wt,1);
   const tasks=state.tasks||[];
-  const todayT=tasks.filter(t=>!t.done && t.day<=wt);
+  const todayT=tasks.filter(t=>!t.done && t.day<=wt);   // state.tasks 배열 순서 유지(드래그 정렬)
   const tomoT=tasks.filter(t=>!t.done && t.day>wt);
   const don=tasks.filter(t=>t.done);
-  const ord=(a,b)=>(a.createdAt||"").localeCompare(b.createdAt||"")||String(a.id).localeCompare(String(b.id));
-  todayT.sort(ord); tomoT.sort(ord);
-  let html=`<div class="tk-summary"><span class="tk-chip today"><b>${todayT.length}</b> 오늘 할 일</span><span class="tk-chip"><b>${tomoT.length}</b> 내일 할 일</span><span class="tk-chip"><b>${don.length}</b> 완료</span></div>`;
-  html+=`<div class="tk-gh">오늘 할 일 <span style="color:var(--muted);font-weight:600">· ${shortD(wt)}</span></div><div class="tk-list">`;
-  html+= todayT.length? todayT.map(t=>taskCardHTML(t,'today')).join("") : `<div class="tk-emptybox">오늘 할 일이 없습니다. 위에서 ‘+ 오늘’로 추가하세요.</div>`;
-  html+=`</div>`;
-  html+=`<div class="tk-gh">내일 할 일 <span style="color:var(--muted);font-weight:600">· ${shortD(tm)}</span></div><div class="tk-list">`;
-  html+= tomoT.length? tomoT.map(t=>taskCardHTML(t,'tomorrow')).join("") : `<div class="tk-emptybox">내일 할 일이 없습니다.</div>`;
-  html+=`</div>`;
-  if(don.length){ html+=`<div class="tk-gh done-h">완료된 업무 (${don.length})</div><div class="tk-list">`+don.slice().reverse().map(t=>taskCardHTML(t,'done')).join("")+`</div>`; }
+  const allN=todayT.length+tomoT.length;
+  const fb=(f,label,n)=>`<button class="tk-fbtn ${taskFilter===f?'on':''}" onclick="setTaskFilter('${f}')">${label} <span>${n}</span></button>`;
+  let html=`<div class="tk-filter">${fb('all','전체',allN)}${fb('today','오늘 할 일',todayT.length)}${fb('tomorrow','내일 할 일',tomoT.length)}${fb('done','완료',don.length)}</div>`;
+  const sec=(title,sub,list,bucket,empty)=>`<div class="tk-gh ${bucket==='done'?'done-h':''}">${title}${sub?` <span style="color:var(--muted);font-weight:600">· ${sub}</span>`:''}</div><div class="tk-list">${list.length?list.map(t=>taskCardHTML(t,bucket)).join(""):`<div class="tk-emptybox">${empty}</div>`}</div>`;
+  if(taskFilter==='all'||taskFilter==='today') html+=sec('오늘 할 일',shortD(wt),todayT,'today','오늘 할 일이 없습니다. 위에서 ‘+ 오늘’으로 추가하세요.');
+  if(taskFilter==='all'||taskFilter==='tomorrow') html+=sec('내일 할 일',shortD(tm),tomoT,'tomorrow','내일 할 일이 없습니다.');
+  if(taskFilter==='done') html+=sec('완료된 업무','',don.slice().reverse(),'done','완료된 업무가 없습니다.');
   el.innerHTML=html;
 }
 // 08:30 경계 통과 시 자동 이월·갱신(앱을 계속 켜둔 경우)
