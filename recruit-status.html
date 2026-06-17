@@ -517,7 +517,52 @@
   @media(max-width:820px){.mail-layout{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.kpi-grid{grid-template-columns:1fr}}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+
+  /* ===== 전형 진행률 바 ===== */
+  .dc-prog{margin-top:12px}
+  .dc-prog-top{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;margin-bottom:5px}
+  .dc-prog-top .pl{color:var(--muted);font-weight:600}
+  .dc-prog-top .pv{color:var(--yh-green-dark);font-weight:800}
+  .dc-prog-top .pv small{color:var(--muted);font-weight:600;font-size:11px}
+  .dc-prog-track{height:8px;border-radius:6px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+  .dc-prog-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--yh-green),var(--yh-green-dark));transition:width .3s}
+  .dc-prog-fill.full{background:linear-gradient(90deg,var(--yh-gold),#8a6a2c)}
+  /* ===== D-day 배지 ===== */
+  .dday{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;background:var(--yh-green-light);color:var(--yh-green-dark)}
+  .dday .dd-k{font-weight:600;opacity:.85}
+  .dday.soon{background:#fdf1f0;color:var(--danger)}
+  .dday.today{background:#fff3d6;color:#9a6a16}
+  .dday.past{background:var(--bg);color:var(--muted)}
+  /* ===== 대시보드 검색/필터 툴바 ===== */
+  .dash-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .dash-toolbar .ds-search{flex:1;min-width:200px;max-width:340px;padding:9px 13px;border:1px solid var(--line);border-radius:9px;font-size:13px;outline:none;background:#fff}
+  .dash-toolbar .ds-search:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .dash-toolbar .ds-sel{padding:9px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;background:#fff;outline:none;cursor:pointer}
+  .dash-toolbar .ds-sel:focus{border-color:var(--yh-green)}
+  .dash-toolbar .ds-clear{border:1px solid var(--line);background:#fff;color:var(--text);padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:600}
+  .dash-toolbar .ds-clear:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
+  .dash-toolbar .ds-cnt{font-size:12.5px;color:var(--muted);font-weight:600;margin-left:auto}
+  /* ===== 기타 업무 등록자 ===== */
+  .tk-author{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--line);padding:2px 9px;border-radius:6px}
 </style>
+
+<!-- ===== Firebase (실시간 공유 백엔드) ===== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ⚠️ 설정 방법은 같은 폴더의 FIREBASE-SETUP.md 참고.
+   아래 값을 본인 Firebase 프로젝트 값으로 채우면 → 실시간 공유 ON.
+   비워두면 → 이 브라우저(localStorage) 단독 모드로 그대로 동작. */
+window.YH_FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+</script>
 </head>
 <body>
 
@@ -565,11 +610,18 @@
     <section id="tab-dash">
       <div class="page-head">
         <div><h1>전형 진행 현황</h1><div class="sub">부서 카드를 클릭하면 전형 상세 보드가 열립니다. 카드 하단에서 단계를 바로 변경할 수 있습니다.</div></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="openBulkSchedModal()">🗓 일괄 일정 편집</button><button class="btn-ghost" onclick="openBulkModal()">⊕ 전형 일괄 등록</button><button class="btn-ghost" onclick="openDeptModal()">+ 전형 추가</button></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-ghost" onclick="printStatusReport()">🖨 인쇄 / PDF</button><button class="btn-ghost" onclick="exportBackup()">⬇ 백업</button><button class="btn-ghost" onclick="triggerImport()">⬆ 복원</button><button class="btn-ghost" onclick="openBulkSchedModal()">🗓 일괄 일정 편집</button><button class="btn-ghost" onclick="openBulkModal()">⊕ 전형 일괄 등록</button><button class="btn-ghost" onclick="openDeptModal()">+ 전형 추가</button></div>
       </div>
       <div class="stage-summary" id="stageSummary"></div>
       <div class="status-board panel" id="statusBoard"></div>
+      <div class="dash-toolbar">
+        <input id="deptSearchInput" class="ds-search" placeholder="🔍 부서명·채용형태 검색" oninput="deptSearch=this.value;renderDeptGrid()">
+        <select id="deptTypeFilter" class="ds-sel" onchange="typeFilter=this.value;renderDeptGrid()"><option value="">전체 형태</option></select>
+        <button class="ds-clear" onclick="clearDeptFilters()">필터 초기화</button>
+        <span id="deptCount" class="ds-cnt"></span>
+      </div>
       <div class="dept-grid" id="deptGrid"></div>
+      <input type="file" id="importFile" accept="application/json,.json" class="hidden" onchange="importBackup(event)">
     </section>
 
     <section id="tab-completed" class="hidden">
@@ -850,7 +902,7 @@ function migrateV1(old){
 function normalize(st){
   if(!Array.isArray(st.accounts)) st.accounts=[];
   if(!Array.isArray(st.tasks)) st.tasks=[];
-  st.tasks.forEach(t=>{ if(!Array.isArray(t.subs)) t.subs=[]; if(typeof t.done!=="boolean") t.done=false; if(typeof t.important!=="boolean") t.important=false; if(!t.id) t.id="tk"+Math.random().toString(36).slice(2,9); if(!t.createdAt) t.createdAt=today();
+  st.tasks.forEach(t=>{ if(!Array.isArray(t.subs)) t.subs=[]; if(typeof t.done!=="boolean") t.done=false; if(typeof t.important!=="boolean") t.important=false; if(!t.id) t.id="tk"+Math.random().toString(36).slice(2,9); if(!t.createdAt) t.createdAt=today(); if(t.author==null) t.author="";
     if(!t.day) t.day=(t.due&&dnum(t.due)!=null)?t.due:today(); delete t.due;
     t.subs.forEach(s=>{ if(typeof s.done!=="boolean") s.done=false; if(!s.id) s.id="ts"+Math.random().toString(36).slice(2,9); }); });
   (st.departments||[]).forEach(d=>{
@@ -898,8 +950,57 @@ let state=(function(){
 })();
 if(!state || !state.departments) state=seed();
 state=normalize(state);
-function saveState(){ try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){} }
+function saveState(){ try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){} cloudSave(); }
 saveState();
+
+/* ===== 클라우드(Firebase) 실시간 동기화 =====
+   전체 state를 JSON 문자열로 한 문서(app/state)에 저장 → 누가 바꾸면 onSnapshot으로 모두에게 반영.
+   설정값이 비어 있으면 cloud.enabled=false 로 두고 기존 localStorage 모드 그대로 동작. */
+let cloud={ enabled:false, db:null, ref:null, ready:false, pending:false, applying:false };
+function cloudConfigured(){ const c=window.YH_FIREBASE_CONFIG||{}; return !!(c.apiKey && c.projectId); }
+function anyModalOpen(){ return !!document.querySelector('.modal-back:not(.hidden), .board-back:not(.hidden)'); }
+function cloudSave(){
+  if(!cloud.enabled || cloud.applying || !cloud.ref) return;
+  try{ cloud.ref.set({ s: JSON.stringify(state), updatedAt: Date.now() }); }catch(e){}
+}
+function cloudApplySnapshot(snap){
+  if(snap.metadata && snap.metadata.hasPendingWrites) return;   // 내 변경 echo는 무시
+  if(!snap.exists){ cloud.ready=true; cloudSave(); return; }      // 최초: 현재 데이터를 업로드(시드)
+  const data=snap.data(); if(!data || !data.s){ cloud.ready=true; return; }
+  let incoming; try{ incoming=JSON.parse(data.s); }catch(e){ return; }
+  cloud.applying=true; state=normalize(incoming); cloud.applying=false; cloud.ready=true;
+  try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){}
+  if(anyModalOpen()){ cloud.pending=true; return; }              // 편집 중이면 닫힌 뒤 반영
+  rerenderCurrent();
+}
+function cloudInit(){
+  if(!cloudConfigured() || typeof firebase==='undefined') return;
+  try{
+    firebase.initializeApp(window.YH_FIREBASE_CONFIG);
+    cloud.db=firebase.firestore();
+    cloud.ref=cloud.db.collection("app").doc("state");
+    firebase.auth().signInAnonymously()
+      .then(()=>{ cloud.enabled=true; cloud.ref.onSnapshot(cloudApplySnapshot, err=>console.warn("cloud sync error",err)); })
+      .catch(e=>{ console.warn("Firebase 익명 로그인 실패 — localStorage 모드로 동작합니다.", e); });
+  }catch(e){ console.warn("cloudInit 실패 — localStorage 모드로 동작합니다.", e); }
+}
+function rerenderCurrent(){
+  if(typeof session==='undefined' || !session) return;
+  if(session.role==='admin'){
+    renderAll();
+    const active=document.querySelector('.tab.active'); const t=active?active.dataset.tab:'dash';
+    if(t==='sched') renderScheduleTab();
+    else if(t==='mail') initMail();
+    else if(t==='stats') computeStats();
+    else if(t==='tasks') renderTasks();
+    else if(t==='manage') renderManage();
+    else if(t==='completed') renderCompleted();
+  } else {
+    if(teamViewDeptId) renderTeamDetail(teamViewDeptId); else renderTeamHome();
+  }
+}
+setInterval(()=>{ if(cloud.pending && !anyModalOpen()){ cloud.pending=false; rerenderCurrent(); } }, 1500);
+cloudInit();
 
 let session=null;
 function getDept(i){ return state.departments.find(x=>x.id===i); }
@@ -914,7 +1015,7 @@ function doLogin(){
   if(!u||!c){ err.textContent="아이디와 접속 코드를 입력하세요."; return; }
   if(u===ADMIN.user && c===ADMIN.code){ session={role:"admin"}; enterApp(); return; }
   const acc=(state.accounts||[]).find(a=>a.user===u && a.code===c);
-  if(acc){ session=(acc.role==="admin")?{role:"admin"}:{role:"team",user:u}; enterApp(); return; }
+  if(acc){ session=(acc.role==="admin")?{role:"admin",user:u}:{role:"team",user:u}; enterApp(); return; }
   err.textContent="아이디 또는 접속 코드가 올바르지 않습니다.";
 }
 function logout(){ session=null; document.getElementById("inUser").value=""; document.getElementById("inCode").value=""; document.getElementById("loginErr").textContent="";
@@ -923,7 +1024,9 @@ function enterApp(){
   document.getElementById("loginView").classList.add("hidden");
   if(session.role==="admin"){
     document.getElementById("adminView").classList.remove("hidden"); document.getElementById("teamView").classList.add("hidden");
-    document.getElementById("topRight").innerHTML=`<span class="who"><b>관리자</b>님</span><span class="role-pill admin">관리자 · 다중접속</span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
+    const aacc=session.user?getAccount(session.user):null;
+    const whoHTML=aacc?`<b>${esc(aacc.name||aacc.user)}</b>${aacc.title?(" · "+esc(aacc.title)):""} 님`:`<b>관리자</b>님`;
+    document.getElementById("topRight").innerHTML=`<span class="who">${whoHTML}</span><span class="role-pill admin">관리자 · 다중접속</span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
     renderAll(); switchTab("dash");
   }else{
     const acc=getAccount(session.user)||{};
@@ -946,7 +1049,7 @@ function switchTab(t){
 }
 
 /* ===== 대시보드 ===== */
-let stageFilter=null;
+let stageFilter=null, deptSearch="", typeFilter="";
 function activeDepts(){ return state.departments.filter(d=>!d.completed); }
 function completedDepts(){ return state.departments.filter(d=>d.completed); }
 function renderAll(){ renderSummary(); renderStatusBoard(); renderDeptGrid(); renderCompleted(); renderManage(); }
@@ -1022,18 +1125,66 @@ function curScheduleHTML(d){
   const txt=(cfg.e&&v.e)?`${v.s||'-'} ~ ${v.e}`:`${v.s||'-'}${(cfg.e&&v.s&&!v.e)?' <span style="color:var(--muted)">(당일)</span>':''}`;
   return `<div class="stage-sched">현재 단계(${d.stage}) 일정 · <b>${txt}</b></div>`;
 }
+/* ===== 진행률 · D-day ===== */
+function deptProgress(d){
+  const cols=boardColumns(d); const ck=d.checklist||{}; let total=0,done=0;
+  cols.forEach(col=>col.items.forEach((_,i)=>{ total++; if(ck[col.id+":"+i]) done++; }));
+  return { done, total, pct: total?Math.round(done/total*100):0 };
+}
+function progressHTML(d){
+  const p=deptProgress(d); const full=p.pct>=100;
+  return `<div class="dc-prog"><div class="dc-prog-top"><span class="pl">전형 진행률</span><span class="pv">${p.pct}% <small>(${p.done}/${p.total})</small></span></div>`+
+    `<div class="dc-prog-track"><div class="dc-prog-fill ${full?'full':''}" style="width:${p.pct}%"></div></div></div>`;
+}
+function dday(ymd){ if(!ymd) return null; const t=dnum(ymd), n=dnum(today()); if(t==null||n==null) return null; return t-n; }
+function ddayLabel(n){ if(n==null) return ""; if(n===0) return "D-DAY"; return n>0?("D-"+n):("D+"+(-n)); }
+// 현재 단계에서 가장 의미 있는 예정일(마감일·면접일·입사일)을 골라 D-day 산출
+function deptDday(d){
+  const stage=d.stage; const v=(d.schedule&&d.schedule[stage])||{}; const cfg=STAGE_SCHED[stage]||{};
+  let label="", date="";
+  if(stage==="면접전형"){
+    const td=today(); const up=(v.sessions||[]).filter(s=>s.date&&s.date>=td).sort((a,b)=>a.date.localeCompare(b.date))[0];
+    if(up){ date=up.date; label="면접"; } else if(v.s){ date=v.s; label="면접"; }
+  } else if(stage==="입사"){ if(v.s){ date=v.s; label="입사"; } }
+  else if(cfg.e && v.e){ date=v.e; label=stage+" 마감"; }
+  else if(v.s){ date=v.s; label=stage; }
+  if(!date) return null; const n=dday(date); if(n==null) return null;
+  return { label, date, n };
+}
+function ddayMetaHTML(d){
+  const dd=deptDday(d); if(!dd) return "";
+  let cls=""; if(dd.n<0) cls="past"; else if(dd.n===0) cls="today"; else if(dd.n<=3) cls="soon";
+  return `<span class="dday ${cls}" title="${esc(dd.date)}"><span class="dd-k">${esc(dd.label)}</span>${ddayLabel(dd.n)}</span>`;
+}
+function currentUserName(){
+  if(!session) return "";
+  if(session.user){ const a=getAccount(session.user); return a?(a.name||a.user):session.user; }
+  return "시스템 관리자";
+}
+function initDashToolbar(){
+  const sel=document.getElementById("deptTypeFilter");
+  if(sel && sel.options.length<=1){ sel.innerHTML='<option value="">전체 형태</option>'+EMP_TYPES.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join(""); }
+}
+function clearDeptFilters(){ deptSearch=""; typeFilter=""; stageFilter=null; const si=document.getElementById("deptSearchInput"); if(si) si.value=""; renderSummary(); renderDeptGrid(); }
 function renderDeptGrid(){
-  const base=activeDepts();
-  const list=stageFilter?base.filter(d=>d.stage===stageFilter):base;
+  initDashToolbar();
+  let list=activeDepts();
+  if(stageFilter) list=list.filter(d=>d.stage===stageFilter);
+  if(typeFilter) list=list.filter(d=>d.type===typeFilter);
+  const q=deptSearch.trim().toLowerCase();
+  if(q) list=list.filter(d=>(d.name||'').toLowerCase().includes(q)||(d.type||'').toLowerCase().includes(q));
+  const ts=document.getElementById("deptTypeFilter"); if(ts) ts.value=typeFilter;
+  const cnt=document.getElementById("deptCount"); if(cnt) cnt.textContent=`${list.length}개 전형`;
   const el=document.getElementById("deptGrid");
-  if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">해당 단계의 부서가 없습니다.</div>`; return; }
+  if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">${(q||typeFilter||stageFilter)?'조건에 맞는 전형이 없습니다.':'표시할 전형이 없습니다.'}</div>`; return; }
   el.innerHTML=list.map(d=>`
     <div class="dept-card" data-deptid="${d.id}" ${dragAttrs}>${gripHTML}
       <div class="dc-clickable" onclick="openBoard('${d.id}')">
         <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
           <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
-        <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span>${d.headhunt?`<span class="hh-on">헤드헌팅 <b>O</b></span>`:''}</div>
+        <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span>${ddayMetaHTML(d)}${d.headhunt?`<span class="hh-on">헤드헌팅 <b>O</b></span>`:''}</div>
         ${stepperHTML(d.stage)}
+        ${progressHTML(d)}
         ${curScheduleHTML(d)}
         ${countsHTML(d)}
         ${nextActionHTML(d)}
@@ -1532,7 +1683,7 @@ function addTask(bucket){
   const ti=document.getElementById("taskTitle"), imp=document.getElementById("taskImp");
   const title=ti.value.trim(); if(!title){ toast("업무 내용을 입력하세요."); ti.focus(); return; }
   const wt=workToday(); const day=(bucket==='tomorrow')?addDays(wt,1):wt;
-  state.tasks.push({id:newTkId("tk"), title, day, done:false, important:!!(imp&&imp.checked), createdAt:wt, subs:[]});
+  state.tasks.push({id:newTkId("tk"), title, day, done:false, important:!!(imp&&imp.checked), author:currentUserName(), createdAt:wt, subs:[]});
   ti.value=""; if(imp) imp.checked=false; saveState(); renderTasks(); ti.focus();
 }
 function moveTaskDay(id,bucket){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; const wt=workToday(); t.day=(bucket==='tomorrow')?addDays(wt,1):wt; saveState(); renderTasks(); }
@@ -1569,7 +1720,7 @@ function taskCardHTML(t,bucket){
       <button class="tk-check ${t.done?'on':''}" onclick="toggleTask('${t.id}')" title="${t.done?'완료 취소':'완료'}">${t.done?'✓':''}</button>
       <div class="tk-body">
         <div class="tk-title">${t.important?'<span class="tk-impbadge">중요</span>':''}${esc(t.title)}</div>
-        <div class="tk-meta">${carried?'<span class="tk-carry">이월</span>':''}${subTot?`<span class="tk-prog">상세 ${subDone}/${subTot} 완료</span>`:''}${t.done?`<span class="tk-prog">${esc(t.day)}</span>`:''}</div>
+        <div class="tk-meta">${carried?'<span class="tk-carry">이월</span>':''}${t.author?`<span class="tk-author">${esc(t.author)}</span>`:''}${subTot?`<span class="tk-prog">상세 ${subDone}/${subTot} 완료</span>`:''}${t.done?`<span class="tk-prog">${esc(t.day)}</span>`:''}</div>
       </div>
       ${t.done?'':impBtn}
       ${moveBtn}
@@ -1866,8 +2017,9 @@ function renderTeamHome(){
   const cardHTML=(d)=>`<div class="dept-card" data-deptid="${d.id}" ${dragAttrs} style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">${gripHTML}
       <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">현황 보기 ›</span></div>
         <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
-      <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span></div>
+      <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span>${ddayMetaHTML(d)}</div>
       ${stepperHTML(d.stage)}
+      ${progressHTML(d)}
       ${curScheduleHTML(d)}
     </div>`;
   let html=`<div class="tl-hero tl-hero-home"><div class="th-l"><h1>${esc(acc.name||acc.user||"")}${acc.title?` <span class="th-title">${esc(acc.title)}</span>`:''}</h1>
@@ -1909,6 +2061,79 @@ function renderTeamDetail(deptId){
       <div class="counts-row"><span class="count-pill">지원자 <b>${c.applicants||0}</b></span><span class="count-pill">서류 합격 <b>${c.doc||0}</b></span><span class="count-pill">AI역량검사 합격 <b>${c.ai||0}</b></span><span class="count-pill">채용 인원 <b>${c.hired||0}</b></span></div></div>`:""}
     <div class="panel" style="padding:22px 24px"><div class="section-title">메모</div>
       <div style="font-size:13.5px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word">${d.notes?esc(d.notes):'<span style="color:var(--muted)">등록된 메모가 없습니다.</span>'}</div></div>`;
+}
+
+/* ===== 인쇄 / PDF (채용 현황 보고서) ===== */
+function printStatusReport(){
+  const ds=activeDepts();
+  const byStage={}; STAGES.forEach(s=>byStage[s]=[]);
+  ds.forEach(d=>{ (byStage[d.stage]||(byStage[d.stage]=[])).push(d); });
+  const summary=STAGES.map(s=>`<span class="ps-chip"><b>${byStage[s].length}</b> ${esc(s)}</span>`).join("");
+  const rows=ds.slice().sort((a,b)=>STAGES.indexOf(b.stage)-STAGES.indexOf(a.stage)||String(a.name).localeCompare(b.name)).map(d=>{
+    const p=deptProgress(d); const dd=deptDday(d); const n=nextAction(d);
+    return `<tr><td><b>${esc(d.name)}</b></td><td>${esc(d.type)}</td><td class="c">${d.reqCount}${d.ftTO?` <span class="muted">(TO ${d.ftTO})</span>`:''}</td><td>${esc(d.stage)}</td><td class="c">${p.pct}% <span class="muted">(${p.done}/${p.total})</span></td><td class="c">${dd?esc(dd.label+' '+ddayLabel(dd.n)):'-'}</td><td>${n?esc(n.label):'<span class="muted">절차 완료</span>'}</td><td class="c">${esc(repDate(d)||'-')}</td></tr>`;
+  }).join("");
+  const html=`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>유한양행 채용 전형 현황 (${today()})</title>
+  <style>
+    *{box-sizing:border-box} body{font-family:-apple-system,"Malgun Gothic",sans-serif;color:#222;margin:28px}
+    h1{font-size:20px;margin:0 0 4px;color:#00833D} .sub{color:#666;font-size:12px;margin-bottom:18px}
+    .ps-summary{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+    .ps-chip{border:1px solid #d8e2db;border-radius:8px;padding:6px 12px;font-size:12px;color:#333}
+    .ps-chip b{color:#00833D;font-size:14px;margin-right:3px}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{border:1px solid #d8e2db;padding:7px 8px;text-align:left;vertical-align:top}
+    th{background:#eef6f0;color:#006A31;font-weight:700}
+    td.c{text-align:center} .muted{color:#999}
+    tr:nth-child(even) td{background:#fafdfb}
+    .ps-foot{margin-top:18px;font-size:11px;color:#999}
+    @media print{ body{margin:12mm} }
+  </style></head><body>
+    <h1>유한양행 채용 전형 현황</h1>
+    <div class="sub">출력일 ${today()} · 진행 중 전형 ${ds.length}건</div>
+    <div class="ps-summary">${summary}</div>
+    <table><thead><tr><th>부서</th><th>채용형태</th><th>요청인원</th><th>현재 단계</th><th>진행률</th><th>D-day</th><th>지금 진행할 차례</th><th>기준일</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="8" style="text-align:center;color:#999">진행 중인 전형이 없습니다.</td></tr>'}</tbody></table>
+    <div class="ps-foot">유한양행 채용 전형 현황 시스템 · 본 문서는 출력 시점의 데이터를 기준으로 합니다.</div>
+  </body></html>`;
+  const w=window.open("","_blank");
+  if(!w){ toast("팝업이 차단되었습니다. 팝업 허용 후 다시 시도하세요."); return; }
+  w.document.write(html); w.document.close(); w.focus();
+  setTimeout(()=>{ try{ w.print(); }catch(e){} },300);
+}
+
+/* ===== JSON 백업 / 복원 ===== */
+function exportBackup(){
+  try{
+    const payload={ _meta:{ app:"yh-recruit-status", v:3, exportedAt:new Date().toISOString() }, state };
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download=`yuhan-recruit-backup-${today()}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast("백업 파일을 내려받았습니다.");
+  }catch(e){ toast("백업 중 오류가 발생했습니다."); }
+}
+function triggerImport(){ const f=document.getElementById("importFile"); if(f){ f.value=""; f.click(); } }
+function importBackup(ev){
+  const file=ev.target.files&&ev.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    let parsed;
+    try{ parsed=JSON.parse(reader.result); }catch(e){ toast("올바른 JSON 파일이 아닙니다."); return; }
+    const incoming=(parsed&&parsed.state&&parsed.state.departments)?parsed.state:(parsed&&parsed.departments?parsed:null);
+    if(!incoming){ toast("백업 형식을 인식할 수 없습니다."); return; }
+    const dc=(incoming.departments||[]).length, ac=(incoming.accounts||[]).length, tc=(incoming.tasks||[]).length;
+    if(!confirm(`복원하면 현재 데이터(전형·계정·기타업무)가 모두 이 백업으로 교체됩니다.\n\n· 전형 ${dc}건 · 계정 ${ac}개 · 기타업무 ${tc}건\n\n계속하시겠습니까?`)) return;
+    try{
+      state=normalize(incoming); saveState();
+      renderAll();
+      const tt=document.getElementById("tab-tasks"); if(tt&&!tt.classList.contains("hidden")) renderTasks();
+      const st=document.getElementById("tab-stats"); if(st&&!st.classList.contains("hidden")) computeStats();
+      const sc=document.getElementById("tab-sched"); if(sc&&!sc.classList.contains("hidden")){ const t0=new Date(); adminCal={y:t0.getFullYear(),m:t0.getMonth()}; renderScheduleTab(); }
+      toast(`복원 완료 · 전형 ${dc}건 · 계정 ${ac}개`);
+    }catch(e){ toast("복원 중 오류가 발생했습니다."); }
+  };
+  reader.readAsText(file);
 }
 
 /* ===== 복사/토스트 ===== */
