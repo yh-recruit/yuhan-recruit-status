@@ -86,12 +86,17 @@
   .dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
   .dept-card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:396px;position:relative}
   /* 카드 드래그 정렬 */
-  .dept-card.dragging{opacity:.4}
-  .dept-card.drop-before{box-shadow:inset 0 4px 0 -1px var(--yh-green),var(--shadow)}
-  .dept-card.drop-after{box-shadow:inset 0 -4px 0 -1px var(--yh-green),var(--shadow)}
-  .drag-grip{position:absolute;top:12px;right:14px;color:var(--muted);font-size:15px;line-height:1;cursor:grab;user-select:none;padding:2px 4px;border-radius:6px;z-index:2}
-  .drag-grip:hover{background:var(--yh-green-tint);color:var(--yh-green)}
-  .drag-grip:active{cursor:grabbing}
+  .drag-bar{display:flex;align-items:center;justify-content:center;gap:6px;height:20px;margin:0 0 12px;border-radius:7px;background:var(--yh-green-tint);border:1px solid var(--line);color:var(--muted);cursor:grab;user-select:none;transition:.12s;font-size:11px;letter-spacing:.5px}
+  .drag-bar::before{content:"⠿⠿⠿";letter-spacing:2px;font-size:11px;line-height:1}
+  .drag-bar .db-t{font-weight:600}
+  .drag-bar:hover{background:#dff0e4;border-color:var(--yh-green-light);color:var(--yh-green-dark)}
+  .drag-bar:active{cursor:grabbing}
+  .dept-card.dragging{opacity:.35;outline:2px dashed var(--yh-green);outline-offset:-2px;transform:scale(.99)}
+  .dept-card.drop-before{box-shadow:inset 6px 0 0 -1px var(--yh-green),var(--shadow)}
+  .dept-card.drop-after{box-shadow:inset -6px 0 0 -1px var(--yh-green),var(--shadow)}
+  .dept-card.drop-before::after,.dept-card.drop-after::after{content:"";position:absolute;top:8px;bottom:8px;width:4px;border-radius:3px;background:var(--yh-green);box-shadow:0 0 0 2px rgba(0,131,61,.18)}
+  .dept-card.drop-before::after{left:-10px}
+  .dept-card.drop-after::after{right:-10px}
   /* 채용 현황표 */
   .status-board{padding:18px 20px;margin-bottom:18px}
   .status-tbl{width:100%;border-collapse:collapse}
@@ -103,7 +108,7 @@
   .status-tbl .st-list{font-size:13.5px;color:var(--text);line-height:1.7}
   .status-tbl .st-list .st-dept{display:inline-block;margin-right:14px}
   .status-tbl .st-list .st-dept b{font-weight:700}
-  .status-tbl .st-list .st-to{color:var(--yh-green-dark);font-weight:600}
+  .status-tbl .st-list .st-to{color:var(--text)}
   .status-tbl .st-empty{color:var(--muted)}
   .dc-clickable{cursor:pointer;border-radius:10px;margin:-6px -6px 0;padding:6px 6px 0;transition:.12s}
   .dc-clickable:hover{background:var(--yh-green-tint)}
@@ -768,8 +773,10 @@ function renderStatusBoard(){
 }
 /* 카드 드래그 정렬 */
 let dragDeptId=null;
-function cardDragStart(e){ const card=e.target.closest(".dept-card"); if(!card) return; dragDeptId=card.dataset.deptid; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragDeptId);}catch(_){} setTimeout(()=>card.classList.add("dragging"),0); }
-function cardDragOver(e){ if(!dragDeptId) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; const c=e.currentTarget; if(c.dataset.deptid===dragDeptId){ c.classList.remove("drop-before","drop-after"); return; } const r=c.getBoundingClientRect(); const before=(e.clientY-r.top)<r.height/2; c.classList.toggle("drop-before",before); c.classList.toggle("drop-after",!before); }
+function cardDragStart(e){ const card=e.target.closest(".dept-card"); if(!card) return; dragDeptId=card.dataset.deptid; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragDeptId);}catch(_){}
+  try{ const r=card.getBoundingClientRect(); e.dataTransfer.setDragImage(card, e.clientX-r.left, e.clientY-r.top); }catch(_){}
+  setTimeout(()=>card.classList.add("dragging"),0); }
+function cardDragOver(e){ if(!dragDeptId) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; const c=e.currentTarget; if(c.dataset.deptid===dragDeptId){ c.classList.remove("drop-before","drop-after"); return; } const r=c.getBoundingClientRect(); const before=(e.clientX-r.left)<r.width/2; c.classList.toggle("drop-before",before); c.classList.toggle("drop-after",!before); }
 function cardDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-after"); }
 function cardDrop(e){ if(!dragDeptId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.deptid; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after"); if(tgt&&dragDeptId!==tgt){ moveDept(dragDeptId,tgt,before); const dragged=dragDeptId; dragDeptId=null; if(session&&session.role==="team") renderTeamHome(); else { renderStatusBoard(); renderDeptGrid(); } } }
 function cardDragEnd(){ document.querySelectorAll(".dragging,.drop-before,.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragDeptId=null; }
@@ -779,7 +786,7 @@ function moveDept(dragId,targetId,before){
   if(!before) ti++; arr.splice(ti,0,m); saveState();
 }
 const dragAttrs='ondragover="cardDragOver(event)" ondragleave="cardDragLeave(event)" ondrop="cardDrop(event)" ondragend="cardDragEnd(event)"';
-const gripHTML='<span class="drag-grip" draggable="true" ondragstart="cardDragStart(event)" onclick="event.stopPropagation()" title="드래그하여 순서 변경">⠿</span>';
+const gripHTML='<div class="drag-bar" draggable="true" ondragstart="cardDragStart(event)" onclick="event.stopPropagation()" title="드래그하여 순서 변경"><span class="db-t">순서 변경</span></div>';
 function renderSummary(){
   const c={}; STAGES.forEach(s=>c[s]=0); activeDepts().forEach(d=>c[d.stage]++);
   document.getElementById("stageSummary").innerHTML=STAGES.map(s=>`<div class="chip ${stageFilter===s?'active':''}" onclick="toggleFilter('${s}')"><div class="c-label"><span class="dot" style="background:${STAGE_COLORS[s]}"></span>${s}</div><div class="c-num">${c[s]}<small> 부서</small></div></div>`).join("");
@@ -832,7 +839,7 @@ function quickStage(i,stage){ const d=getDept(i); d.stage=stage; d.updated=today
 function renderCompleted(){
   const el=document.getElementById("completedGrid"); if(!el) return;
   const list=completedDepts();
-  if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">완료된 전형이 없습니다. 전형 상세 보드의 ‘채용 종료 → 그룹웨어 게시판 게재’를 완료하면 이곳으로 이동합니다.</div>`; return; }
+  if(!list.length){ el.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);padding:20px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">완료된 전형이 없습니다. 전형 상세 보드의 ‘채용 종료 → 그룹웨어 게시판 게재’를 완료하면 이곳으로 이동합니다.</div>`; return; }
   el.innerHTML=list.map(d=>{ const c=d.counts||{}; return `
     <div class="dept-card completed-card">
       <div class="dc-clickable" onclick="openBoard('${d.id}')">
