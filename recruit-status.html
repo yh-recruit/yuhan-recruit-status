@@ -207,6 +207,23 @@
   .apick-main{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
   .apick-main .mono{font-size:11px;background:var(--bg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Menlo,Consolas,monospace}
   .apick-sub{font-size:11px;color:var(--muted)}
+  /* 등록 계정 transfer(검색+화살표) */
+  .xfer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .xfer-col{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:8px}
+  .xfer-h{font-size:12px;font-weight:700;color:var(--ink);margin:2px 2px 8px}
+  .xfer-search{width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;margin-bottom:8px;background:#fff;outline:none}
+  .xfer-search:focus{border-color:var(--yh-green-light)}
+  .xfer-list{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto}
+  .xfer-item{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+  .xfer-item .xi-main{flex:1;min-width:0;font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .xfer-item .xi-main .mono{font-size:11px;background:var(--bg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .xfer-item .xi-sub{flex-basis:100%;font-size:11px;color:var(--muted)}
+  .xfer-btn{flex-shrink:0;width:26px;height:26px;border-radius:7px;border:1px solid var(--yh-green-light);background:var(--yh-green-tint);color:var(--yh-green-dark);font-size:14px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center}
+  .xfer-btn:hover{background:var(--yh-green);color:#fff}
+  .xfer-btn.rm{border-color:#eccecc;background:#fff;color:var(--danger)}
+  .xfer-btn.rm:hover{background:var(--danger);color:#fff}
+  .xfer-empty{font-size:12px;color:var(--muted);padding:14px 8px;text-align:center}
+  @media(max-width:560px){ .xfer{grid-template-columns:1fr} }
   @media(max-width:560px){.acct-pick{grid-template-columns:1fr}}
 
   .ivs-row{display:flex;gap:10px;align-items:stretch;background:#fbfdfb;border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px}
@@ -491,7 +508,7 @@
 
 <!-- DEPT MODAL -->
 <div id="deptModal" class="modal-back hidden">
-  <div class="modal">
+  <div class="modal" style="max-width:720px">
     <div class="modal-head"><h3 id="deptModalTitle">전형 추가</h3><button class="x-btn" onclick="closeDeptModal()">&times;</button></div>
     <div class="modal-body">
       <div class="grid2">
@@ -518,7 +535,7 @@
         <div class="form-field"><label>채용 인원</label><input id="f_c_hired" type="number" min="0" /></div>
       </div>
     </div>
-    <div class="modal-foot"><button id="deptDeleteBtn" class="mini danger" style="margin-right:auto" onclick="deleteDept(editingId)">부서 삭제</button><button class="btn-ghost" onclick="closeDeptModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveDept()">저장</button></div>
+    <div class="modal-foot"><button id="deptDeleteBtn" class="mini danger" style="margin-right:auto" onclick="deleteDept(editingId)">삭제</button><button class="btn-ghost" onclick="closeDeptModal()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveDept()">저장</button></div>
   </div>
 </div>
 
@@ -545,7 +562,7 @@
       <div class="grid2">
         <div class="form-field"><label>구분</label><select id="a_role"><option value="normal">일반</option><option value="admin">관리자</option></select></div>
         <div class="form-field"><label>소속 부서 <span class="hint-inline">· 정보용</span></label><input id="a_dept" placeholder="예: 인사팀" /></div>
-        <div class="form-field"><label>아이디</label><input id="a_user" placeholder="예: sales2" /></div>
+        <div class="form-field"><label>아이디</label><input id="a_user" placeholder="예: 240169" /></div>
         <div class="form-field"><label>접속 코드</label><input id="a_code" placeholder="0000" /></div>
         <div class="form-field"><label>성명</label><input id="a_name" placeholder="예: 홍길동" /></div>
         <div class="form-field"><label>직책/직급</label><input id="a_title" placeholder="예: 인사팀장" /></div>
@@ -979,18 +996,44 @@ function scheduleInputsHTML(sched){
   });
   return h;
 }
+let pickUsers=[], pickSearch="";
 function accountPickHTML(selected){
-  const sel=new Set(selected||[]);
+  pickUsers=(selected||[]).slice(); pickSearch="";
   if(!(state.accounts||[]).length){
     return `<div class="ivs-empty">등록된 계정이 없습니다. 상단 ‘계정 관리’ 탭에서 계정을 먼저 만든 뒤 여기서 선택하세요.</div>`;
   }
-  return `<div class="acct-pick">`+state.accounts.map(a=>{
-    const on=sel.has(a.user); const adminTag=a.role==="admin"?'<span class="role-pill admin" style="font-size:10px;padding:1px 6px">관리자</span>':'';
-    return `<label class="apick ${on?'on':''}"><input type="checkbox" class="apick-cb" value="${esc(a.user)}" ${on?'checked':''} onchange="this.closest('.apick').classList.toggle('on',this.checked)">`+
-      `<span class="apick-main"><b>${esc(a.name||a.user)}</b> <span class="mono">${esc(a.user)}</span>${adminTag}</span>`+
-      `<span class="apick-sub">${esc(a.title||'-')}${a.dept?(' · '+esc(a.dept)):''}</span></label>`;
-  }).join("")+`</div>`;
+  return `<div class="xfer">
+    <div class="xfer-col">
+      <div class="xfer-h">전체 계정 <span class="hint-inline">· 검색 후 → 로 등록</span></div>
+      <input id="acctSearch" class="xfer-search" placeholder="이름·사번·부서·직책 검색" oninput="pickSearch=this.value;renderAvail()">
+      <div id="acctAvail" class="xfer-list"></div>
+    </div>
+    <div class="xfer-col">
+      <div class="xfer-h">등록된 계정 <span id="pickCount" class="hint-inline"></span></div>
+      <div id="acctPicked" class="xfer-list"></div>
+    </div>
+  </div>`;
 }
+function acctMatch(a,q){ if(!q) return true; q=q.toLowerCase(); return [a.user,a.name,a.dept,a.title].some(v=>(v||"").toLowerCase().includes(q)); }
+function acctRowHTML(a,side){
+  const adminTag=a.role==="admin"?'<span class="role-pill admin" style="font-size:10px;padding:1px 6px">관리자</span>':'';
+  const sub=`${a.dept?esc(a.dept):''}${a.title?((a.dept?' · ':'')+esc(a.title)):''}`||'-';
+  const info=`<span class="xi-main"><b>${esc(a.name||a.user)}</b> <span class="mono">${esc(a.user)}</span>${adminTag}<span class="xi-sub">${sub||'-'}</span></span>`;
+  if(side==="avail") return `<div class="xfer-item">${info}<button type="button" class="xfer-btn add" title="등록" onclick="acctPickAdd('${esc(a.user)}')">→</button></div>`;
+  return `<div class="xfer-item"><button type="button" class="xfer-btn rm" title="등록 해제" onclick="acctPickRemove('${esc(a.user)}')">←</button>${info}</div>`;
+}
+function renderAvail(){ const el=document.getElementById("acctAvail"); if(!el) return;
+  const picked=new Set(pickUsers);
+  const list=(state.accounts||[]).filter(a=>!picked.has(a.user)&&acctMatch(a,pickSearch));
+  el.innerHTML=list.length?list.map(a=>acctRowHTML(a,"avail")).join(""):`<div class="xfer-empty">${pickSearch?'검색 결과가 없습니다':'모든 계정이 등록되었습니다'}</div>`;
+}
+function renderPicked(){ const el=document.getElementById("acctPicked"); if(!el) return;
+  const list=pickUsers.map(u=>getAccount(u)).filter(Boolean);
+  el.innerHTML=list.length?list.map(a=>acctRowHTML(a,"picked")).join(""):`<div class="xfer-empty">등록된 계정이 없습니다 — 왼쪽에서 →로 추가</div>`;
+  const cnt=document.getElementById("pickCount"); if(cnt) cnt.textContent='· '+list.length+'개';
+}
+function acctPickAdd(u){ if(!pickUsers.includes(u)) pickUsers.push(u); renderAvail(); renderPicked(); }
+function acctPickRemove(u){ pickUsers=pickUsers.filter(x=>x!==u); renderAvail(); renderPicked(); }
 function ivSessionRowHTML(s){ s=s||{};
   return `<div class="ivs-row"><div class="ivs-grid">
     <div class="ivs-f"><label>회차</label><select class="ivs-round">${IV_ROUNDS.map(r=>`<option ${s.round===r?'selected':''}>${r}</option>`).join("")}</select></div>
@@ -1018,6 +1061,7 @@ function openDeptModal(i){
   document.getElementById("iv_sessions").innerHTML = ivSessions.length ? ivSessions.map(s=>ivSessionRowHTML(s)).join("") : `<div class="ivs-empty">등록된 면접 세션이 없습니다. 아래 ‘+ 면접 세션 추가’로 등록하세요.</div>`;
   document.getElementById("iv_obs").value=ivv.observers||"";
   document.getElementById("f_accounts").innerHTML=accountPickHTML(d?d.accountUsers:[]);
+  if((state.accounts||[]).length){ renderAvail(); renderPicked(); }
   document.getElementById("f_notes").value=d?d.notes:"";
   const c=(d&&d.counts)||{};
   document.getElementById("f_c_applicants").value=c.applicants||"";
@@ -1031,8 +1075,7 @@ function closeDeptModal(){ document.getElementById("deptModal").classList.add("h
 function saveDept(){
   const name=document.getElementById("f_name").value.trim();
   if(!name){ toast("부서명을 입력하세요."); return; }
-  const accountUsers=[];
-  document.querySelectorAll("#f_accounts .apick-cb:checked").forEach(cb=>accountUsers.push(cb.value));
+  const accountUsers=pickUsers.slice();
   const schedule=emptySchedule();
   STAGES.forEach((s,i)=>{ const se=document.getElementById(`sch_${i}_s`), ee=document.getElementById(`sch_${i}_e`);
     schedule[s]={ s:se?se.value:"", e:ee?ee.value:"", place:"", panel:"", observers:"", timeStart:"", timeEnd:"", sessions:[] }; });
