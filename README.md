@@ -4,10 +4,11 @@
 
 ## 🌐 접속 주소 (바로 사용)
 
-**https://contacteveryone69-max.github.io/yuhan-recruit-status/**
+**https://yh-recruit.github.io/yuhan-recruit-status/**
 
 - 체험 계정: 관리자 `admin / 0000`, 팀장(예시) `sales1 / 0000`
 - 팀원에게는 위 주소만 공유하면 됩니다. 설치/다운로드 불필요.
+- ℹ️ 2026-06-18 주소 변경: 기존 `contacteveryone69-max.github.io`가 사내 웹 필터에 호스트명 단위로 차단되어, GitHub username을 `yh-recruit`로 변경(주소도 함께 변경). 사내망 접속 통과 확인 완료.
 
 ## ✅ 현재 상태 (2026-06-17 기준)
 
@@ -39,7 +40,7 @@
 ## 💻 회사 PC로 가져오기
 
 ```bash
-git clone https://github.com/contacteveryone69-max/yuhan-recruit-status.git
+git clone https://github.com/yh-recruit/yuhan-recruit-status.git
 ```
 
 또는 GitHub 저장소 페이지 → **Code → Download ZIP**.

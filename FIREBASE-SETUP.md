@@ -1,7 +1,7 @@
 # Firebase 실시간 공유 설정 (무료)
 
 > ✅ **이 설정은 2026-06-17에 완료되었습니다** (프로젝트: `yuhan-recruit`).
-> 접속 주소: https://contacteveryone69-max.github.io/yuhan-recruit-status/
+> 접속 주소: https://yh-recruit.github.io/yuhan-recruit-status/
 > 아래는 참고용 기록입니다. 새 프로젝트를 다시 만들 때만 따라 하면 됩니다.
 
 이 문서대로 따라 하면 **여러 명이 같은 데이터를 실시간으로** 보고 쓸 수 있게 됩니다.
