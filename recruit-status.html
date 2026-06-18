@@ -373,10 +373,11 @@
   .wk-legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
   .wk-lg{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);font-weight:600}
   .wk-lg-c{width:10px;height:10px;border-radius:3px;display:inline-block}
-  .wk-grid{display:grid;grid-template-columns:repeat(7,1fr)}
-  .wk-cell{border-right:1px solid var(--line);border-top:1px solid var(--line);min-height:96px;padding:5px;transition:background .12s}
+  .wk-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+  .wk-cell{border-right:1px solid var(--line);border-top:1px solid var(--line);min-height:96px;padding:5px;transition:background .12s;min-width:0;overflow:hidden;cursor:pointer}
+  .wk-cell:hover:not(.cal-out){background:var(--yh-green-tint)}
   .wk-cell:nth-child(7n){border-right:none}
-  .wk-cell.cal-out{background:#fafbfa}
+  .wk-cell.cal-out{background:#fafbfa;cursor:default}
   .wk-cell.cal-out .cal-date{color:var(--muted);opacity:.4}
   .wk-cell.wk-drop{background:var(--yh-green-light);box-shadow:inset 0 0 0 2px var(--yh-green)}
   .wk-celltop{display:flex;align-items:center;gap:5px;margin-bottom:4px}
@@ -384,10 +385,10 @@
   .wk-cell.cal-sun .cal-date{color:#c0504d}
   .wk-cell.cal-hol .cal-date{color:#c0504d}
   .wk-cell.today .cal-date{background:var(--yh-green);color:#fff;border-radius:50%}
-  .wk-chips{display:flex;flex-direction:column;gap:3px}
-  .wk-chip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;cursor:pointer;background:color-mix(in srgb,var(--wc) 14%,#fff);color:var(--wc);border-left:3px solid var(--wc);overflow:hidden}
+  .wk-chips{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .wk-chip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;cursor:pointer;background:color-mix(in srgb,var(--wc) 14%,#fff);color:var(--wc);border-left:3px solid var(--wc);overflow:hidden;min-width:0;max-width:100%}
   .wk-chip:hover{filter:brightness(.96)}
-  .wk-chip .wk-ct{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .wk-chip .wk-ct{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
   .wk-chip.imp{font-weight:800}
   .wk-chip.done{opacity:.55;text-decoration:line-through}
   .wk-chip .wk-ck{font-weight:800;flex-shrink:0}
@@ -600,10 +601,23 @@
   .tk-author{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--line);padding:2px 9px;border-radius:6px}
 </style>
 
-<!-- ===== Firebase (실시간 공유 백엔드) ===== -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- ===== Firebase (실시간 공유 백엔드) — 비차단(async) 순차 로딩 ===== -->
+<!-- ⚠️ 동기 <script src>로 두면 사내 프록시가 gstatic을 막거나 지연시킬 때 페이지 전체가 멈춰 '접속 불가'가 됨.
+     아래처럼 동적으로 순서대로(app→auth→firestore) 비동기 로드하면, CDN이 막혀도 앱은 localStorage 모드로 정상 표시됨. -->
+<script>
+(function(){
+  var base="https://www.gstatic.com/firebasejs/10.12.2/";
+  var files=["firebase-app-compat.js","firebase-auth-compat.js","firebase-firestore-compat.js"];
+  (function load(i){
+    if(i>=files.length){ window.__fbLoaded=true; return; }
+    var s=document.createElement("script");
+    s.src=base+files[i]; s.async=true;
+    s.onload=function(){ load(i+1); };
+    s.onerror=function(){ /* CDN 차단/실패 — 클라우드 동기화 없이 localStorage 단독 모드로 동작 */ };
+    document.head.appendChild(s);
+  })(0);
+})();
+</script>
 <script>
 /* ⚠️ 설정 방법은 같은 폴더의 FIREBASE-SETUP.md 참고.
    아래 값을 본인 Firebase 프로젝트 값으로 채우면 → 실시간 공유 ON.
@@ -900,6 +914,20 @@ window.YH_FIREBASE_CONFIG = {
   </div>
 </div>
 
+<div id="wkAddModal" class="modal-back hidden" style="z-index:150">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head"><h3>업무 추가 · <span id="wkAddDateLbl"></span></h3><button class="x-btn" onclick="closeWkAdd()">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label>업무 내용</label><input id="wkAddTitle" placeholder="예: OOO 사원 근로계약서 작성" onkeydown="if(event.key==='Enter')wkAddSubmit()"></div>
+      <div class="grid2">
+        <div class="form-field"><label>색상(업무 종류)</label><select id="wkAddColor"></select></div>
+        <div class="form-field"><label>&nbsp;</label><label class="tk-imp" style="height:38px"><input type="checkbox" id="wkAddImp"> 중요</label></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeWkAdd()">취소</button><button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="wkAddSubmit()">추가</button></div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -1075,6 +1103,7 @@ function cloudApplySnapshot(snap){
   rerenderCurrent();
 }
 function cloudInit(){
+  if(cloud.db) return;   // 이미 초기화됨(중복 호출 방지)
   if(!cloudConfigured() || typeof firebase==='undefined') return;
   try{
     firebase.initializeApp(window.YH_FIREBASE_CONFIG);
@@ -1102,7 +1131,11 @@ function rerenderCurrent(){
   }
 }
 setInterval(()=>{ if(cloud.pending && !anyModalOpen()){ cloud.pending=false; rerenderCurrent(); } }, 1500);
-cloudInit();
+// Firebase SDK가 비동기로 로드되므로 준비될 때까지 폴링(최대 ~12초). 막혀 있으면 그대로 localStorage 모드.
+(function waitFirebase(n){
+  if(typeof firebase!=='undefined' && firebase.firestore){ cloudInit(); return; }
+  if(n>0) setTimeout(function(){ waitFirebase(n-1); }, 250);
+})(48);
 
 let session=null;
 function getDept(i){ return state.departments.find(x=>x.id===i); }
@@ -2116,8 +2149,8 @@ function workCalendarHTML(y,m){
       const day=w*7-first+1+i;
       if(day<1||day>dim){ const od=new Date(Date.UTC(y,m,day)); html+=`<div class="wk-cell cal-out"><div class="wk-celltop"><span class="cal-date">${od.getUTCDate()}</span></div></div>`; continue; }
       const ds=`${y}-${pad2(m+1)}-${pad2(day)}`; const hol=holidayName(ds);
-      const chips=(byDay[ds]||[]).map(t=>`<div class="wk-chip ${t.done?'done':''} ${t.important?'imp':''}" draggable="true" ondragstart="wkChipDragStart(event,'${t.id}')" onclick="openWkTask('${t.id}')" style="--wc:${taskColor(t)}" title="${esc(t.title)}">${t.done?'<span class="wk-ck">✓</span>':''}<span class="wk-ct">${esc(t.title)}</span></div>`).join("");
-      html+=`<div class="wk-cell ${i===0?'cal-sun':''} ${hol?'cal-hol':''} ${ds===todayStr?'today':''}" ondragover="wkCellDragOver(event)" ondragleave="wkCellDragLeave(event)" ondrop="wkCellDrop(event,'${ds}')"><div class="wk-celltop"><span class="cal-date">${day}</span>${hol?`<span class="cal-holname">${esc(hol)}</span>`:''}</div><div class="wk-chips">${chips}</div></div>`;
+      const chips=(byDay[ds]||[]).map(t=>`<div class="wk-chip ${t.done?'done':''} ${t.important?'imp':''}" draggable="true" ondragstart="wkChipDragStart(event,'${t.id}')" onclick="event.stopPropagation();openWkTask('${t.id}')" style="--wc:${taskColor(t)}" title="${esc(t.title)}">${t.done?'<span class="wk-ck">✓</span>':''}<span class="wk-ct">${esc(t.title)}</span></div>`).join("");
+      html+=`<div class="wk-cell ${i===0?'cal-sun':''} ${hol?'cal-hol':''} ${ds===todayStr?'today':''}" title="클릭하여 이 날짜에 업무 추가" onclick="openWkAdd('${ds}')" ondragover="wkCellDragOver(event)" ondragleave="wkCellDragLeave(event)" ondrop="wkCellDrop(event,'${ds}')"><div class="wk-celltop"><span class="cal-date">${day}</span>${hol?`<span class="cal-holname">${esc(hol)}</span>`:''}</div><div class="wk-chips">${chips}</div></div>`;
     }
   }
   html+=`</div></div>`;
@@ -2127,6 +2160,26 @@ function wkChipDragStart(e,id){ wkDragId=id; e.dataTransfer.effectAllowed="move"
 function wkCellDragOver(e){ if(!wkDragId) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; e.currentTarget.classList.add("wk-drop"); }
 function wkCellDragLeave(e){ e.currentTarget.classList.remove("wk-drop"); }
 function wkCellDrop(e,ds){ if(!wkDragId) return; e.preventDefault(); e.currentTarget.classList.remove("wk-drop"); const id=wkDragId; wkDragId=null; setTaskDate(id,ds); }
+let _wkAddDate=null;
+function openWkAdd(ds){
+  _wkAddDate=ds;
+  const p=String(ds).split("-");
+  document.getElementById("wkAddDateLbl").textContent=`${+p[1]}월 ${+p[2]}일 (${dowK(ds)})`;
+  const csel=document.getElementById("wkAddColor"); csel.innerHTML=TASK_COLORS.map(c=>`<option value="${c.key}">${c.label}</option>`).join("");
+  document.getElementById("wkAddTitle").value=""; document.getElementById("wkAddImp").checked=false;
+  document.getElementById("wkAddModal").classList.remove("hidden");
+  setTimeout(()=>{ const el=document.getElementById("wkAddTitle"); if(el) el.focus(); },30);
+}
+function closeWkAdd(){ _wkAddDate=null; document.getElementById("wkAddModal").classList.add("hidden"); }
+function wkAddSubmit(){
+  const ti=document.getElementById("wkAddTitle"); const title=ti.value.trim();
+  if(!title){ toast("업무 내용을 입력하세요."); ti.focus(); return; }
+  const color=document.getElementById("wkAddColor").value||"green";
+  const important=document.getElementById("wkAddImp").checked;
+  const wt=workToday();
+  state.tasks.push({id:newTkId("tk"), title, day:_wkAddDate||wt, done:false, important, color, author:currentUserName(), createdAt:wt, subs:[]});
+  closeWkAdd(); saveState(); afterTaskChange();
+}
 function openWkTask(id){ _wkOpenId=id; renderWkTaskBody(id); document.getElementById("wkTaskModal").classList.remove("hidden"); }
 function closeWkTask(){ _wkOpenId=null; document.getElementById("wkTaskModal").classList.add("hidden"); }
 function renderWkTaskBody(id){
