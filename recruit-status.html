@@ -790,7 +790,7 @@ window.YH_FIREBASE_CONFIG = {
     </section>
 
     <section id="tab-tasks" class="hidden">
-      <div class="page-head"><div><h1>기타 업무</h1><div class="sub">‘오늘/내일’로 빠르게 등록하거나, 날짜를 지정해 미래 업무를 미리 등록할 수 있습니다. 끝내지 못한 일은 다음 날 아침(08:30 기준) ‘오늘 할 일’로 자동 이월됩니다.</div></div></div>
+      <div class="page-head"><div><h1>기타 업무</h1><div class="sub">‘오늘/내일’로 빠르게 등록하거나, 날짜를 지정해 미래 업무를 미리 등록할 수 있습니다. 끝내지 못한 일은 다음 날 자정(00:00 기준) ‘오늘 할 일’로 자동 이월됩니다.</div></div></div>
       <div class="tk-add panel">
         <input id="taskTitle" class="tk-addtitle" placeholder="업무 내용 (예: OOO 사원 근로계약서 작성)" onkeydown="if(event.key==='Enter')addTask('today')">
         <label class="tk-imp" title="급한 업무는 빨간색으로 표시됩니다"><input type="checkbox" id="taskImp"> 중요</label>
@@ -1045,7 +1045,7 @@ const LS3="yh_recruit_state_v3", LS2="yh_recruit_state_v2", LS1="yh_recruit_stat
 
 /* ===== 유틸 ===== */
 function id(){ return "d"+Math.random().toString(36).slice(2,9); }
-function today(){ return new Date().toISOString().slice(0,10); }
+function today(){ const d=new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 function hexA(hex,a){ const n=hex.replace('#',''); return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`; }
@@ -1622,9 +1622,9 @@ function ivSessionRowHTML(s){ s=s||{};
   return `<div class="ivs-row"><div class="ivs-grid">
     <div class="ivs-f"><label>회차</label><select class="ivs-round">${IV_ROUNDS.map(r=>`<option ${s.round===r?'selected':''}>${r}</option>`).join("")}</select></div>
     <div class="ivs-f"><label>면접일</label><input class="ivs-date" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" value="${esc(s.date||'')}" oninput="this.value=maskDate(this.value)"></div>
-    <div class="ivs-f"><label>시작</label><input class="ivs-ts" type="text" inputmode="numeric" maxlength="5" placeholder="14:00" value="${esc(s.ts||'')}" oninput="this.value=maskTime(this.value)"></div>
-    <div class="ivs-f"><label>종료</label><input class="ivs-te" type="text" inputmode="numeric" maxlength="5" placeholder="15:30" value="${esc(s.te||'')}" oninput="this.value=maskTime(this.value)"></div>
-    <div class="ivs-f wide"><label>장소 <span style="font-weight:400">· 본사는 생략 가능</span></label><div style="display:flex;gap:6px"><select class="ivs-site" style="width:88px;flex:0 0 auto">${IV_SITES.map(v=>`<option ${(s.site||'본사')===v?'selected':''}>${v}</option>`).join("")}</select><input class="ivs-place" style="flex:1" value="${esc(s.place||'')}" placeholder="예: 3층 면접실 A"></div></div>
+    <div class="ivs-f"><label>시작</label><input class="ivs-ts" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="${esc(s.ts||'')}" oninput="this.value=maskTime(this.value)"></div>
+    <div class="ivs-f"><label>종료</label><input class="ivs-te" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="${esc(s.te||'')}" oninput="this.value=maskTime(this.value)"></div>
+    <div class="ivs-f wide"><label>장소 <span style="font-weight:400">· 본사는 생략 가능</span></label><div style="display:flex;gap:6px"><select class="ivs-site" style="width:88px;flex:0 0 auto">${IV_SITES.map(v=>`<option ${(s.site||'본사')===v?'selected':''}>${v}</option>`).join("")}</select><input class="ivs-place" style="flex:1" value="${esc(s.place||'')}" placeholder="예: 중회의실"></div></div>
     <div class="ivs-f wide"><label>참석 면접관 <span style="font-weight:400">· 여러 명 쉼표로</span></label><input class="ivs-panel" value="${esc(s.panel||'')}" placeholder="예: 영업1팀장, 인사팀장"></div>
     <div class="ivs-f wide"><label>배석자 <span style="font-weight:400">· 이 회차 배석</span></label><input class="ivs-obs" value="${esc(s.obs||'')}" placeholder="예: 인사팀 김주임"></div>
   </div><button type="button" class="ivs-del" title="삭제" onclick="this.closest('.ivs-row').remove()">×</button></div>`;
@@ -1889,12 +1889,8 @@ function closeCalEvent(){ document.getElementById("calEventModal").classList.add
 
 /* ===== 기타 업무 (할 일) ===== */
 function newTkId(p){ return (p||"tk")+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
-// 업무 기준일: 매일 아침 08:30에 새 '오늘'로 넘어감(그 전이면 전날이 아직 '오늘')
-function workToday(){
-  const now=new Date(); const d=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  if(now.getHours()<8 || (now.getHours()===8&&now.getMinutes()<30)) d.setDate(d.getDate()-1);
-  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
-}
+// 업무 기준일: 매일 자정(00:00)에 새 '오늘'로 넘어감(로컬 표준시 기준)
+function workToday(){ return today(); }
 function addDays(ymd,n){ const p=String(ymd).split("-"); const d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
 function dowK(ymd){ const p=String(ymd).split("-"); const d=new Date(+p[0],+p[1]-1,+p[2]); return "일월화수목금토"[d.getDay()]; }
 function shortD(ymd){ const p=String(ymd).split("-"); return (+p[1])+"/"+(+p[2])+"("+dowK(ymd)+")"; }
@@ -2009,7 +2005,7 @@ function renderTasks(){
   if(taskFilter==='done') html+=sec('완료된 업무','',don.slice().reverse(),'done','완료된 업무가 없습니다.');
   el.innerHTML=html;
 }
-// 08:30 경계 통과 시 자동 이월·갱신(앱을 계속 켜둔 경우)
+// 자정(00:00) 경계 통과 시 자동 이월·갱신(앱을 계속 켜둔 경우)
 let _tkWorkDay=workToday();
 setInterval(()=>{ const w=workToday(); if(w!==_tkWorkDay){ _tkWorkDay=w; if(typeof session!=='undefined'&&session&&session.role==="admin"){ carryOverTasks(); afterTaskChange(); } } },60000);
 
