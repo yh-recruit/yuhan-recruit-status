@@ -31,6 +31,11 @@
   .who{font-size:13px;color:var(--muted)}.who b{color:var(--ink)}
   .role-pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--yh-green-light);color:var(--yh-green-dark);}
   .role-pill.admin{background:#FBF1DD;color:#8a6a2c}
+  .sync-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+  .sync-badge .sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:0 0 auto}
+  .sync-badge.on{background:var(--yh-green-light);color:var(--yh-green-dark);border-color:var(--yh-green-light)}
+  .sync-badge.local{background:var(--bg);color:var(--muted)}
+  .sync-badge.err{background:#fbf0ef;color:var(--danger);border-color:#eccecc}
   .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text);padding:7px 13px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
   .btn-ghost.danger{border-color:#eccecc;color:var(--danger)}.btn-ghost.danger:hover{background:#fbf0ef}
   .btn-ghost:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
@@ -251,14 +256,6 @@
   .bulk-row input:focus,.bulk-row select:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
   .bulk-del{border:1px solid #eccecc;background:#fff;color:var(--danger);border-radius:8px;font-size:16px;height:34px;line-height:1}
   .bulk-del:hover{background:#fbf0ef}
-  .acct-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .apick{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:10px;padding:9px 11px 9px 34px;position:relative;cursor:pointer;background:#fff;transition:.12s}
-  .apick:hover{border-color:var(--yh-green-light);background:var(--yh-green-tint)}
-  .apick.on{border-color:var(--yh-green);background:var(--yh-green-light)}
-  .apick input{position:absolute;left:11px;top:12px;width:15px;height:15px;accent-color:var(--yh-green)}
-  .apick-main{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .apick-main .mono{font-size:11px;background:var(--bg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Menlo,Consolas,monospace}
-  .apick-sub{font-size:11px;color:var(--muted)}
   /* 등록 계정 transfer(검색+화살표) */
   .xfer{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .xfer-col{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:8px}
@@ -276,7 +273,6 @@
   .xfer-btn.rm:hover{background:var(--danger);color:#fff}
   .xfer-empty{font-size:12px;color:var(--muted);padding:14px 8px;text-align:center}
   @media(max-width:560px){ .xfer{grid-template-columns:1fr} }
-  @media(max-width:560px){.acct-pick{grid-template-columns:1fr}}
 
   .ivs-row{display:flex;gap:10px;align-items:stretch;background:#fbfdfb;border:1px solid var(--line);border-radius:11px;padding:11px;margin-bottom:9px}
   .ivs-grid{flex:1;display:grid;grid-template-columns:84px 1fr 96px 96px;gap:9px}
@@ -314,6 +310,10 @@
   .stat-bar .sf label{font-size:12px;font-weight:600;color:var(--text)}
   .stat-bar .sf input{padding:9px 11px;border:1px solid var(--line);border-radius:9px;width:150px}
   .stat-bar .sf input:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light);outline:none}
+  .stat-presets{display:flex;align-items:center;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .stat-presets .sp-l{font-size:12px;font-weight:600;color:var(--muted);margin-right:2px}
+  .sp-btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer}
+  .sp-btn:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light);color:var(--yh-green-dark)}
   .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
   .kpi{background:linear-gradient(135deg,var(--yh-green-dark),var(--yh-green));color:#fff;border-radius:16px;padding:20px;min-height:118px;display:flex;flex-direction:column;justify-content:center;box-shadow:var(--shadow)}
   .kpi .l{font-size:13px;opacity:.9}
@@ -337,6 +337,16 @@
   .funnel-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--yh-green),var(--yh-green-dark));min-width:3px}
   .funnel-row .fv{font-size:13px;font-weight:800;text-align:right;color:var(--ink)}
 
+  /* 면접 리마인드 밴드 */
+  .iv-alert{background:linear-gradient(180deg,#FBF6EA,#FBF1DD);border:1px solid #ECD9AE;border-radius:14px;padding:14px 16px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .iv-alert .iva-head{font-size:13px;font-weight:800;color:var(--yh-gold);margin-bottom:10px}
+  .iv-alert .iva-list{display:flex;gap:10px;flex-wrap:wrap}
+  .iv-alert-chip{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12.5px;color:var(--text)}
+  .iv-alert-chip b{color:var(--ink)}
+  .iv-alert-chip .iva-when{font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px;flex-shrink:0}
+  .iv-alert-chip.today .iva-when{background:var(--danger);color:#fff}
+  .iv-alert-chip.tomorrow .iva-when{background:var(--yh-green-light);color:var(--yh-green-dark)}
+  .iv-alert-chip .iva-d{color:var(--muted)}
   /* ===== 일정표(Gantt) ===== */
   .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px}
   .lg{font-size:12px;color:var(--text);display:flex;align-items:center;gap:6px}
@@ -475,6 +485,17 @@
   .chk-item.done .chk-label{color:var(--muted);text-decoration:line-through}
   .chk-item.next{border-color:var(--yh-gold);box-shadow:0 0 0 3px rgba(168,130,63,.2)}
   .chk-item.next .chk-box{border-color:var(--yh-gold);color:var(--yh-gold)}
+  .chk-at{font-size:10.5px;font-weight:700;color:var(--yh-green-dark);margin-top:3px}
+  .col-custom{font-size:10px;font-weight:800;color:var(--yh-gold);background:#FBF1DD;border-radius:5px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+  /* 체크리스트 편집 모달 */
+  .chke-col{margin-bottom:16px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--yh-green-tint)}
+  .chke-h{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink);margin-bottom:10px}
+  .chke-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+  .chke-row{display:flex;gap:8px;align-items:center}
+  .chke-in{flex:1;padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;outline:none}
+  .chke-in:focus{border-color:var(--yh-green);box-shadow:0 0 0 3px var(--yh-green-light)}
+  .chke-del{flex-shrink:0;width:30px;height:30px;border:1px solid #eccecc;background:#fff;color:var(--danger);border-radius:8px;font-size:16px;line-height:1;cursor:pointer}
+  .chke-del:hover{background:#fbf0ef}
   .rep-row{display:flex;justify-content:space-between;align-items:center;padding:13px 4px;border-bottom:1px solid var(--line);font-size:14px;color:var(--text)}
   .rep-row:last-child{border-bottom:none}
   .rep-row b{color:var(--yh-green-dark);font-size:18px}
@@ -631,7 +652,10 @@
   .dday .dd-k{font-weight:600;opacity:.85}
   .dday.soon{background:#fdf1f0;color:var(--danger)}
   .dday.today{background:#fff3d6;color:#9a6a16}
-  .dday.past{background:var(--bg);color:var(--muted)}
+  .dday.over{background:var(--danger);color:#fff;box-shadow:0 0 0 2px rgba(178,58,53,.18)}
+  .dday.over .dd-k{opacity:.9}
+  .dday .dd-warn{font-weight:800;letter-spacing:-.2px}
+  .dept-card.overdue{border-color:#e6b3b0;box-shadow:inset 3px 0 0 0 var(--danger),var(--shadow)}
   /* ===== 대시보드 검색/필터 툴바 ===== */
   .dash-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
   .dash-toolbar .ds-search{flex:1;min-width:200px;max-width:340px;padding:9px 13px;border:1px solid var(--line);border-radius:9px;font-size:13px;outline:none;background:#fff}
@@ -701,7 +725,7 @@ window.YH_FIREBASE_CONFIG = {
       <div class="field"><label for="inCode">접속 코드</label><input id="inCode" type="password" autocomplete="off" placeholder="접속 코드 입력" /></div>
       <button class="btn-primary" onclick="doLogin()">로그인</button>
       <div class="login-err" id="loginErr"></div>
-      <div class="login-hint">체험용 · 관리자 <code>admin / 0000</code> · 팀장(예) <code>sales1 / 0000</code></div>
+      <div class="login-hint">접속 계정은 인사팀(시스템 관리자)에게 문의해 주세요.</div>
     </div>
   </div>
 </section>
@@ -730,6 +754,7 @@ window.YH_FIREBASE_CONFIG = {
       <div class="dash-toolbar">
         <input id="deptSearchInput" class="ds-search" placeholder="🔍 부서명·채용형태 검색" oninput="deptSearch=this.value;renderDeptGrid()">
         <select id="deptTypeFilter" class="ds-sel" onchange="typeFilter=this.value;renderDeptGrid()"><option value="">전체 형태</option></select>
+        <select id="deptSortSel" class="ds-sel" onchange="setDeptSort(this.value)" title="카드 정렬"><option value="manual">정렬: 수동(드래그)</option><option value="dday">정렬: D-day 임박순</option><option value="progress">정렬: 진행률순</option><option value="name">정렬: 이름순</option></select>
         <button class="ds-clear" onclick="clearDeptFilters()">필터 초기화</button>
         <span id="deptCount" class="ds-cnt"></span>
       </div>
@@ -780,6 +805,7 @@ window.YH_FIREBASE_CONFIG = {
         <button class="btn-ghost" onclick="document.getElementById('statFrom').value='';document.getElementById('statTo').value='';computeStats()">전체기간</button>
         <div class="hint-inline" style="align-self:center">· 비워두면 전체 기간 / 기준일 = 공고진행 시작일</div>
       </div>
+      <div class="stat-presets"><span class="sp-l">빠른 기간</span><button class="sp-btn" onclick="statPreset('month')">이번 달</button><button class="sp-btn" onclick="statPreset('quarter')">이번 분기</button><button class="sp-btn" onclick="statPreset('year')">올해</button></div>
       <div id="statResult"></div>
     </section>
 
@@ -906,7 +932,7 @@ window.YH_FIREBASE_CONFIG = {
 <!-- BOARD -->
 <div id="boardModal" class="board-back hidden">
   <div class="board-bar"><div class="bt"><button class="x-btn" style="font-size:24px" onclick="closeBoard()">&larr;</button><span id="boardTitle"></span><span class="pill" id="boardStage"></span></div>
-    <div style="font-size:12px;color:var(--muted)">전형 워크플로우 · 조회용 (커스터마이징 추후)</div></div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="font-size:12px;color:var(--muted)">전형 워크플로우</span><button class="btn-ghost" style="padding:6px 12px" onclick="openChkEdit()">✎ 체크리스트 편집</button></div></div>
   <div class="board-scroll"><div class="board-cols" id="boardCols"></div></div>
 </div>
 
@@ -916,6 +942,18 @@ window.YH_FIREBASE_CONFIG = {
     <div class="modal-head"><h3 id="reportTitle">채용 성과 리포트</h3><button class="x-btn" onclick="closeReport()">&times;</button></div>
     <div class="modal-body"><div id="reportBody"></div></div>
     <div class="modal-foot"><button class="btn-primary" style="width:auto;padding:9px 20px;margin:0" onclick="closeReport()">닫기</button></div>
+  </div>
+</div>
+
+<!-- CHECKLIST EDIT MODAL -->
+<div id="chkEditModal" class="modal-back hidden" style="z-index:150">
+  <div class="modal" style="max-width:680px">
+    <div class="modal-head"><h3 id="chkEditTitle">체크리스트 편집</h3><button class="x-btn" onclick="closeChkEdit()">&times;</button></div>
+    <div class="modal-body">
+      <div class="help-note" style="margin-bottom:14px">이 부서 전용 체크 항목을 편집합니다. 저장하면 기본 템플릿 대신 이 목록이 적용됩니다. <b>항목을 지우거나 순서를 바꾸면 해당 컬럼의 완료 표시·완료일이 초기화</b>될 수 있으니 유의하세요.</div>
+      <div id="chkEditBody"></div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" style="margin-right:auto" onclick="resetChkEdit()">기본값으로 초기화</button><button class="btn-ghost" onclick="closeChkEdit()">취소</button><button class="btn-primary" style="width:auto;padding:10px 22px;margin:0" onclick="saveChkEdit()">저장</button></div>
   </div>
 </div>
 
@@ -1013,7 +1051,6 @@ const STAGE_COLORS = {"공고준비":"#9AA8A0","공고진행":"#3E8ED0","서류�
 const STAGE_SCHED = {"공고준비":{s:false,e:false},"공고진행":{s:true,e:true},"서류전형":{s:true,e:true},"AI역량검사":{s:true,e:true},"면접전형":{s:true,e:true},"입사":{s:true,e:false}};
 const IV_ROUNDS = ["통합","1차","2차","3차"];
 const IV_SITES = ["본사","연구소","공장"]; // 면접 장소 구분 (본사=기본, 표기 생략)
-const STAGE_DETAIL = {"면접전형":true}; // 장소/면접관/배석자 입력 단계
 const EMP_TYPES = ["인턴","경력","계약직(일반)","계약직(대체)","계약직(보훈)","계약직(장애)"];
 // 업무 색상 구분(업무 종류). important(중요)는 색상과 무관하게 빨강 강조.
 const TASK_COLORS = [
@@ -1034,13 +1071,23 @@ const HOLIDAYS = {
   "2026-05-05":"어린이날","2026-05-24":"부처님오신날","2026-05-25":"대체공휴일",
   "2026-06-06":"현충일",
   "2026-08-15":"광복절","2026-08-17":"대체공휴일",
-  "2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴","2026-09-28":"대체공휴일",
+  "2026-09-24":"추석 연휴","2026-09-25":"추석","2026-09-26":"추석 연휴",
   "2026-10-03":"개천절","2026-10-05":"대체공휴일","2026-10-09":"한글날",
   "2026-12-25":"성탄절",
-  "2027-01-01":"신정"
+  // 2027년 — 양력 고정 공휴일만 반영(설·추석·부처님오신날 등 음력·대체공휴일은 확정 후 추가). 요일 무관 그날 자체가 공휴일
+  "2027-01-01":"신정","2027-03-01":"삼일절","2027-05-05":"어린이날","2027-06-06":"현충일",
+  "2027-08-15":"광복절","2027-10-03":"개천절","2027-10-09":"한글날","2027-12-25":"성탄절"
 };
 function holidayName(ds){ return HOLIDAYS[ds]||null; }
+// 공휴일 데이터 연도 커버리지 점검 — 부족 시 콘솔 경고(연말 갱신 리마인드)
+(function holidayCoverageWarn(){ try{ const y=new Date().getFullYear();
+  const has=y=>Object.keys(HOLIDAYS).some(k=>k.indexOf(y+"-")===0);
+  if(!has(y)) console.warn(`[공휴일] ${y}년 공휴일 데이터가 없습니다. HOLIDAYS 갱신 필요.`);
+  else if(!has(y+1)) console.warn(`[공휴일] ${y+1}년 공휴일 데이터가 부족합니다. 연말 전 HOLIDAYS(설·추석·부처님오신날·대체공휴일 포함) 갱신 권장.`);
+}catch(e){} })();
 const ADMIN = { user:"admin", code:"0000" };
+// 계정 아이디 허용 문자(영문·숫자·._-) — 인라인 이벤트 핸들러 인자 인젝션(T-07) 차단용
+const USER_RE = /^[A-Za-z0-9._-]{2,40}$/;
 const LS3="yh_recruit_state_v3", LS2="yh_recruit_state_v2", LS1="yh_recruit_state_v1";
 
 /* ===== 유틸 ===== */
@@ -1051,8 +1098,15 @@ function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&
 function hexA(hex,a){ const n=hex.replace('#',''); return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`; }
 function emptySchedule(){ const o={}; STAGES.forEach(s=>o[s]={s:"",e:"",place:"",panel:"",observers:"",timeStart:"",timeEnd:"",sessions:[]}); return o; }
 function maskDate(v){ const d=String(v).replace(/\D/g,"").slice(0,8); let o=d.slice(0,4); if(d.length>4)o+="-"+d.slice(4,6); if(d.length>6)o+="-"+d.slice(6,8); return o; }
-// 숫자만 입력해도 HH:MM 형식으로 자동 변환 (예: 1000 → 10:00, 930 → 9:30)
-function maskTime(v){ let d=String(v).replace(/\D/g,"").slice(0,4); if(d.length<=2) return d; return d.slice(0,d.length-2)+":"+d.slice(d.length-2); }
+// 숫자만 입력해도 HH:MM 형식으로 자동 변환 (예: 1000 → 10:00, 930 → 09:30) — 시(hour)는 2자리 zero-pad
+function maskTime(v){ let d=String(v).replace(/\D/g,"").slice(0,4); if(d.length<=2) return d; let mm=d.slice(d.length-2), hh=d.slice(0,d.length-2); if(hh.length<2) hh="0"+hh; return hh+":"+mm; }
+// "9:30" 등 시가 1자리인 구버전 시간값을 "09:30"으로 보정(마이그레이션용)
+function padTime(t){ const m=String(t||"").match(/^(\d{1,2}):(\d{2})$/); return m?(m[1].padStart(2,"0")+":"+m[2]):(t||""); }
+// 시간 문자열("HH:MM")을 분 단위 정수로 변환(정렬용). 형식 오류·공란은 -1
+function tmin(t){ const m=String(t||"").match(/(\d{1,2}):(\d{2})/); return m?(+m[1])*60+(+m[2]):-1; }
+// 저장 전 날짜/시간 유효성 검증(공란 허용)
+function validDate(s){ if(!s) return true; const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(!m) return false; const y=+m[1],mo=+m[2],da=+m[3]; if(mo<1||mo>12||da<1||da>31) return false; const dt=new Date(y,mo-1,da); return dt.getFullYear()===y&&dt.getMonth()===mo-1&&dt.getDate()===da; }
+function validTime(s){ if(!s) return true; const m=String(s).match(/^(\d{1,2}):(\d{2})$/); if(!m) return false; return +m[1]<24 && +m[2]<60; }
 function di(i,field,val){ return `<input class="datein" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" id="sch_${i}_${field}" value="${val||''}" oninput="this.value=maskDate(this.value)">`; }
 function dnum(s){ if(!s) return null; const t=Date.parse(s+"T00:00:00Z"); return isNaN(t)?null:Math.floor(t/86400000); }
 
@@ -1122,6 +1176,8 @@ function normalize(st){
     iv.sessions.forEach(s=>{ if(s.obs==null) s.obs="";
       // 면접 장소 구분(본사/연구소/공장): 구버전엔 site 없음 → place 텍스트에서 추정, 기본 본사
       if(s.site==null){ const p=String(s.place||""); s.site=p.includes("연구소")?"연구소":(p.includes("공장")?"공장":"본사"); }
+      // 구버전 "9:30" 형태 시간값을 "09:30"으로 보정(사전순 정렬 오류 방지)
+      s.ts=padTime(s.ts); s.te=padTime(s.te);
     });
     if(iv.observers && iv.sessions.length){ iv.sessions.forEach(s=>{ if(!s.obs) s.obs=iv.observers; }); iv.observers=""; }
     d.schedule=ns;
@@ -1138,6 +1194,9 @@ function normalize(st){
     if(!d.type) d.type="경력"; if(d.reqCount==null) d.reqCount=1; if(d.ftTO==null) d.ftTO=0; if(typeof d.headhunt!=="boolean") d.headhunt=false;
     if(!d.counts) d.counts={applicants:0,doc:0,ai:0,hired:0};
     if(!d.checklist || typeof d.checklist!=="object") d.checklist={};
+    if(!d.checklistAt || typeof d.checklistAt!=="object") d.checklistAt={};   // 체크 항목별 완료일(YYYY-MM-DD) 기록
+    // 커스텀 체크리스트 항목(부서별). 미지정이면 기본 템플릿 사용. {colId:[label,...]}만 저장
+    if(d.checklistItems!=null && typeof d.checklistItems!=="object") delete d.checklistItems;
     if(typeof d.completed!=="boolean") d.completed=false;
     if(d.completedAt==null) d.completedAt="";
   });
@@ -1155,26 +1214,59 @@ let state=(function(){
 })();
 if(!state || !state.departments) state=seed();
 state=normalize(state);
+try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){}  // 정규화 결과 초기 반영(클라우드는 준비 후)
 
 /* ===== 클라우드(Firebase) 실시간 동기화 =====
-   전체 state를 JSON 문자열로 한 문서(app/state)에 저장 → 누가 바꾸면 onSnapshot으로 모두에게 반영.
+   문서(app/state)를 필드로 분해 저장: { depts:{[id]:json}, accounts:json, tasks:json, order:[id], updatedAt }.
+   저장 시 '건드린 부서 키만' 부분 업데이트(update 필드 경로)하여 남의 부서를 통째로 덮어쓰지 않음(T-02 완화).
+   구버전 단일 문자열 문서({s:...})도 읽어들일 수 있게 하위호환 유지.
    설정값이 비어 있으면 cloud.enabled=false 로 두고 기존 localStorage 모드 그대로 동작. */
-let cloud={ enabled:false, db:null, ref:null, ready:false, pending:false, applying:false };
-function saveState(){ try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){} cloudSave(); }
-saveState();
+let cloud={ enabled:false, db:null, ref:null, ready:false, pending:false, applying:false, err:false, lastSaved:0 };
+/* saveState(dirty): dirty 미지정=전체 저장(set). dirty 지정 시 해당 축만 부분 업데이트(update).
+   dirty 형태: {deptId?, removeDept?, accounts?, tasks?, onlyOrder?} — 모호하면 인자 없이 호출(전체). */
+function saveState(dirty){ try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){} cloudSave(dirty); }
 function cloudConfigured(){ const c=window.YH_FIREBASE_CONFIG||{}; return !!(c.apiKey && c.projectId); }
 function anyModalOpen(){ return !!document.querySelector('.modal-back:not(.hidden), .board-back:not(.hidden)'); }
-function cloudSave(){
+function cloudErr(e){ console.warn("cloud save error",e); cloud.err=true; updateSyncStatus(); try{ toast("클라우드 저장 실패 — 변경이 다른 사용자에게 반영되지 않았을 수 있습니다."); }catch(_){} }
+function cloudOk(){ cloud.err=false; cloud.lastSaved=Date.now(); updateSyncStatus(); }
+function cloudSaveFull(){
+  if(!cloud.ref) return;
+  const depts={}; (state.departments||[]).forEach(d=>{ depts[d.id]=JSON.stringify(d); });
+  const payload={ depts, accounts:JSON.stringify(state.accounts||[]), tasks:JSON.stringify(state.tasks||[]), order:(state.departments||[]).map(d=>d.id), updatedAt:Date.now() };
+  try{ cloud.ref.set(payload).then(cloudOk).catch(cloudErr); }catch(e){ cloudErr(e); }
+}
+function cloudSave(dirty){
   if(!cloud.enabled || cloud.applying || !cloud.ref) return;
-  try{ cloud.ref.set({ s: JSON.stringify(state), updatedAt: Date.now() }); }catch(e){}
+  if(!dirty){ cloudSaveFull(); return; }
+  try{
+    const upd={ updatedAt:Date.now(), order:(state.departments||[]).map(d=>d.id) };
+    if(dirty.deptId){ const d=getDept(dirty.deptId); if(d) upd["depts."+dirty.deptId]=JSON.stringify(d); }
+    if(dirty.removeDept && firebase.firestore && firebase.firestore.FieldValue) upd["depts."+dirty.removeDept]=firebase.firestore.FieldValue.delete();
+    if(dirty.accounts) upd.accounts=JSON.stringify(state.accounts||[]);
+    if(dirty.tasks) upd.tasks=JSON.stringify(state.tasks||[]);
+    cloud.ref.update(upd).then(cloudOk).catch(err=>{ /* 문서가 구버전(필드 없음)이면 전체 저장으로 폴백 */ cloudSaveFull(); });
+  }catch(e){ cloudErr(e); }
+}
+function cloudAssemble(data){
+  const map=data.depts||{}; const order=Array.isArray(data.order)?data.order:[]; const depts=[]; const seen={};
+  order.forEach(idv=>{ if(map[idv]!=null){ try{ depts.push(JSON.parse(map[idv])); seen[idv]=1; }catch(e){} } });
+  Object.keys(map).forEach(idv=>{ if(!seen[idv]){ try{ depts.push(JSON.parse(map[idv])); }catch(e){} } });
+  let accounts=[],tasks=[]; try{ accounts=data.accounts?JSON.parse(data.accounts):[]; }catch(e){} try{ tasks=data.tasks?JSON.parse(data.tasks):[]; }catch(e){}
+  return { departments:depts, accounts, tasks };
 }
 function cloudApplySnapshot(snap){
   if(snap.metadata && snap.metadata.hasPendingWrites) return;   // 내 변경 echo는 무시
-  if(!snap.exists){ cloud.ready=true; cloudSave(); return; }      // 최초: 현재 데이터를 업로드(시드)
-  const data=snap.data(); if(!data || !data.s){ cloud.ready=true; return; }
-  let incoming; try{ incoming=JSON.parse(data.s); }catch(e){ return; }
+  if(!snap.exists){ cloud.ready=true; cloudSaveFull(); return; } // 최초: 현재 데이터를 업로드(시드)
+  const data=snap.data(); if(!data){ cloud.ready=true; return; }
+  let incoming=null, legacyDoc=false;
+  // 구/혼합 문서(s 필드 존재)는 전체 상태가 s에 있으므로 반드시 s로 복원(부분 depts만 읽으면 나머지 부서 유실 위험) → 이후 새 스키마로 마이그레이션
+  if(data.s){ try{ incoming=JSON.parse(data.s); legacyDoc=true; }catch(e){ console.warn("cloud parse fail — 무시"); return; } }
+  else if(data.depts && typeof data.depts==='object'){ incoming=cloudAssemble(data); }
+  // T-04 가드: departments 배열이 없는 오염 문서는 반영하지 않음(전 사용자 렌더 중단·정상본 오염 방지)
+  if(!incoming || !Array.isArray(incoming.departments)){ console.warn("cloud snapshot invalid — 무시됨"); try{ toast("동기화 데이터 형식 오류 — 무시했습니다."); }catch(_){} return; }
   cloud.applying=true; state=normalize(incoming); cloud.applying=false; cloud.ready=true;
   try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){}
+  if(legacyDoc){ cloudSaveFull(); }   // 구 문서를 새 스키마(필드 분해)로 1회 전환(set → s 필드 제거)
   if(anyModalOpen()){ cloud.pending=true; return; }              // 편집 중이면 닫힌 뒤 반영
   rerenderCurrent();
 }
@@ -1186,9 +1278,18 @@ function cloudInit(){
     cloud.db=firebase.firestore();
     cloud.ref=cloud.db.collection("app").doc("state");
     firebase.auth().signInAnonymously()
-      .then(()=>{ cloud.enabled=true; cloud.ref.onSnapshot(cloudApplySnapshot, err=>console.warn("cloud sync error",err)); })
-      .catch(e=>{ console.warn("Firebase 익명 로그인 실패 — localStorage 모드로 동작합니다.", e); });
+      .then(()=>{ cloud.enabled=true; updateSyncStatus(); cloud.ref.onSnapshot(cloudApplySnapshot, err=>{ console.warn("cloud sync error",err); cloud.err=true; updateSyncStatus(); }); })
+      .catch(e=>{ console.warn("Firebase 익명 로그인 실패 — localStorage 모드로 동작합니다.", e); updateSyncStatus(); });
   }catch(e){ console.warn("cloudInit 실패 — localStorage 모드로 동작합니다.", e); }
+}
+/* 상단바 동기화 상태 표시(T-08): 실시간 공유 / 이 브라우저 저장 / 동기화 오류 */
+function updateSyncStatus(){
+  const el=document.getElementById("syncStatus"); if(!el) return;
+  let cls,txt,tip;
+  if(cloud.err){ cls="err"; txt="동기화 오류"; tip="클라우드 저장에 실패했습니다. 네트워크 확인 후 다시 시도하세요."; }
+  else if(cloud.enabled){ cls="on"; txt="실시간 공유"; tip=cloud.lastSaved?("최근 저장 "+new Date(cloud.lastSaved).toLocaleTimeString()):"클라우드에 연결되었습니다."; }
+  else { cls="local"; txt="이 브라우저 저장"; tip="클라우드 미연결 — 이 브라우저(localStorage)에만 저장됩니다."; }
+  el.className="sync-badge "+cls; el.title=tip; el.innerHTML=`<span class="sync-dot"></span>${txt}`;
 }
 function rerenderCurrent(){
   if(typeof session==='undefined' || !session) return;
@@ -1217,19 +1318,26 @@ let session=null;
 function getDept(i){ return state.departments.find(x=>x.id===i); }
 function getAccount(u){ return (state.accounts||[]).find(a=>a.user===u); }
 function deptsForUser(u){ return state.departments.filter(d=>(d.accountUsers||[]).includes(u)); }
-function allUsers(exceptUser){ const s=new Set(); (state.accounts||[]).forEach(a=>{ if(a.user!==exceptUser) s.add(a.user); }); return s; }
 
 /* ===== 인증 ===== */
 function doLogin(){
   const u=document.getElementById("inUser").value.trim(), c=document.getElementById("inCode").value.trim();
   const err=document.getElementById("loginErr"); err.textContent="";
   if(!u||!c){ err.textContent="아이디와 접속 코드를 입력하세요."; return; }
-  if(u===ADMIN.user && c===ADMIN.code){ session={role:"admin"}; enterApp(); return; }
+  if(u===ADMIN.user && c===ADMIN.code){ session={role:"admin"}; persistSession(); enterApp(); return; }
   const acc=(state.accounts||[]).find(a=>a.user===u && a.code===c);
-  if(acc){ session=(acc.role==="admin")?{role:"admin",user:u}:{role:"team",user:u}; enterApp(); return; }
+  if(acc){ session=(acc.role==="admin")?{role:"admin",user:u}:{role:"team",user:u}; persistSession(); enterApp(); return; }
   err.textContent="아이디 또는 접속 코드가 올바르지 않습니다.";
 }
-function logout(){ session=null; document.getElementById("inUser").value=""; document.getElementById("inCode").value=""; document.getElementById("loginErr").textContent="";
+/* 세션 유지(T-16): 새로고침·탭 복원 시 재로그인 없이 화면 복원. sessionStorage(탭 종료 시 소멸) */
+function persistSession(){ try{ if(session) sessionStorage.setItem("yh_session", JSON.stringify(session)); else sessionStorage.removeItem("yh_session"); }catch(e){} }
+function restoreSession(){
+  try{ const raw=sessionStorage.getItem("yh_session"); if(!raw) return; const sv=JSON.parse(raw); if(!sv||!sv.role) return;
+    if(sv.role==="admin"){ if(sv.user && sv.user!==ADMIN.user && !getAccount(sv.user)) return; session=sv; enterApp(); }
+    else { if(!getAccount(sv.user)) return; session=sv; enterApp(); }
+  }catch(e){}
+}
+function logout(){ session=null; persistSession(); document.getElementById("inUser").value=""; document.getElementById("inCode").value=""; document.getElementById("loginErr").textContent="";
   document.getElementById("loginView").classList.remove("hidden"); document.getElementById("adminView").classList.add("hidden"); document.getElementById("teamView").classList.add("hidden"); document.getElementById("topRight").innerHTML=""; }
 function enterApp(){
   document.getElementById("loginView").classList.add("hidden");
@@ -1237,13 +1345,13 @@ function enterApp(){
     document.getElementById("adminView").classList.remove("hidden"); document.getElementById("teamView").classList.add("hidden");
     const aacc=session.user?getAccount(session.user):null;
     const whoHTML=aacc?`<b>${esc(aacc.name||aacc.user)}</b>${aacc.title?(" · "+esc(aacc.title)):""} 님`:`<b>관리자</b>님`;
-    document.getElementById("topRight").innerHTML=`<span class="who">${whoHTML}</span><span class="role-pill admin">관리자 · 다중접속</span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
-    renderAll(); switchTab("dash");
+    document.getElementById("topRight").innerHTML=`<span class="who">${whoHTML}</span><span class="role-pill admin">관리자 · 다중접속</span><span id="syncStatus" class="sync-badge local"></span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
+    updateSyncStatus(); renderAll(); switchTab("dash");
   }else{
     const acc=getAccount(session.user)||{};
     document.getElementById("teamView").classList.remove("hidden"); document.getElementById("adminView").classList.add("hidden");
-    document.getElementById("topRight").innerHTML=`<span class="who"><b>${esc(acc.name||acc.user||"")}</b>${acc.title?(" · "+esc(acc.title)):""}</span><span class="role-pill">조회 전용</span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
-    renderTeamHome();
+    document.getElementById("topRight").innerHTML=`<span class="who"><b>${esc(acc.name||acc.user||"")}</b>${acc.title?(" · "+esc(acc.title)):""}</span><span class="role-pill">조회 전용</span><span id="syncStatus" class="sync-badge local"></span><button class="btn-ghost" onclick="logout()">로그아웃</button>`;
+    updateSyncStatus(); renderTeamHome();
   }
 }
 
@@ -1261,7 +1369,8 @@ function switchTab(t){
 }
 
 /* ===== 대시보드 ===== */
-let stageFilter=null, deptSearch="", typeFilter="";
+let stageFilter=null, deptSearch="", typeFilter="", deptSort="manual";
+function setDeptSort(v){ deptSort=v; renderDeptGrid(); }
 function activeDepts(){ return state.departments.filter(d=>!d.completed); }
 function completedDepts(){ return state.departments.filter(d=>d.completed); }
 function renderAll(){ renderSummary(); renderStatusBoard(); renderDeptGrid(); renderCompleted(); renderManage(); }
@@ -1316,9 +1425,10 @@ function cardDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-
 function cardDrop(e){ if(!dragDeptId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.deptid; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after"); if(tgt&&dragDeptId!==tgt){ moveDept(dragDeptId,tgt,before); const dragged=dragDeptId; dragDeptId=null; if(session&&session.role==="team") renderTeamHome(); else { renderStatusBoard(); renderDeptGrid(); } } }
 function cardDragEnd(){ document.querySelectorAll(".dragging,.drop-before,.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragDeptId=null; }
 function moveDept(dragId,targetId,before){
+  if(!session || session.role!=="admin") return;   // 조회 전용(일반) 계정은 순서 변경 불가(T-05)
   const arr=state.departments; const di=arr.findIndex(d=>d.id===dragId); if(di<0) return;
   const [m]=arr.splice(di,1); let ti=arr.findIndex(d=>d.id===targetId); if(ti<0){ arr.splice(di,0,m); return; }
-  if(!before) ti++; arr.splice(ti,0,m); saveState();
+  if(!before) ti++; arr.splice(ti,0,m); saveState({onlyOrder:true});
 }
 const dragAttrs='ondragover="cardDragOver(event)" ondragleave="cardDragLeave(event)" ondrop="cardDrop(event)" ondragend="cardDragEnd(event)"';
 const gripHTML='<div class="drag-bar" draggable="true" ondragstart="cardDragStart(event)" onclick="event.stopPropagation()" title="드래그하여 순서 변경"><span class="db-t">⠿ 순서 변경 ⠿</span></div>';
@@ -1372,8 +1482,10 @@ function deptDday(d){
 }
 function ddayMetaHTML(d){
   const dd=deptDday(d); if(!dd) return "";
-  let cls=""; if(dd.n<0) cls="past"; else if(dd.n===0) cls="today"; else if(dd.n<=3) cls="soon";
-  return `<span class="dday ${cls}" title="${esc(dd.date)}"><span class="dd-k">${esc(dd.label)}</span>${ddayLabel(dd.n)}</span>`;
+  let cls=""; if(dd.n<0) cls="over"; else if(dd.n===0) cls="today"; else if(dd.n<=3) cls="soon";
+  // 마감 경과(D+)는 '지연' 경고로 강조
+  const pre = dd.n<0 ? `<span class="dd-warn">⚠ 지연</span>` : "";
+  return `<span class="dday ${cls}" title="${esc(dd.date)}">${pre}<span class="dd-k">${esc(dd.label)}</span>${ddayLabel(dd.n)}</span>`;
 }
 function currentUserName(){
   if(!session) return "";
@@ -1384,7 +1496,14 @@ function initDashToolbar(){
   const sel=document.getElementById("deptTypeFilter");
   if(sel && sel.options.length<=1){ sel.innerHTML='<option value="">전체 형태</option>'+EMP_TYPES.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join(""); }
 }
-function clearDeptFilters(){ deptSearch=""; typeFilter=""; stageFilter=null; const si=document.getElementById("deptSearchInput"); if(si) si.value=""; renderSummary(); renderDeptGrid(); }
+function clearDeptFilters(){ deptSearch=""; typeFilter=""; stageFilter=null; deptSort="manual"; const si=document.getElementById("deptSearchInput"); if(si) si.value=""; renderSummary(); renderDeptGrid(); }
+// 카드 정렬(항목 2). 'manual'=드래그 순서 유지, 그 외는 표시용 정렬
+function sortDeptList(list){
+  if(deptSort==='dday'){ return list.slice().sort((a,b)=>{ const da=deptDday(a),db=deptDday(b); const na=da?da.n:Infinity, nb=db?db.n:Infinity; return na-nb; }); }
+  if(deptSort==='progress'){ return list.slice().sort((a,b)=>deptProgress(b).pct-deptProgress(a).pct); }
+  if(deptSort==='name'){ return list.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))); }
+  return list;
+}
 function renderDeptGrid(){
   initDashToolbar();
   let list=activeDepts();
@@ -1392,12 +1511,15 @@ function renderDeptGrid(){
   if(typeFilter) list=list.filter(d=>d.type===typeFilter);
   const q=deptSearch.trim().toLowerCase();
   if(q) list=list.filter(d=>(d.name||'').toLowerCase().includes(q)||(d.type||'').toLowerCase().includes(q));
+  list=sortDeptList(list);
   const ts=document.getElementById("deptTypeFilter"); if(ts) ts.value=typeFilter;
+  const ss=document.getElementById("deptSortSel"); if(ss) ss.value=deptSort;
   const cnt=document.getElementById("deptCount"); if(cnt) cnt.textContent=`${list.length}개 전형`;
   const el=document.getElementById("deptGrid");
   if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">${(q||typeFilter||stageFilter)?'조건에 맞는 전형이 없습니다.':'표시할 전형이 없습니다.'}</div>`; return; }
-  el.innerHTML=list.map(d=>`
-    <div class="dept-card" data-deptid="${d.id}" ${dragAttrs}>${gripHTML}
+  const manual=deptSort==='manual';
+  el.innerHTML=list.map(d=>{ const dd=deptDday(d); const overdue=dd&&dd.n<0; return `
+    <div class="dept-card ${overdue?'overdue':''}" data-deptid="${d.id}" ${manual?dragAttrs:''}>${manual?gripHTML:''}
       <div class="dc-clickable" onclick="openBoard('${d.id}')">
         <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
           <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
@@ -1415,15 +1537,22 @@ function renderDeptGrid(){
         <button class="mini ok" style="margin-left:auto" onclick="completeDept('${d.id}')">완료</button>
         <button class="mini del" onclick="deleteDept('${d.id}')">삭제</button>
       </div>
-    </div>`).join("");
+    </div>`; }).join("");
 }
-function quickStage(i,stage){ const d=getDept(i); d.stage=stage; autoCheckPriorColumns(d); d.updated=today(); saveState(); renderAll(); toast(`${d.name} → ${stage} 단계로 변경됨`); }
+function quickStage(i,stage){ const d=getDept(i); if(!d) return;
+  const back=STAGES.indexOf(stage)<STAGES.indexOf(d.stage);
+  if(back){ // T-11: 이전 단계로 되돌리면 이후 컬럼 체크가 실제와 어긋남 → 해제 여부 확인
+    if(!confirm(`'${d.name}'을(를) 이전 단계(${stage})로 되돌립니다.\n이후 단계의 체크리스트 완료 표시가 해제됩니다. 계속할까요?`)){ renderAll(); return; }
+    d.checklist=d.checklist||{}; const ci=colIndexForStage(stage);
+    boardColumns(d).forEach((col,idx)=>{ if(idx>=ci) col.items.forEach((_,k)=>{ delete d.checklist[col.id+":"+k]; }); });
+  }
+  d.stage=stage; autoCheckPriorColumns(d); d.updated=today(); saveState({deptId:d.id}); renderAll(); toast(`${d.name} → ${stage} 단계로 변경됨`); }
 function completeDept(i){ const d=getDept(i); if(!d) return;
   if(!confirm(`'${d.name}' 전형을 정말 완료하시겠습니까?\n모든 체크리스트가 완료로 반영되고 ‘입사’ 단계로 전환된 뒤 ‘완료된 전형’으로 이동합니다.`)) return;
   d.checklist=d.checklist||{};
-  boardColumns(d).forEach(col=>col.items.forEach((_,idx)=>{ d.checklist[col.id+":"+idx]=true; }));
+  boardColumns(d).forEach(col=>col.items.forEach((_,idx)=>{ markCheck(d,col.id+":"+idx,true); }));
   d.stage="입사"; d.completed=true; d.completedAt=today(); d.updated=today();
-  saveState(); renderAll(); toast(`'${d.name}' 전형을 완료 처리했습니다.`);
+  saveState({deptId:d.id}); renderAll(); toast(`'${d.name}' 전형을 완료 처리했습니다.`);
 }
 
 /* ===== 완료된 전형 ===== */
@@ -1452,7 +1581,7 @@ function renderCompleted(){
 }
 function reopenDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 다시 진행 상태로 되돌릴까요?`)) return;
   d.completed=false; d.completedAt=""; const cols=boardColumns(d); const dc=cols.find(x=>x.id==="done"); if(dc&&d.checklist) d.checklist["done:"+(dc.items.length-1)]=false;
-  d.updated=today(); saveState(); renderAll(); toast("전형을 재개했습니다. ‘전형 현황’에서 확인하세요."); }
+  d.updated=today(); saveState({deptId:d.id}); renderAll(); toast("전형을 재개했습니다. ‘전형 현황’에서 확인하세요."); }
 
 let mgSearch="", mgPage=1, mgPageSize=20;
 function gotoMgPage(p){ mgPage=p; renderManage(); }
@@ -1480,7 +1609,7 @@ function renderManage(){
       pg.innerHTML=`<div class="pager">${btn(mgPage-1,'‹',mgPage<=1)}<span class="pg-info">${mgPage} / ${pages} 페이지</span>${btn(mgPage+1,'›',mgPage>=pages)}</div>`; } else pg.innerHTML=""; }
   const sa=document.getElementById("acctSelAll"); if(sa) sa.checked=false;
 }
-function deleteDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 정말 삭제하시겠습니까?\n등록된 계정은 ‘계정 관리’에 그대로 유지됩니다.`)) return; state.departments=state.departments.filter(x=>x.id!==i); saveState(); closeDeptModal(); renderAll(); toast("전형이 삭제되었습니다."); }
+function deleteDept(i){ const d=getDept(i); if(!d) return; if(!confirm(`'${d.name}' 전형을 정말 삭제하시겠습니까?\n등록된 계정은 ‘계정 관리’에 그대로 유지됩니다.`)) return; state.departments=state.departments.filter(x=>x.id!==i); saveState({removeDept:i}); closeDeptModal(); renderAll(); toast("전형이 삭제되었습니다."); }
 
 /* ===== 계정 관리 (전역 계정) ===== */
 let editingAcctIdx=null;
@@ -1506,6 +1635,7 @@ function saveAcct(){
   const dept=document.getElementById("a_dept").value.trim();
   const role=document.getElementById("a_role").value||"normal";
   if(!user){ toast("아이디를 입력하세요."); return; }
+  if(!USER_RE.test(user)){ toast("아이디는 영문·숫자·._-(2~40자)만 사용할 수 있습니다."); return; }  // T-07 인젝션 방어
   if(user===ADMIN.user){ toast("관리자 아이디(admin)는 사용할 수 없습니다."); return; }
   const dup=(state.accounts||[]).some((a,i)=>a.user===user && i!==editingAcctIdx);
   if(dup){ toast("이미 사용 중인 아이디입니다: "+user); return; }
@@ -1561,6 +1691,8 @@ function renderAcctBulkPreview(){
 }
 function saveAcctBulk(){
   const rows=collectAcctBulkRows(); if(!rows.length){ toast("아이디를 1개 이상 입력하세요."); return; }
+  const invalid=rows.filter(r=>!USER_RE.test(r.user));  // T-07: 부적합 아이디는 생성 차단
+  if(invalid.length){ toast(`아이디 형식 오류(영문·숫자·._- 만): ${invalid.slice(0,3).map(r=>r.user).join(", ")}`); return; }
   const existing=new Set([ADMIN.user]); (state.accounts||[]).forEach(a=>existing.add(a.user));
   let cnt=0;
   rows.forEach(r=>{ if(existing.has(r.user)) return; state.accounts.push({user:r.user,code:"0000",name:r.name,title:r.title,dept:r.dept,role:"normal",createdAt:today()}); existing.add(r.user); cnt++; });
@@ -1662,32 +1794,47 @@ function saveDept(){
   if(!name){ toast("부서명을 입력하세요."); return; }
   const accountUsers=pickUsers.slice();
   const schedule=emptySchedule();
+  const badDates=[];
   STAGES.forEach((s,i)=>{ const se=document.getElementById(`sch_${i}_s`), ee=document.getElementById(`sch_${i}_e`);
-    schedule[s]={ s:se?se.value:"", e:ee?ee.value:"", place:"", panel:"", observers:"", timeStart:"", timeEnd:"", sessions:[] }; });
-  const ivSessions=[];
-  document.querySelectorAll("#iv_sessions .ivs-row").forEach(r=>{
+    const sv=se?se.value:"", ev=ee?ee.value:"";
+    if(!validDate(sv)) badDates.push(`${s} 시작일`); if(!validDate(ev)) badDates.push(`${s} 마감일`);
+    schedule[s]={ s:sv, e:ev, place:"", panel:"", observers:"", timeStart:"", timeEnd:"", sessions:[] }; });
+  const ivSessions=[]; const badIv=[];
+  document.querySelectorAll("#iv_sessions .ivs-row").forEach((r,ri)=>{
     const date=r.querySelector(".ivs-date").value.trim(); const round=r.querySelector(".ivs-round").value;
     const ts=r.querySelector(".ivs-ts").value, te=r.querySelector(".ivs-te").value;
     const place=r.querySelector(".ivs-place").value.trim(), panel=r.querySelector(".ivs-panel").value.trim();
     const siteEl=r.querySelector(".ivs-site"); const site=siteEl?siteEl.value:"본사";
     const obsEl=r.querySelector(".ivs-obs"); const obs=obsEl?obsEl.value.trim():"";
+    if(!validDate(date)) badIv.push(`${ri+1}번 세션 면접일`); if(!validTime(ts)) badIv.push(`${ri+1}번 세션 시작시간`); if(!validTime(te)) badIv.push(`${ri+1}번 세션 종료시간`);
     if(date||ts||te||place||panel||obs) ivSessions.push({round,date,ts,te,site,place,panel,obs});
   });
+  // T-09: 형식 오류 입력은 조용히 누락되므로 저장 전 차단
+  if(badDates.length||badIv.length){ toast(`날짜/시간 형식을 확인하세요: ${[...badDates,...badIv].slice(0,3).join(", ")}${(badDates.length+badIv.length)>3?' 외':''}`); return; }
   schedule["면접전형"].sessions=ivSessions;
   schedule["면접전형"].observers="";
-  const obj={ name, type:document.getElementById("f_type").value, reqCount:+document.getElementById("f_req").value||1, ftTO:+document.getElementById("f_fto").value||0,
+  // T-13: 채용요청인원 0 허용(빈칸만 1로 기본, 0은 그대로)
+  const reqRaw=document.getElementById("f_req").value.trim();
+  const reqCount=reqRaw===""?1:Math.max(0,parseInt(reqRaw,10)||0);
+  const obj={ name, type:document.getElementById("f_type").value, reqCount, ftTO:+document.getElementById("f_fto").value||0,
     headhunt:document.getElementById("f_headhunt").value==="yes",
     stage:document.getElementById("f_stage").value, schedule, accountUsers, notes:document.getElementById("f_notes").value.trim(),
     counts:{ applicants:+document.getElementById("f_c_applicants").value||0, doc:+document.getElementById("f_c_doc").value||0, ai:+document.getElementById("f_c_ai").value||0, hired:+document.getElementById("f_c_hired").value||0 }, updated:today() };
   let dref, isNew=!editingId;
-  if(editingId){ dref=getDept(editingId); Object.assign(dref,obj); } else{ obj.id=id(); obj.checklist=obj.checklist||{}; state.departments.push(obj); dref=obj; }
+  if(editingId){
+    dref=getDept(editingId);
+    if(!dref){ // T-10: 편집 중 다른 사용자가 삭제한 경우 → 신규 등록으로 전환
+      toast("이 전형이 다른 사용자에 의해 삭제되어, 새 전형으로 등록합니다.");
+      obj.id=id(); obj.checklist={}; state.departments.push(obj); dref=obj; isNew=true; editingId=null;
+    } else Object.assign(dref,obj);
+  } else { obj.id=id(); obj.checklist=obj.checklist||{}; state.departments.push(obj); dref=obj; }
   autoCheckPriorColumns(dref);
   if(isNew) sortDeptsByStage();
-  saveState(); closeDeptModal(); renderAll(); toast(editingId?"저장되었습니다.":"전형이 추가되었습니다.");
+  // 신규·정렬 변경 시 전체 저장, 단일 편집이면 해당 부서만 부분 저장(T-02)
+  saveState(isNew?undefined:{deptId:dref.id}); closeDeptModal(); renderAll(); toast(isNew?"전형이 추가되었습니다.":"저장되었습니다.");
 }
 
-/* ===== 자동 계정 + 일괄 등록 ===== */
-function genUser(){ let n=1; const used=allUsers(null); while(used.has("tm"+pad2(n))) n++; return "tm"+pad2(n); }
+/* ===== 일괄 등록 ===== */
 function bulkRowHTML(r){ r=r||{};
   return `<div class="bulk-row br-dept">
     <input class="bk-name" placeholder="예: 인사팀" value="${esc(r.name||'')}" oninput="renderBulkPreview()">
@@ -1702,7 +1849,7 @@ function bulkRowHTML(r){ r=r||{};
 function addBulkRow(r){ document.getElementById("bulkRows").insertAdjacentHTML("beforeend", bulkRowHTML(r||{type:"인턴",stage:"공고준비"})); }
 function openBulkModal(){ const c=document.getElementById("bulkRows"); c.innerHTML=""; for(let i=0;i<3;i++) addBulkRow(); document.getElementById("bulkPreview").innerHTML="부서명을 입력하면 미리보기가 표시됩니다."; document.getElementById("bulkModal").classList.remove("hidden"); }
 function closeBulkModal(){ document.getElementById("bulkModal").classList.add("hidden"); }
-function collectBulkRows(){ const rows=[]; document.querySelectorAll("#bulkRows .bulk-row").forEach(r=>{ const name=r.querySelector(".bk-name").value.trim(); if(!name) return; rows.push({ name, type:r.querySelector(".bk-type").value, reqCount:+r.querySelector(".bk-req").value||1, pstart:r.querySelector(".bk-pstart").value.trim(), pend:r.querySelector(".bk-pend").value.trim(), stage:r.querySelector(".bk-stage").value }); }); return rows; }
+function collectBulkRows(){ const rows=[]; document.querySelectorAll("#bulkRows .bulk-row").forEach(r=>{ const name=r.querySelector(".bk-name").value.trim(); if(!name) return; const reqRaw=r.querySelector(".bk-req").value.trim(); const reqCount=reqRaw===""?1:Math.max(0,parseInt(reqRaw,10)||0); rows.push({ name, type:r.querySelector(".bk-type").value, reqCount, pstart:r.querySelector(".bk-pstart").value.trim(), pend:r.querySelector(".bk-pend").value.trim(), stage:r.querySelector(".bk-stage").value }); }); return rows; }
 function renderBulkPreview(){ const rows=collectBulkRows(); const el=document.getElementById("bulkPreview"); el.innerHTML=rows.length?`<b style="color:var(--yh-green-dark)">${rows.length}개 전형</b>이 등록됩니다. (계정은 ‘계정 관리’에서 별도로 만들어 전형에 등록하세요.)`:"부서명을 입력하면 미리보기가 표시됩니다."; }
 function sortDeptsByStage(){ state.departments.sort((a,b)=>STAGES.indexOf(b.stage)-STAGES.indexOf(a.stage)); }
 /* ===== 일괄 일정 편집 ===== */
@@ -1725,7 +1872,9 @@ function saveBulkSched(){
   const ids=[...document.querySelectorAll("#bsDepts .bs-cb:checked")].map(cb=>cb.value);
   if(!ids.length){ toast("적용할 부서를 선택하세요."); return; }
   const updates=[];
-  BS_STAGES.forEach((s,i)=>{ const se=document.getElementById("bs_"+i+"_s"), ee=document.getElementById("bs_"+i+"_e"); const sv=se?se.value.trim():"", ev=ee?ee.value.trim():""; if(sv||ev) updates.push({s,sv,ev}); });
+  const badBs=[];
+  BS_STAGES.forEach((s,i)=>{ const se=document.getElementById("bs_"+i+"_s"), ee=document.getElementById("bs_"+i+"_e"); const sv=se?se.value.trim():"", ev=ee?ee.value.trim():""; if(!validDate(sv)) badBs.push(`${s} 시작`); if(!validDate(ev)) badBs.push(`${s} 마감`); if(sv||ev) updates.push({s,sv,ev}); });
+  if(badBs.length){ toast(`날짜 형식을 확인하세요: ${badBs.slice(0,3).join(", ")}`); return; }  // T-09
   if(!updates.length){ toast("입력한 일정이 없습니다."); return; }
   let cnt=0;
   ids.forEach(idv=>{ const d=getDept(idv); if(!d) return; if(!d.schedule) d.schedule=emptySchedule();
@@ -1755,42 +1904,53 @@ function remarkHTML(d){ return d.notes?`<div class="dc-remark"><span class="rk-l
 
 /* ===== 전형 상세 보드 ===== */
 const STAGE_TO_COL={"공고준비":"지원서 접수","공고진행":"지원서 접수","서류전형":"서류전형","AI역량검사":"AI역량검사","면접전형":"면접전형","입사":"채용 종료"};
+// 컬럼 메타(고정) + 기본 체크 항목 템플릿(부서별 커스터마이징 시 d.checklistItems[colId]로 대체)
+const BOARD_COLS=[
+  { id:"apply", icon:"📋", title:"지원서 접수" },
+  { id:"doc", icon:"📁", title:"서류전형" },
+  { id:"ai", icon:"🧠", title:"AI역량검사" },
+  { id:"interview", icon:"✅", title:"면접전형" },
+  { id:"done", icon:"🪪", title:"채용 종료", report:true }
+];
+const DEFAULT_CHECK_ITEMS={
+  apply:["공고 문안 협의","사내통신 결재","(ATS)공고전형 세팅","무료공고 요청","헤드헌터 요청(선택)","공고마감"],
+  doc:["(ATS)서류전형 세팅","대상자 명단 제작","각 부서 안내","합격자 협의 및 확정","서류전형 합격자 보고 결재","(ATS)AI역량검사 전형 세팅","(ATS)합격자 발표"],
+  ai:["평가 결과 분석 및 정리","각 부서 안내 및 면접대상자 협의","참석 면접관 확인 및 면접일정 종합","면접실 예약","(ATS)합격자 발표"],
+  interview:["(경력)레퍼런스 체크","면접자료 제작 및 인사팀장님 전달","면접비 신청","면접관 리마인드 메일 발송","기면접자 확인","(PT면접)발표 자료 준비","면접 진행","평가 결과 확인 및 대상자 확정","입사일 협의","(경력)처우협의","면접전형 결과 보고 및 채용기안 결재","(ATS)합격자 발표"],
+  done:["입사예정자 입사안내 메일 발송","각 부서 입사자 안내","입사자 교육","(선택)그룹웨어 게시판 게재"]
+};
+// 특정 부서의 컬럼별 체크 항목(커스텀 우선, 없으면 기본)
+function checkItemsFor(d,colId){ const ov=d&&d.checklistItems&&d.checklistItems[colId]; return (Array.isArray(ov)&&ov.length)?ov.slice():DEFAULT_CHECK_ITEMS[colId].slice(); }
 function boardColumns(d){
   const c=d.counts||{}, sc=d.schedule||{};
   const ds=(stg,f)=>(sc[stg]&&sc[stg][f])||"";
   const sess=(sc["면접전형"]&&sc["면접전형"].sessions)||[];
   const ivPeriod=ds("면접전형","e")?`${ds("면접전형","s")||'-'} ~ ${ds("면접전형","e")}`:(ds("면접전형","s")||"-");
   const ivSummary=[["전형명","면접전형"],["면접 일정",ivPeriod],["면접 회차",sess.length?`${sess.length}회 (${sess.map(s=>s.round).join("·")})`:"-"]];
-  return [
-    { id:"apply", icon:"📋", title:"지원서 접수",
-      summary:[["채용형태",d.type],["채용요청인원",`${d.reqCount}명${d.ftTO?` (정규직 TO ${d.ftTO})`:''}`],["총 지원자 수",`${c.applicants||0}명`]],
-      items:["공고 문안 협의","사내통신 결재","(ATS)공고전형 세팅","무료공고 요청","헤드헌터 요청(선택)","공고마감"] },
-    { id:"doc", icon:"📁", title:"서류전형",
-      summary:[["전형명","서류전형"],["지원자 수",`${c.applicants||0}명`],["일정",`${ds("서류전형","s")||'-'} ~ ${ds("서류전형","e")||'-'}`]],
-      items:["(ATS)서류전형 세팅","대상자 명단 제작","각 부서 안내","합격자 협의 및 확정","서류전형 합격자 보고 결재","(ATS)AI역량검사 전형 세팅","(ATS)합격자 발표"] },
-    { id:"ai", icon:"🧠", title:"AI역량검사",
-      summary:[["전형명","AI역량검사"],["대상자 수",`${c.doc||0}명`],["일정",`${ds("AI역량검사","s")||'-'} ~ ${ds("AI역량검사","e")||'-'}`]],
-      items:["평가 결과 분석 및 정리","각 부서 안내 및 면접대상자 협의","참석 면접관 확인 및 면접일정 종합","면접실 예약","(ATS)합격자 발표"] },
-    { id:"interview", icon:"✅", title:"면접전형", summary:ivSummary,
-      items:["(경력)레퍼런스 체크","면접자료 제작 및 인사팀장님 전달","면접비 신청","면접관 리마인드 메일 발송","기면접자 확인","(PT면접)발표 자료 준비","면접 진행","평가 결과 확인 및 대상자 확정","입사일 협의","(경력)처우협의","면접전형 결과 보고 및 채용기안 결재","(ATS)합격자 발표"] },
-    { id:"done", icon:"🪪", title:"채용 종료", report:true,
-      summary:[["입사 예정일",ds("입사","s")||"-"],["최종 합격",`${c.hired||0}명`],["정규직 TO",`${d.ftTO||0}명`]],
-      items:["입사예정자 입사안내 메일 발송","각 부서 입사자 안내","입사자 교육","(선택)그룹웨어 게시판 게재"] }
-  ];
+  const summaries={
+    apply:[["채용형태",d.type],["채용요청인원",`${d.reqCount}명${d.ftTO?` (정규직 TO ${d.ftTO})`:''}`],["총 지원자 수",`${c.applicants||0}명`]],
+    doc:[["전형명","서류전형"],["지원자 수",`${c.applicants||0}명`],["일정",`${ds("서류전형","s")||'-'} ~ ${ds("서류전형","e")||'-'}`]],
+    ai:[["전형명","AI역량검사"],["대상자 수",`${c.doc||0}명`],["일정",`${ds("AI역량검사","s")||'-'} ~ ${ds("AI역량검사","e")||'-'}`]],
+    interview:ivSummary,
+    done:[["입사 예정일",ds("입사","s")||"-"],["최종 합격",`${c.hired||0}명`],["정규직 TO",`${d.ftTO||0}명`]]
+  };
+  return BOARD_COLS.map(col=>({ id:col.id, icon:col.icon, title:col.title, report:col.report, summary:summaries[col.id], items:checkItemsFor(d,col.id) }));
 }
 const COL_NEXT={apply:"서류전형",doc:"AI역량검사",ai:"면접전형",interview:"입사",done:null};
 function colIndexForStage(stage){ if(stage==="공고준비"||stage==="공고진행")return 0; if(stage==="서류전형")return 1; if(stage==="AI역량검사")return 2; if(stage==="면접전형")return 3; return 4; }
 function colFullyDone(d,colId){ const col=boardColumns(d).find(c=>c.id===colId); if(!col)return false; const ck=d.checklist||{}; return col.items.length>0 && col.items.every((_,i)=>ck[colId+":"+i]); }
+// 체크 완료 시점 기록 헬퍼(리드타임 산출 근거). done=true로 새로 바뀔 때만 날짜 기록, 해제 시 삭제
+function markCheck(d,key,done){ d.checklist=d.checklist||{}; d.checklistAt=d.checklistAt||{}; const was=!!d.checklist[key]; d.checklist[key]=done; if(done){ if(!was||!d.checklistAt[key]) d.checklistAt[key]=today(); } else { delete d.checklistAt[key]; } }
 // 현재 단계 기준 이전 컬럼들의 할 일을 모두 완료로 자동 반영(전형 세팅값을 다음 단계로 전달)
-function autoCheckPriorColumns(d){ d.checklist=d.checklist||{}; const ci=colIndexForStage(d.stage); boardColumns(d).forEach((col,idx)=>{ if(idx<ci) col.items.forEach((_,i)=>{ d.checklist[col.id+":"+i]=true; }); }); }
+function autoCheckPriorColumns(d){ d.checklist=d.checklist||{}; d.checklistAt=d.checklistAt||{}; const ci=colIndexForStage(d.stage); boardColumns(d).forEach((col,idx)=>{ if(idx<ci) col.items.forEach((_,i)=>{ markCheck(d,col.id+":"+i,true); }); }); }
 function advanceStageIfColumnDone(d,colId){ if(!colFullyDone(d,colId))return false; const next=COL_NEXT[colId]; if(!next)return false; if(STAGES.indexOf(next)>STAGES.indexOf(d.stage)){ d.stage=next; autoCheckPriorColumns(d); return true; } return false; }
 function completeColumn(deptId,colId){ const d=getDept(deptId); if(!d)return; const col=boardColumns(d).find(c=>c.id===colId); if(!col)return;
   if(!confirm(`'${col.title}' 단계의 할 일을 모두 완료 처리하시겠습니까?`)) return;
-  d.checklist=d.checklist||{}; col.items.forEach((_,i)=>{ d.checklist[colId+":"+i]=true; });
+  d.checklist=d.checklist||{}; col.items.forEach((_,i)=>{ markCheck(d,colId+":"+i,true); });
   let justCompleted=false;
   if(colId==="done"){ d.completed=true; d.completedAt=today(); justCompleted=true; }
   const advanced=advanceStageIfColumnDone(d,colId);
-  d.updated=today(); saveState();
+  d.updated=today(); saveState({deptId:d.id});
   const sc=document.querySelector(".board-scroll"); const sl=sc?sc.scrollLeft:0;
   const bs=document.getElementById("boardStage"); if(bs) bs.textContent=`현재 단계 · ${d.stage}`;
   document.getElementById("boardCols").innerHTML=renderBoardCols(d);
@@ -1801,7 +1961,7 @@ function completeColumn(deptId,colId){ const d=getDept(deptId); if(!d)return; co
   else toast(`${col.title} 일괄 완료 처리되었습니다.`);
 }
 function renderBoardCols(d){
-  const cols=boardColumns(d); const ck=d.checklist||{};
+  const cols=boardColumns(d); const ck=d.checklist||{}; const at=d.checklistAt||{};
   let nextKey=null;
   outer: for(const col of cols){ for(let i=0;i<col.items.length;i++){ if(!ck[col.id+":"+i]){ nextKey=col.id+":"+i; break outer; } } }
   const activeCol=STAGE_TO_COL[d.stage];
@@ -1809,16 +1969,18 @@ function renderBoardCols(d){
     const total=col.items.length; let doneCount=0;
     const items=col.items.map((label,i)=>{
       const key=col.id+":"+i; const done=!!ck[key]; if(done) doneCount++; const isNext=(key===nextKey);
+      const doneAt=(done&&at[key])?`<div class="chk-at">완료 ${esc(at[key])}</div>`:'';
       return `<div class="chk-item ${done?'done':(isNext?'next':'todo')}">
         <div class="chk-box">${done?'✓':(i+1)}</div>
-        <div class="chk-mid"><div class="chk-label">${esc(label)}</div>${isNext?`<div class="chk-next">지금 진행할 차례</div>`:''}</div>
+        <div class="chk-mid"><div class="chk-label">${esc(label)}</div>${isNext?`<div class="chk-next">지금 진행할 차례</div>`:''}${doneAt}</div>
         <button class="chk-btn ${done?'on':''}" onclick="toggleCheck('${d.id}','${col.id}',${i})">${done?'완료됨 ✓':'완료'}</button>
       </div>`;
     }).join('<div class="chk-conn"></div>');
     const link= col.report ? `<div class="sum-link" onclick="openReport('${d.id}')" style="cursor:pointer"><span>채용 성과 리포트</span><span class="ic">↗</span></div>` : '';
     const allDone=doneCount===total;
+    const custom=(d.checklistItems&&Array.isArray(d.checklistItems[col.id]))?`<span class="col-custom" title="이 부서 전용 체크리스트">맞춤</span>`:'';
     return `<div class="board-col"><div class="col-card ${col.title===activeCol?'active':''}">
-      <div class="col-head"><div class="col-icon">${col.icon}</div><div class="col-title">${esc(col.title)}</div><div class="col-prog">${doneCount}/${total} 완료</div></div>
+      <div class="col-head"><div class="col-icon">${col.icon}</div><div class="col-title">${esc(col.title)}${custom}</div><div class="col-prog">${doneCount}/${total} 완료</div></div>
       <button class="col-allbtn ${allDone?'done':''}" ${allDone?'disabled':''} onclick="completeColumn('${d.id}','${col.id}')">${allDone?'완료됨 ✓':'일괄 완료'}</button>
       ${col.summary.map(r=>`<div class="sum-row"><span class="k">${esc(r[0])}</span><span class="v">${esc(r[1])}</span></div>`).join("")}${link}
     </div>${items}</div>`;
@@ -1834,12 +1996,12 @@ function openBoard(i){
 }
 function toggleCheck(deptId,colId,idx){
   const d=getDept(deptId); if(!d) return; if(!d.checklist) d.checklist={};
-  const key=colId+":"+idx; d.checklist[key]=!d.checklist[key];
+  const key=colId+":"+idx; markCheck(d,key,!d.checklist[key]);
   const cols=boardColumns(d); const doneCol=cols.find(c=>c.id==="done"); const lastIdx=doneCol?doneCol.items.length-1:-1;
   let justCompleted=false, advanced=false;
   if(colId==="done" && idx===lastIdx){ d.completed=!!d.checklist[key]; d.completedAt=d.completed?today():""; justCompleted=d.completed; }
   if(d.checklist[key]) advanced=advanceStageIfColumnDone(d,colId);
-  d.updated=today(); saveState();
+  d.updated=today(); saveState({deptId:d.id});
   const sc=document.querySelector(".board-scroll"); const sl=sc?sc.scrollLeft:0;
   const bs=document.getElementById("boardStage"); if(bs) bs.textContent=`현재 단계 · ${d.stage}`;
   document.getElementById("boardCols").innerHTML=renderBoardCols(d);
@@ -1847,6 +2009,55 @@ function toggleCheck(deptId,colId,idx){
   renderAll();
   if(justCompleted) toast(`${d.name} 채용 전형이 완료 처리되었습니다. ‘완료된 전형’ 탭으로 이동했습니다.`);
   else if(advanced) toast(`${d.name} → ${d.stage} 단계로 진행되었습니다.`);
+}
+
+/* ===== 체크리스트 커스터마이징(항목 6) ===== */
+function openChkEdit(){
+  const d=getDept(boardDeptId); if(!d){ toast("전형을 먼저 여세요."); return; }
+  document.getElementById("chkEditTitle").textContent=`체크리스트 편집 · ${d.name}`;
+  const body=BOARD_COLS.map(col=>{
+    const items=checkItemsFor(d,col.id);
+    const rows=items.map(it=>chkEditRowHTML(col.id,it)).join("");
+    return `<div class="chke-col"><div class="chke-h"><span class="col-icon" style="width:26px;height:26px;font-size:14px">${col.icon}</span><b>${esc(col.title)}</b></div>
+      <div class="chke-list" id="chke_${col.id}">${rows}</div>
+      <button type="button" class="mini" onclick="chkEditAdd('${col.id}')">+ 항목 추가</button></div>`;
+  }).join("");
+  document.getElementById("chkEditBody").innerHTML=body;
+  document.getElementById("chkEditModal").classList.remove("hidden");
+}
+function chkEditRowHTML(colId,val){
+  return `<div class="chke-row"><input class="chke-in" value="${esc(val||'')}" placeholder="체크 항목 내용"><button type="button" class="chke-del" title="삭제" onclick="this.closest('.chke-row').remove()">×</button></div>`;
+}
+function chkEditAdd(colId){ document.getElementById("chke_"+colId).insertAdjacentHTML("beforeend", chkEditRowHTML(colId,"")); }
+function closeChkEdit(){ document.getElementById("chkEditModal").classList.add("hidden"); }
+function resetChkEdit(){
+  const d=getDept(boardDeptId); if(!d) return;
+  if(!confirm("이 부서의 체크리스트를 기본 템플릿으로 되돌립니다. 맞춤 항목과 해당 완료 표시가 사라집니다. 계속할까요?")) return;
+  delete d.checklistItems;
+  // 커스텀 해제 시 항목 수가 달라질 수 있어 체크 상태·완료일 정리(기본 인덱스 기준으로 유지되나 안전하게 유지)
+  d.updated=today(); saveState({deptId:d.id}); closeChkEdit();
+  document.getElementById("boardCols").innerHTML=renderBoardCols(d); renderAll(); toast("기본 체크리스트로 초기화했습니다.");
+}
+function saveChkEdit(){
+  const d=getDept(boardDeptId); if(!d) return;
+  const next={}; let changedCols=[];
+  BOARD_COLS.forEach(col=>{
+    const items=[...document.querySelectorAll(`#chke_${col.id} .chke-in`)].map(i=>i.value.trim()).filter(Boolean);
+    if(!items.length){ next[col.id]=DEFAULT_CHECK_ITEMS[col.id].slice(); } else { next[col.id]=items; }
+    // 항목 목록이 기존과 달라진 컬럼은 완료 표시/완료일을 초기화(인덱스 의미 변경)
+    const prev=checkItemsFor(d,col.id);
+    if(prev.length!==next[col.id].length || prev.some((v,i)=>v!==next[col.id][i])) changedCols.push(col.id);
+  });
+  // 전 컬럼이 기본과 동일하면 커스텀 해제(저장 절약)
+  const allDefault=BOARD_COLS.every(col=>{ const a=next[col.id],b=DEFAULT_CHECK_ITEMS[col.id]; return a.length===b.length && a.every((v,i)=>v===b[i]); });
+  d.checklistItems = allDefault ? undefined : next;
+  if(allDefault) delete d.checklistItems;
+  // 변경된 컬럼의 체크 상태·완료일 초기화
+  changedCols.forEach(colId=>{ Object.keys(d.checklist||{}).forEach(k=>{ if(k.indexOf(colId+":")===0) delete d.checklist[k]; }); Object.keys(d.checklistAt||{}).forEach(k=>{ if(k.indexOf(colId+":")===0) delete d.checklistAt[k]; }); });
+  autoCheckPriorColumns(d);
+  d.updated=today(); saveState({deptId:d.id}); closeChkEdit();
+  document.getElementById("boardCols").innerHTML=renderBoardCols(d); renderAll();
+  toast(changedCols.length?"체크리스트를 저장했습니다(변경 컬럼의 완료 표시는 초기화됨).":"체크리스트를 저장했습니다.");
 }
 function openReport(deptId){
   const d=getDept(deptId); if(!d) return; const c=d.counts||{};
@@ -1894,7 +2105,7 @@ function workToday(){ return today(); }
 function addDays(ymd,n){ const p=String(ymd).split("-"); const d=new Date(+p[0],+p[1]-1,+p[2]); d.setDate(d.getDate()+n); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
 function dowK(ymd){ const p=String(ymd).split("-"); const d=new Date(+p[0],+p[1]-1,+p[2]); return "일월화수목금토"[d.getDay()]; }
 function shortD(ymd){ const p=String(ymd).split("-"); return (+p[1])+"/"+(+p[2])+"("+dowK(ymd)+")"; }
-function carryOverTasks(){ const wt=workToday(); let changed=false; (state.tasks||[]).forEach(t=>{ if(!t.done && t.day && t.day<wt){ t.day=wt; changed=true; } }); if(changed) saveState(); }
+function carryOverTasks(){ const wt=workToday(); let changed=false; (state.tasks||[]).forEach(t=>{ if(!t.done && t.day && t.day<wt){ t.day=wt; changed=true; } }); if(changed) saveState({tasks:true}); }
 function populateTaskColorSel(){ const sel=document.getElementById("taskColor"); if(!sel||sel.dataset.filled) return; sel.innerHTML=TASK_COLORS.map(c=>`<option value="${c.key}">${c.label}</option>`).join(""); sel.dataset.filled="1"; }
 function addTask(bucket){
   const ti=document.getElementById("taskTitle"), imp=document.getElementById("taskImp"), csel=document.getElementById("taskColor"), dEl=document.getElementById("taskDate");
@@ -1905,12 +2116,12 @@ function addTask(bucket){
   else day=wt;
   const color=(csel&&csel.value)||"green";
   state.tasks.push({id:newTkId("tk"), title, day, done:false, important:!!(imp&&imp.checked), color, author:currentUserName(), createdAt:wt, subs:[]});
-  ti.value=""; if(imp) imp.checked=false; if(dEl) dEl.value=""; saveState(); afterTaskChange(); ti.focus();
+  ti.value=""; if(imp) imp.checked=false; if(dEl) dEl.value=""; saveState({tasks:true}); afterTaskChange(); ti.focus();
 }
-function moveTaskDay(id,bucket){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; const wt=workToday(); t.day=(bucket==='tomorrow')?addDays(wt,1):wt; saveState(); afterTaskChange(); }
-function setTaskDate(id,ymd){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t||!ymd) return; t.day=ymd; saveState(); afterTaskChange(); }
-function setTaskColor(id,color){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.color=color; saveState(); afterTaskChange(); }
-function toggleImportant(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.important=!t.important; saveState(); afterTaskChange(); }
+function moveTaskDay(id,bucket){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; const wt=workToday(); t.day=(bucket==='tomorrow')?addDays(wt,1):wt; saveState({tasks:true}); afterTaskChange(); }
+function setTaskDate(id,ymd){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t||!ymd) return; t.day=ymd; saveState({tasks:true}); afterTaskChange(); }
+function setTaskColor(id,color){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.color=color; saveState({tasks:true}); afterTaskChange(); }
+function toggleImportant(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.important=!t.important; saveState({tasks:true}); afterTaskChange(); }
 // 기타 업무·업무 일정표·상세 모달이 열려 있으면 모두 동기화 갱신(완료 체크 등 양방향 반영)
 function afterTaskChange(){
   const tt=document.getElementById("tab-tasks"); if(tt&&!tt.classList.contains("hidden")) renderTasks();
@@ -1929,12 +2140,12 @@ function taskDragOver(e){ if(!dragTaskId) return; e.preventDefault(); e.dataTran
 function taskDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-after"); }
 function taskDrop(e){ if(!dragTaskId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.id; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after"); if(tgt&&dragTaskId!==tgt){ moveTask(dragTaskId,tgt,before); dragTaskId=null; renderTasks(); } }
 function taskDragEnd(){ document.querySelectorAll(".tk-card.dragging,.tk-card.drop-before,.tk-card.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragTaskId=null; }
-function moveTask(dragId,targetId,before){ const arr=state.tasks; const di=arr.findIndex(t=>t.id===dragId); if(di<0) return; const [m]=arr.splice(di,1); let ti=arr.findIndex(t=>t.id===targetId); if(ti<0){ arr.splice(di,0,m); return; } if(!before) ti++; arr.splice(ti,0,m); saveState(); }
-function toggleTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.done=!t.done; saveState(); afterTaskChange(); }
-function deleteTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; if(!confirm(`'${t.title}' 업무를 삭제하시겠습니까?`)) return; state.tasks=state.tasks.filter(x=>x.id!==id); if(_wkOpenId===id) closeWkTask(); saveState(); afterTaskChange(); }
-function addSub(id){ const inp=document.getElementById("sub_"+id); if(!inp) return; const text=inp.value.trim(); if(!text) return; const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.subs.push({id:newTkId("ts"), text, done:false}); saveState(); afterTaskChange(); const ni=document.getElementById("sub_"+id); if(ni) ni.focus(); }
-function toggleSub(tid,sid){ const t=(state.tasks||[]).find(x=>x.id===tid); if(!t) return; const s=t.subs.find(x=>x.id===sid); if(!s) return; s.done=!s.done; saveState(); afterTaskChange(); }
-function deleteSub(tid,sid){ const t=(state.tasks||[]).find(x=>x.id===tid); if(!t) return; t.subs=t.subs.filter(x=>x.id!==sid); saveState(); afterTaskChange(); }
+function moveTask(dragId,targetId,before){ const arr=state.tasks; const di=arr.findIndex(t=>t.id===dragId); if(di<0) return; const [m]=arr.splice(di,1); let ti=arr.findIndex(t=>t.id===targetId); if(ti<0){ arr.splice(di,0,m); return; } if(!before) ti++; arr.splice(ti,0,m); saveState({tasks:true}); }
+function toggleTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.done=!t.done; saveState({tasks:true}); afterTaskChange(); }
+function deleteTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; if(!confirm(`'${t.title}' 업무를 삭제하시겠습니까?`)) return; state.tasks=state.tasks.filter(x=>x.id!==id); if(_wkOpenId===id) closeWkTask(); saveState({tasks:true}); afterTaskChange(); }
+function addSub(id){ const inp=document.getElementById("sub_"+id); if(!inp) return; const text=inp.value.trim(); if(!text) return; const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.subs.push({id:newTkId("ts"), text, done:false}); saveState({tasks:true}); afterTaskChange(); const ni=document.getElementById("sub_"+id); if(ni) ni.focus(); }
+function toggleSub(tid,sid){ const t=(state.tasks||[]).find(x=>x.id===tid); if(!t) return; const s=t.subs.find(x=>x.id===sid); if(!s) return; s.done=!s.done; saveState({tasks:true}); afterTaskChange(); }
+function deleteSub(tid,sid){ const t=(state.tasks||[]).find(x=>x.id===tid); if(!t) return; t.subs=t.subs.filter(x=>x.id!==sid); saveState({tasks:true}); afterTaskChange(); }
 function tkDayChipHTML(t,wt){
   const dn=dnum(t.day), wn=dnum(wt); const diff=(dn!=null&&wn!=null)?dn-wn:null;
   let lbl,cls;
@@ -2044,6 +2255,22 @@ function renderDeptDetailTable(){
   el.innerHTML=`<div class="panel"><table class="dd-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>${pager}</div>`;
   const cnt=document.getElementById("ddCount"); if(cnt) cnt.textContent=`총 ${total}개`;
 }
+// 리드타임: 완료 전형의 (입사일 또는 완료일) − 공고 시작일. 단위 일수
+function leadTimeStats(list){
+  const days=[];
+  list.forEach(d=>{ if(!d.completed) return; const start=repDate(d); const endS=(d.schedule&&d.schedule["입사"]&&d.schedule["입사"].s)||d.completedAt||""; const a=dnum(start), b=dnum(endS); if(a==null||b==null) return; const diff=b-a; if(diff<0) return; days.push(diff); });
+  if(!days.length) return {n:0,avg:0,min:0,max:0};
+  const sum=days.reduce((x,y)=>x+y,0);
+  return { n:days.length, avg:Math.round(sum/days.length), min:Math.min.apply(null,days), max:Math.max.apply(null,days) };
+}
+// 통계 기간 프리셋(이번 달/분기/올해)
+function statPreset(kind){
+  const now=new Date(); const y=now.getFullYear(); let from,to;
+  if(kind==='month'){ const m=now.getMonth(); from=`${y}-${pad2(m+1)}-01`; to=`${y}-${pad2(m+1)}-${pad2(new Date(y,m+1,0).getDate())}`; }
+  else if(kind==='quarter'){ const q=Math.floor(now.getMonth()/3); const sm=q*3, em=sm+2; from=`${y}-${pad2(sm+1)}-01`; to=`${y}-${pad2(em+1)}-${pad2(new Date(y,em+1,0).getDate())}`; }
+  else { from=`${y}-01-01`; to=`${y}-12-31`; }
+  document.getElementById("statFrom").value=from; document.getElementById("statTo").value=to; computeStats();
+}
 function computeStats(){
   const from=document.getElementById("statFrom").value.trim(), to=document.getElementById("statTo").value.trim();
   const list=state.departments.filter(d=>{ const r=repDate(d); if(from&&(!r||r<from)) return false; if(to&&(!r||r>to)) return false; return true; });
@@ -2056,12 +2283,14 @@ function computeStats(){
   // 최종 채용 인원은 '완료된 전형'으로 넘어간 경우에만 집계(진행 중 전형의 채용 수는 미반영)
   const sumDone=(f)=>list.reduce((a,d)=>a+((d.completed&&d.counts&&d.counts[f])||0),0);
   const ap=sum("applicants"),dc=sum("doc"),ai=sum("ai"),hd=sumDone("hired");
+  const lt=leadTimeStats(list);   // 리드타임(공고 시작→입사) — 완료 전형 기준
 
   let html=`<div style="font-size:12.5px;color:var(--muted);margin-bottom:14px">조회 기간 · <b style="color:var(--text)">${esc(period)}</b> · 기준일(공고진행 시작일) 기준</div>`;
   html+=`<div class="kpi-grid">
     <div class="kpi"><div class="l">공고진행 건</div><div class="v">${list.length}<small> 건</small></div></div>
     <div class="kpi"><div class="l">총 지원자</div><div class="v">${ap}<small> 명</small></div></div>
     <div class="kpi"><div class="l">최종 채용 인원 <span style="font-size:10px;color:var(--muted)">· 완료 전형</span></div><div class="v">${hd}<small> 명</small></div></div></div>`;
+  html+=`<div class="stat-cards"><div class="stat-c" style="grid-column:1/-1;background:linear-gradient(135deg,var(--yh-green-tint),#fff)"><div class="l">평균 채용 소요일 (리드타임) <span style="font-size:11px;color:var(--muted)">· 공고 시작 → 입사, 완료 전형 ${lt.n}건 기준</span></div><div class="v">${lt.n?lt.avg:'-'}<small>${lt.n?' 일':' (완료 전형 없음)'}</small>${lt.n?` <span style="font-size:12px;font-weight:600;color:var(--muted)">· 최단 ${lt.min}일 · 최장 ${lt.max}일</span>`:''}</div></div></div>`;
   html+=`<div class="stat-cards">
     <div class="stat-c"><div class="l">서류 합격</div><div class="v">${dc}<small> 명</small></div></div>
     <div class="stat-c"><div class="l">AI역량검사 합격</div><div class="v">${ai}<small> 명</small></div></div>
@@ -2090,7 +2319,6 @@ function computeStats(){
 
 /* ===== 일정표 (Gantt) ===== */
 function legendHTML(){ return `<div class="legend">`+STAGES.filter(s=>STAGE_SCHED[s].s).map(s=>`<span class="lg"><span class="lg-c" style="background:${STAGE_COLORS[s]}"></span>${s}</span>`).join("")+`</div>`; }
-function ivTimeStr(v){ if(!v) return ""; const a=v.timeStart||"", b=v.timeEnd||""; return (a&&b)?(a+"~"+b):(a||b||""); }
 function sessTime(s){ if(!s) return ""; const a=s.ts||"", b=s.te||""; return (a&&b)?(a+"~"+b):(a||b||""); }
 // 면접 장소 표기: 본사는 생략(신경 안 써도 됨), 연구소·공장만 강조. place 상세는 뒤에 덧붙임.
 function siteTagHTML(s){ const site=(s&&s.site)||"본사"; if(site==="본사") return ""; const col=site==="연구소"?"#7A6FD0":"#C28A2B"; return `<span class="site-tag" style="background:${hexA(col,.14)};color:${col}">${site}</span>`; }
@@ -2182,21 +2410,35 @@ function interviewAgendaHTML(depts,title){
   const rows=[];
   depts.forEach(d=>{ const iv=(d.schedule&&d.schedule["면접전형"])||{};
     const sess=(iv.sessions||[]).filter(s=>s.date && s.date>=td).slice()
-      .sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(sessTime(a)||"").localeCompare(sessTime(b)||""));
+      .sort((a,b)=>(a.date||"").localeCompare(b.date||"")||(tmin(a.ts)-tmin(b.ts)));
     if(sess.length) rows.push({d, sess, firstDate:sess[0].date||"", firstSite:(sess[0].site||"본사"), firstStart:(sess[0].ts||"")});
   });
   // 정렬: ①면접일 ②같은 날이면 장소(본사→연구소→공장) ③같은 장소면 1차/통합 시작시간
   const siteOrd=v=>{ const i=IV_SITES.indexOf(v||"본사"); return i<0?9:i; };
-  rows.sort((a,b)=>(a.firstDate||"").localeCompare(b.firstDate||"")||siteOrd(a.firstSite)-siteOrd(b.firstSite)||(a.firstStart||"").localeCompare(b.firstStart||""));
+  rows.sort((a,b)=>(a.firstDate||"").localeCompare(b.firstDate||"")||siteOrd(a.firstSite)-siteOrd(b.firstSite)||(tmin(a.firstStart)-tmin(b.firstStart)));
   if(!rows.length) return "";
   title=title||"면접 일정 (예정)";
   const ml=arr=>arr.map(x=>esc(x&&String(x).trim()?x:'-')).join("<br>");
   return `<div class="section-title" style="margin-top:22px">${title||"면접 일정 상세"}</div><div class="panel"><table><thead><tr><th>면접일</th><th>회차</th><th>진행 시간</th><th>부서</th><th>장소</th><th>참석 면접관</th><th>배석자</th></tr></thead><tbody>`+
     rows.map(r=>`<tr><td><b>${ml(r.sess.map(s=>s.date))}</b></td><td>${ml(r.sess.map(s=>s.round))}</td><td>${ml(r.sess.map(s=>sessTime(s)))}</td><td>${esc(r.d.name)}</td><td>${r.sess.map(s=>sessPlaceHTML(s)).join("<br>")}</td><td>${ml(r.sess.map(s=>s.panel))}</td><td>${ml(r.sess.map(s=>s.obs))}</td></tr>`).join("")+`</tbody></table></div>`;
 }
+// 당일·D-1 면접 알림 밴드(항목 7): 오늘/내일 면접 세션이 있는 부서를 상단에 리마인드
+function interviewAlertHTML(depts){
+  const td=today(), tm=addDays(td,1);
+  const rows=[];
+  depts.forEach(d=>{ const iv=(d.schedule&&d.schedule["면접전형"])||{};
+    (iv.sessions||[]).forEach(s=>{ if(s.date===td||s.date===tm) rows.push({d,s,when:s.date===td?'today':'tomorrow'}); });
+  });
+  if(!rows.length) return "";
+  rows.sort((a,b)=>(a.s.date||"").localeCompare(b.s.date||"")||(tmin(a.s.ts)-tmin(b.s.ts)));
+  const chips=rows.map(r=>{ const w=r.when==='today'?'오늘':'내일'; const site=(r.s.site&&r.s.site!=="본사")?` · ${esc(r.s.site)}`:''; const tm2=sessTime(r.s)?` ${esc(sessTime(r.s))}`:''; const place=r.s.place?` ${esc(r.s.place)}`:'';
+    return `<div class="iv-alert-chip ${r.when}"><span class="iva-when">${w}</span><b>${esc(r.d.name)}</b><span class="iva-d">${esc(r.s.round||'면접')}${tm2}${site}${place}</span></div>`;
+  }).join("");
+  return `<div class="iv-alert"><div class="iva-head">🔔 면접 리마인드 <span class="hint-inline">· 오늘/내일 예정 면접</span></div><div class="iva-list">${chips}</div></div>`;
+}
 function renderScheduleTab(){
   if(!adminCal) adminCal=defMonth(state.departments);
-  document.getElementById("schedResult").innerHTML = calendarHTML(state.departments,adminCal.y,adminCal.m,"adminCalMove")+interviewAgendaHTML(state.departments);
+  document.getElementById("schedResult").innerHTML = interviewAlertHTML(state.departments)+calendarHTML(state.departments,adminCal.y,adminCal.m,"adminCalMove")+interviewAgendaHTML(state.departments);
 }
 
 /* ===== 면접 일정표 출력(주간 그리드, 부서 선택·기간·색상) ===== */
@@ -2261,7 +2503,7 @@ function ivpWeekGridHTML(depts, monday, weekend){
       let gs=Infinity, ge=-Infinity, timed=false;
       ss.forEach(s=>{ const st=ivpParseMin(s.ts); if(st!=null){ timed=true; const en=ivpParseMin(s.te); const e=(en!=null&&en>st)?en:st+60; gs=Math.min(gs,st); ge=Math.max(ge,e); } });
       if(!timed){ gs=9*60; ge=10*60; }
-      ss.sort((a,b)=>(a.ts||"").localeCompare(b.ts||""));
+      ss.sort((a,b)=>tmin(a.ts)-tmin(b.ts));
       dayGroups[di].push({d, ss, start:gs, end:ge, timed});
       minStart=Math.min(minStart,gs); maxEnd=Math.max(maxEnd,ge);
     });
@@ -2400,7 +2642,7 @@ function wkAddSubmit(){
   const important=document.getElementById("wkAddImp").checked;
   const wt=workToday();
   state.tasks.push({id:newTkId("tk"), title, day:_wkAddDate||wt, done:false, important, color, author:currentUserName(), createdAt:wt, subs:[]});
-  closeWkAdd(); saveState(); afterTaskChange();
+  closeWkAdd(); saveState({tasks:true}); afterTaskChange();
 }
 function openWkTask(id){ _wkOpenId=id; renderWkTaskBody(id); document.getElementById("wkTaskModal").classList.remove("hidden"); }
 function closeWkTask(){ _wkOpenId=null; document.getElementById("wkTaskModal").classList.add("hidden"); }
@@ -2518,7 +2760,6 @@ function mailToSend(){
   if(b.length>1800) toast("본문이 길어 메일 앱에서 잘릴 수 있습니다. 잘리면 ‘본문 복사’를 쓰세요.");
   window.location.href="mailto:?subject="+encodeURIComponent(s)+"&body="+encodeURIComponent(b);
 }
-function goMailFor(i){ switchTab("mail"); initMail(); document.getElementById("mailDept").value=i; onMailDeptChange(); }
 
 /* ===== 일반 계정(팀장 등) 조회 화면 ===== */
 let teamViewDeptId=null;
@@ -2526,7 +2767,7 @@ function renderTeamHome(){
   teamViewDeptId=null;
   const acc=getAccount(session.user)||{};
   const active=deptsForUser(session.user).filter(d=>!d.completed); // 완료 전형은 일반 계정에서 숨김
-  const cardHTML=(d)=>`<div class="dept-card" data-deptid="${d.id}" ${dragAttrs} style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">${gripHTML}
+  const cardHTML=(d)=>`<div class="dept-card" data-deptid="${d.id}" style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">
       <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">현황 보기 ›</span></div>
         <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
       <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span>${ddayMetaHTML(d)}</div>
@@ -2550,7 +2791,7 @@ function renderTeamDetail(deptId){
     return `<tr class="${cur?'cur':''}"><td>${s}${cur?' <span class="nowtag">진행중</span>':''}</td><td>${v.s||'-'}</td><td>${cfg.e?(v.e||'-'):'<span style="color:var(--muted)">당일</span>'}</td></tr>`; }).join("");
   const iv=(d.schedule&&d.schedule["면접전형"])||{}; const sess=(iv.sessions||[]).slice().sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const ivBlock=(sess.length||iv.observers)?`<div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">면접 정보</div>
-    ${sess.length?`<table class="sched-ro"><thead><tr><th>면접일</th><th>회차</th><th>진행 시간</th><th>장소</th><th>참석 면접관</th><th>배석자</th></tr></thead><tbody>${sess.map(s=>`<tr><td><b>${s.date||'-'}</b></td><td>${esc(s.round||'-')}</td><td>${esc(sessTime(s)||'-')}</td><td>${esc(s.place||'-')}</td><td>${esc(s.panel||'-')}</td><td>${esc(s.obs||iv.observers||'-')}</td></tr>`).join("")}</tbody></table>`:`<div style="font-size:13px;color:var(--muted)">등록된 면접 세션이 없습니다.</div>`}</div>`:"";
+    ${sess.length?`<table class="sched-ro"><thead><tr><th>면접일</th><th>회차</th><th>진행 시간</th><th>장소</th><th>참석 면접관</th><th>배석자</th></tr></thead><tbody>${sess.map(s=>`<tr><td><b>${s.date||'-'}</b></td><td>${esc(s.round||'-')}</td><td>${esc(sessTime(s)||'-')}</td><td>${sessPlaceHTML(s)}</td><td>${esc(s.panel||'-')}</td><td>${esc(s.obs||iv.observers||'-')}</td></tr>`).join("")}</tbody></table>`:`<div style="font-size:13px;color:var(--muted)">등록된 면접 세션이 없습니다.</div>`}</div>`:"";
   document.getElementById("teamContent").innerHTML=`
     <button class="btn-ghost" style="margin-bottom:16px" onclick="renderTeamHome()">← 전형 목록</button>
     <div class="tl-hero"><div class="eyebrow">${esc(d.type)} · 채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}명`:''}</div><h1>${esc(d.name)} 채용 현황</h1>
@@ -2660,6 +2901,7 @@ function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg
 
 document.getElementById("inCode").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
 document.getElementById("inUser").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("inCode").focus(); });
+restoreSession();  // 새로고침 시 세션 복원(T-16)
 </script>
 </body>
 </html>
