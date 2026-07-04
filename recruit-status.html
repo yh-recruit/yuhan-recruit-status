@@ -409,6 +409,7 @@
   .ivp-dchk input{width:15px;height:15px;accent-color:var(--yh-green);flex-shrink:0}
   .ivp-dchk .ivp-sw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
   .ivp-dchk .ivp-dn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ivp-dchk .ivp-dtype{font-size:10px;font-weight:700;color:var(--yh-green-dark);background:var(--yh-green-light);border-radius:4px;padding:0 5px}
   .ivp-dchk .ivp-dd{font-size:10.5px;color:var(--muted);flex-shrink:0}
   .ivp-period .ivp-prow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
   .ivp-din{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;outline:none}
@@ -439,9 +440,10 @@
   .ivp-gls,.ivp-cards{position:absolute;inset:0}
   .ivp-gl{border-top:1px solid #eef0ee;box-sizing:border-box}
   .ivp-gl:first-child{border-top:none}
-  .ivp-card{position:absolute;border-radius:5px;padding:3px 6px;border-left:3px solid;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-  .ivp-bk-name{font-size:11px;font-weight:800;line-height:1.2}
-  .ivp-bk-sub{font-size:9.5px;margin:1px 0 2px;opacity:.85}
+  .ivp-card{position:absolute;border-radius:5px;padding:3px 6px;border-left:3px solid;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06);text-align:center}
+  .ivp-bk-name{font-size:11px;font-weight:800;line-height:1.25}
+  .ivp-bk-type{font-size:9px;font-weight:700;opacity:.8}
+  .ivp-bk-sub{font-size:9.5px;margin:1px 0 0;opacity:.85}
   .ivp-bk-ses{font-size:10px;line-height:1.4}
   .ivp-bk-ses .ivp-rd{font-weight:700}
   .ivp-bk-site{display:inline-block;font-size:9px;font-weight:800;padding:0 4px;border-radius:3px;margin-left:3px;border:1px solid currentColor}
@@ -652,10 +654,9 @@
   .dday .dd-k{font-weight:600;opacity:.85}
   .dday.soon{background:#fdf1f0;color:var(--danger)}
   .dday.today{background:#fff3d6;color:#9a6a16}
-  .dday.over{background:var(--danger);color:#fff;box-shadow:0 0 0 2px rgba(178,58,53,.18)}
-  .dday.over .dd-k{opacity:.9}
-  .dday .dd-warn{font-weight:800;letter-spacing:-.2px}
-  .dept-card.overdue{border-color:#e6b3b0;box-shadow:inset 3px 0 0 0 var(--danger),var(--shadow)}
+  .dday.past{background:var(--bg);color:var(--muted)}
+  /* 지연(종료 기준일+영업일 5일 초과)은 카드 빨간 테두리로만 표현 */
+  .dept-card.overdue{border-color:var(--danger);box-shadow:inset 4px 0 0 0 var(--danger),var(--shadow)}
   /* ===== 대시보드 검색/필터 툴바 ===== */
   .dash-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
   .dash-toolbar .ds-search{flex:1;min-width:200px;max-width:340px;padding:9px 13px;border:1px solid var(--line);border-radius:9px;font-size:13px;outline:none;background:#fff}
@@ -1018,7 +1019,7 @@ window.YH_FIREBASE_CONFIG = {
       <div class="ivp-controls">
         <div class="ivp-cgroup">
           <label class="ivp-clabel">부서 선택 <span class="hint-inline">· 면접 일정이 등록된 부서</span>
-            <span class="ivp-allbar" style="margin-left:6px"><button type="button" class="mini" onclick="ivpSelectAll(true)">전체</button><button type="button" class="mini" onclick="ivpSelectAll(false)">해제</button></span></label>
+            <span class="ivp-allbar" style="margin-left:6px"><select id="ivpPastFilter" class="ivp-din" style="padding:4px 8px;font-size:12px" onchange="setIvpPast(this.value)"><option value="all">전체</option><option value="future">지난 면접 제외</option></select><button type="button" class="mini" onclick="ivpSelectAll(true)">전체</button><button type="button" class="mini" onclick="ivpSelectAll(false)">해제</button></span></label>
           <div id="ivpDepts" class="ivp-depts"></div>
         </div>
         <div class="ivp-cgroup ivp-period">
@@ -1480,12 +1481,36 @@ function deptDday(d){
   if(!date) return null; const n=dday(date); if(n==null) return null;
   return { label, date, n };
 }
+/* ===== 지연(overdue) 판정 — 종료 기준일 + 영업일 5일 초과 시에만 지연 ===== */
+// 영업일: 주말(토·일) + HOLIDAYS 공휴일 제외
+function isBusinessDay(ymd){ const p=String(ymd).split("-"); if(p.length!==3) return false; const dt=new Date(+p[0],+p[1]-1,+p[2]); const dow=dt.getDay(); if(dow===0||dow===6) return false; if(holidayName(ymd)) return false; return true; }
+// 기준일에서 영업일 n일 뒤 날짜(주말·공휴일 건너뜀)
+function addBusinessDays(ymd,n){ let cur=ymd, added=0, guard=0; while(added<n && guard<400){ cur=addDays(cur,1); guard++; if(isBusinessDay(cur)) added++; } return cur; }
+// 현재 단계의 '종료 기준일' — 공고진행·서류전형·AI역량검사=마감일, 면접전형=마지막 세션일(없으면 마감/시작), 공고준비·입사=대상 아님
+function deptStageEndDate(d){
+  const stage=d.stage; const v=(d.schedule&&d.schedule[stage])||{};
+  if(stage==="입사"||stage==="공고준비") return "";
+  if(stage==="면접전형"){
+    const dates=(v.sessions||[]).map(s=>s.date).filter(Boolean).sort();
+    if(dates.length) return dates[dates.length-1];
+    return v.e||v.s||"";
+  }
+  return v.e||"";   // 공고진행/서류전형/AI역량검사: 마감일 기준(없으면 지연 미판정)
+}
+// 지연 여부: 종료 기준일 + 영업일 5일을 지난 경우에만 true
+function deptOverdue(d){
+  if(!d || d.completed) return false;
+  const base=deptStageEndDate(d); if(!base) return false;
+  if(dnum(base)==null) return false;
+  const deadline=addBusinessDays(base,5); const dn=dnum(deadline), tn=dnum(today());
+  if(dn==null||tn==null) return false;
+  return tn>dn;
+}
 function ddayMetaHTML(d){
   const dd=deptDday(d); if(!dd) return "";
-  let cls=""; if(dd.n<0) cls="over"; else if(dd.n===0) cls="today"; else if(dd.n<=3) cls="soon";
-  // 마감 경과(D+)는 '지연' 경고로 강조
-  const pre = dd.n<0 ? `<span class="dd-warn">⚠ 지연</span>` : "";
-  return `<span class="dday ${cls}" title="${esc(dd.date)}">${pre}<span class="dd-k">${esc(dd.label)}</span>${ddayLabel(dd.n)}</span>`;
+  // 지연은 카드 테두리로만 표현 → D-day 배지는 임박(soon)·당일(today)만 강조, 경과는 중립 표기
+  let cls=""; if(dd.n<0) cls="past"; else if(dd.n===0) cls="today"; else if(dd.n<=3) cls="soon";
+  return `<span class="dday ${cls}" title="${esc(dd.date)}"><span class="dd-k">${esc(dd.label)}</span>${ddayLabel(dd.n)}</span>`;
 }
 function currentUserName(){
   if(!session) return "";
@@ -1518,7 +1543,7 @@ function renderDeptGrid(){
   const el=document.getElementById("deptGrid");
   if(!list.length){ el.innerHTML=`<div style="color:var(--muted);padding:30px">${(q||typeFilter||stageFilter)?'조건에 맞는 전형이 없습니다.':'표시할 전형이 없습니다.'}</div>`; return; }
   const manual=deptSort==='manual';
-  el.innerHTML=list.map(d=>{ const dd=deptDday(d); const overdue=dd&&dd.n<0; return `
+  el.innerHTML=list.map(d=>{ const overdue=deptOverdue(d); return `
     <div class="dept-card ${overdue?'overdue':''}" data-deptid="${d.id}" ${manual?dragAttrs:''}>${manual?gripHTML:''}
       <div class="dc-clickable" onclick="openBoard('${d.id}')">
         <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
@@ -2460,12 +2485,23 @@ function mondayOf(ymd){ const p=String(ymd).split("-"); const d=new Date(+p[0],+
 function ivpSnapMonday(){ const el=document.getElementById("ivpWeekStart"); if(el&&el.value) el.value=mondayOf(el.value); }
 function ivpWeekShift(n){ const el=document.getElementById("ivpWeekStart"); const base=el&&el.value?el.value:today(); el.value=addDays(mondayOf(base), n*7); ivpRender(); }
 function ivpSelectAll(on){ document.querySelectorAll("#ivpDepts .ivp-cb").forEach(cb=>cb.checked=on); ivpRender(); }
+let ivpPast="all";   // "all"=전체 / "future"=지난 면접 제외
+// 부서 체크박스 목록 렌더(필터 반영, 기존 선택 최대한 보존)
+function renderIvpDepts(){
+  const dom=document.getElementById("ivpDepts"); if(!dom) return;
+  const prev=new Set([...dom.querySelectorAll(".ivp-cb:checked")].map(cb=>cb.value));
+  const td=today();
+  let list=ivpDeptList();
+  if(ivpPast==="future") list=list.filter(x=>x.last>=td);   // 마지막 면접일이 오늘 이후인 부서만
+  dom.innerHTML = list.length? list.map(x=>{ const c=ivpColorFor(x.d.id); const chk=prev.has(x.d.id)?" checked":"";
+    return `<label class="ivp-dchk"><input type="checkbox" class="ivp-cb" value="${x.d.id}"${chk} onchange="ivpRender()"><span class="ivp-sw" style="background:${c.bd}"></span><span class="ivp-dn">${esc(x.d.name)} <span class="ivp-dtype">${esc(x.d.type)}</span></span><span class="ivp-dd">${esc(x.first.slice(5))}~</span></label>`;
+  }).join("") : `<div class="ivp-empty" style="grid-column:1/-1">${ivpPast==="future"?'예정된 면접이 있는 부서가 없습니다.':'면접 세션이 등록된 부서가 없습니다.'}</div>`;
+}
+function setIvpPast(v){ ivpPast=v; renderIvpDepts(); ivpRender(); }
 function openIvPrint(){
+  ivpPast="all"; const pf=document.getElementById("ivpPastFilter"); if(pf) pf.value="all";
+  renderIvpDepts();
   const list=ivpDeptList();
-  const dom=document.getElementById("ivpDepts");
-  dom.innerHTML = list.length? list.map(x=>{ const c=ivpColorFor(x.d.id);
-    return `<label class="ivp-dchk"><input type="checkbox" class="ivp-cb" value="${x.d.id}" onchange="ivpRender()"><span class="ivp-sw" style="background:${c.bd}"></span><span class="ivp-dn">${esc(x.d.name)}</span><span class="ivp-dd">${esc(x.first.slice(5))}~</span></label>`;
-  }).join("") : `<div class="ivp-empty" style="grid-column:1/-1">면접 세션이 등록된 부서가 없습니다.</div>`;
   // 기본 주: 가장 이른 (오늘 이후) 면접일의 주, 없으면 이번 주
   const td=today(); let base=td;
   const upcoming=list.map(x=>x.first).filter(f=>f>=td).sort()[0];
@@ -2496,7 +2532,9 @@ function ivpWeekGridHTML(depts, monday, weekend){
   // 날짜별 dept 그룹(그 날 세션들) 수집 + 시작/종료 시각(분) 계산
   const dayGroups=days.map(()=>[]);
   let minStart=Infinity, maxEnd=-Infinity;
+  const tdStr=today();
   days.forEach((ds,di)=>{
+    if(ivpPast==="future" && ds<tdStr) return;   // 지난 면접 제외: 오늘 이전 날짜 열은 카드 미표시
     depts.forEach(d=>{
       const ss=((d.schedule&&d.schedule["면접전형"]&&d.schedule["면접전형"].sessions)||[]).filter(s=>s.date===ds);
       if(!ss.length) return;
@@ -2527,11 +2565,14 @@ function ivpWeekGridHTML(depts, monday, weekend){
     const cards=dayGroups[di].map(g=>{
       const c=ivpColorFor(g.d.id);
       const top=(g.start-rangeStartMin)/60*IVP_HH;
-      const ht=Math.max(30,(g.end-g.start)/60*IVP_HH);
+      // 짧은 세션도 부서명·시간이 항상 보이도록 최소 높이 보장(세션 수에 비례)
+      const minH=40+Math.max(0,g.ss.length-1)*14;
+      const ht=Math.max(minH,(g.end-g.start)/60*IVP_HH);
       const w=100/g.lanes, left=g.lane*w;
+      // 시간(회차) 먼저, 채용예정인원은 마지막 → 카드가 짧아도 시간이 우선 노출
       const ses=g.ss.map(s=>{ const tag=(s.site&&s.site!=="본사")?`<span class="ivp-bk-site">${esc(s.site)}</span>`:''; const tm=(g.timed&&sessTime(s))?esc(sessTime(s).replace("~"," ~ ")):'시간미정'; return `<div class="ivp-bk-ses"><span class="ivp-rd">${esc(s.round||'면접')}</span> ${tm}${tag}</div>`; }).join("");
       const sub=`채용예정인원 ${g.d.reqCount}명${g.d.ftTO?` (정규직 TO ${g.d.ftTO})`:''}`;
-      return `<div class="ivp-card" style="top:${top}px;height:${ht}px;left:${left}%;width:calc(${w}% - 4px);background:${c.bg};border-left-color:${c.bd};color:${c.bd}"><div class="ivp-bk-name">${esc(g.d.name)}</div><div class="ivp-bk-sub">${sub}</div>${ses}</div>`;
+      return `<div class="ivp-card" style="top:${top}px;height:${ht}px;left:${left}%;width:calc(${w}% - 4px);background:${c.bg};border-left-color:${c.bd};color:${c.bd}"><div class="ivp-bk-name">${esc(g.d.name)} <span class="ivp-bk-type">${esc(g.d.type)}</span></div>${ses}<div class="ivp-bk-sub">${sub}</div></div>`;
     }).join("");
     return `<div class="ivp-tl-col" style="height:${totalH}px"><div class="ivp-gls">${gl}</div><div class="ivp-cards">${cards}</div></div>`;
   }).join("");
@@ -2577,9 +2618,10 @@ function ivPrintNow(){
     .ivp-gls,.ivp-cards{position:absolute;inset:0}
     .ivp-gl{border-top:1px solid #eef0ee;box-sizing:border-box}
     .ivp-gl:first-child{border-top:none}
-    .ivp-card{position:absolute;border-radius:5px;padding:3px 6px;border-left:3px solid;overflow:hidden}
-    .ivp-bk-name{font-size:11px;font-weight:800;line-height:1.2}
-    .ivp-bk-sub{font-size:9.5px;margin:1px 0 2px;opacity:.85}
+    .ivp-card{position:absolute;border-radius:5px;padding:3px 6px;border-left:3px solid;overflow:hidden;text-align:center}
+    .ivp-bk-name{font-size:11px;font-weight:800;line-height:1.25}
+    .ivp-bk-type{font-size:9px;font-weight:700;opacity:.8}
+    .ivp-bk-sub{font-size:9.5px;margin:1px 0 0;opacity:.85}
     .ivp-bk-ses{font-size:10px;line-height:1.4}.ivp-bk-ses .ivp-rd{font-weight:700}
     .ivp-bk-site{display:inline-block;font-size:9px;font-weight:800;padding:0 4px;border-radius:3px;margin-left:3px;border:1px solid currentColor}
     @page{size:A4 landscape;margin:10mm} @media print{body{margin:0} .ivp-card{-webkit-print-color-adjust:exact;print-color-adjust:exact}}`;
@@ -2767,7 +2809,7 @@ function renderTeamHome(){
   teamViewDeptId=null;
   const acc=getAccount(session.user)||{};
   const active=deptsForUser(session.user).filter(d=>!d.completed); // 완료 전형은 일반 계정에서 숨김
-  const cardHTML=(d)=>`<div class="dept-card" data-deptid="${d.id}" style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">
+  const cardHTML=(d)=>`<div class="dept-card ${deptOverdue(d)?'overdue':''}" data-deptid="${d.id}" style="cursor:pointer;min-height:auto" onclick="renderTeamDetail('${d.id}')">
       <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">현황 보기 ›</span></div>
         <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>${badgeHTML(d.stage)}</div>
       <div class="dc-meta"><span>업데이트 <b>${d.updated||'-'}</b></span>${ddayMetaHTML(d)}</div>
