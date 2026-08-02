@@ -616,8 +616,8 @@
   .tk-prog{font-size:11.5px;color:var(--muted);font-weight:600}
   .tk-del{flex-shrink:0;border:1px solid #eccecc;background:#fff;color:var(--danger);border-radius:7px;font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer}
   .tk-del:hover{background:#fbf0ef}
-  .tk-subs{list-style:none;margin:10px 0 0;padding:0 0 0 35px;display:flex;flex-direction:column;gap:5px}
-  .tk-sub{display:flex;align-items:center;gap:9px}
+  .tk-subs{list-style:none;margin:10px 0 0;padding:0 0 0 12px;display:flex;flex-direction:column;gap:5px}
+  .tk-sub{display:flex;align-items:center;gap:9px;position:relative}
   .tk-cb{flex-shrink:0;width:19px;height:19px;border-radius:5px;border:1.5px solid var(--line);background:#fff;cursor:pointer;color:#fff;font-size:11px;font-weight:800;line-height:1;display:flex;align-items:center;justify-content:center}
   .tk-cb:hover{border-color:var(--yh-green)}
   .tk-sub.done .tk-cb{background:var(--yh-green);border-color:var(--yh-green)}
@@ -625,6 +625,14 @@
   .tk-sub.done .tk-sub-t{text-decoration:line-through;color:var(--muted)}
   .tk-x{flex-shrink:0;border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 4px}
   .tk-x:hover{color:var(--danger)}
+  /* 상세 업무 드래그 정렬 (그립 12px 패딩 + 14px + gap 9px = 35px → 체크박스 열 위치 불변) */
+  .tk-subgrip{flex-shrink:0;width:14px;padding:3px 0;text-align:center;color:var(--muted);font-size:12px;line-height:1;cursor:grab;user-select:none;border-radius:4px}
+  .tk-subgrip:hover{background:var(--yh-green-tint);color:var(--yh-green)}
+  .tk-subgrip:active{cursor:grabbing}
+  .tk-sub.dragging{opacity:.35}
+  .tk-sub.drop-before::before,.tk-sub.drop-after::after{content:"";position:absolute;left:0;right:0;height:3px;border-radius:2px;background:var(--yh-green)}
+  .tk-sub.drop-before::before{top:-4px}
+  .tk-sub.drop-after::after{bottom:-4px}
   .tk-subadd{display:flex;gap:7px;margin:9px 0 2px;padding-left:35px}
   .tk-subinput{flex:1;min-width:0;padding:7px 11px;border:1px dashed var(--line);border-radius:8px;font-size:12.5px;outline:none;background:var(--bg)}
   .tk-subinput:focus{border-color:var(--yh-green-light);border-style:solid;background:#fff}
@@ -1099,8 +1107,13 @@ function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&
 function hexA(hex,a){ const n=hex.replace('#',''); return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`; }
 function emptySchedule(){ const o={}; STAGES.forEach(s=>o[s]={s:"",e:"",place:"",panel:"",observers:"",timeStart:"",timeEnd:"",sessions:[]}); return o; }
 function maskDate(v){ const d=String(v).replace(/\D/g,"").slice(0,8); let o=d.slice(0,4); if(d.length>4)o+="-"+d.slice(4,6); if(d.length>6)o+="-"+d.slice(6,8); return o; }
-// 숫자만 입력해도 HH:MM 형식으로 자동 변환 (예: 1000 → 10:00, 930 → 09:30) — 시(hour)는 2자리 zero-pad
-function maskTime(v){ let d=String(v).replace(/\D/g,"").slice(0,4); if(d.length<=2) return d; let mm=d.slice(d.length-2), hh=d.slice(0,d.length-2); if(hh.length<2) hh="0"+hh; return hh+":"+mm; }
+// 숫자만 입력해도 HH:MM 형식으로 자동 변환 (예: 1000 → 10:00, 930 → 09:30)
+// ★타이핑 중에는 "더 칠 숫자가 없는 것이 확실할 때"만 콜론을 넣는다. 3자리에서 콜론+0패딩을 넣으면
+//   입력칸 maxlength(5)가 그 순간 차서 네 번째 숫자가 막힌다(1500을 치면 01:50에서 멈추던 버그).
+//   3자리라도 첫 자리가 3~9면 4자리 시각이 될 수 없으므로(93시는 없음) 즉시 확정한다.
+function maskTime(v){ const d=String(v).replace(/\D/g,"").slice(0,4); if(d.length===4) return d.slice(0,2)+":"+d.slice(2); if(d.length===3&&+d[0]>2) return "0"+d[0]+":"+d.slice(1); return d; }
+// 입력칸을 떠날 때 확정(9→09:00, 15→15:00, 930→09:30, 150→01:50). 시각으로 성립 못 하면 원본 유지 → 저장 시 validTime이 차단
+function fixTime(v){ const d=String(v).replace(/\D/g,"").slice(0,4); if(!d) return ""; let hh,mm; if(d.length===4){ hh=d.slice(0,2); mm=d.slice(2); } else if(d.length===3){ hh="0"+d[0]; mm=d.slice(1); } else { hh=d.padStart(2,"0"); mm="00"; } return (+hh<24&&+mm<60)?(hh+":"+mm):v; }
 // "9:30" 등 시가 1자리인 구버전 시간값을 "09:30"으로 보정(마이그레이션용)
 function padTime(t){ const m=String(t||"").match(/^(\d{1,2}):(\d{2})$/); return m?(m[1].padStart(2,"0")+":"+m[2]):(t||""); }
 // 시간 문자열("HH:MM")을 분 단위 정수로 변환(정렬용). 형식 오류·공란은 -1
@@ -1416,6 +1429,27 @@ function openTodoOverview(){
   document.getElementById("todoModal").classList.remove("hidden");
 }
 function closeTodoModal(){ document.getElementById("todoModal").classList.add("hidden"); }
+/* ===== 드래그 중 자동 스크롤 (부서 카드·업무 카드·상세 업무 공통) =====
+   화면 위/아래 끝 80px 안으로 끌고 가면 목록이 따라 스크롤된다. 끝에서 멀수록 느리고 가까울수록 빠르다.
+   dragover는 마우스가 멈추면 발화가 끊기므로 타이머로 굴린다(멈춰 있어도 계속 스크롤). */
+const DS_EDGE=80, DS_MAX=24;
+let _dsEl=null, _dsSpeed=0, _dsTimer=null;
+function dsScroller(el){ for(let n=el; n&&n.nodeType===1&&n!==document.body; n=n.parentElement){ const oy=getComputedStyle(n).overflowY; if((oy==="auto"||oy==="scroll")&&n.scrollHeight>n.clientHeight+2) return n; } return null; }
+function dragAutoScroll(e){
+  const box=dsScroller(e.target);
+  const top=box?box.getBoundingClientRect().top:0;
+  const bot=box?box.getBoundingClientRect().bottom:(window.innerHeight||document.documentElement.clientHeight);
+  let sp=0;
+  if(e.clientY<top+DS_EDGE) sp=-Math.ceil((top+DS_EDGE-e.clientY)/DS_EDGE*DS_MAX);
+  else if(e.clientY>bot-DS_EDGE) sp=Math.ceil((e.clientY-(bot-DS_EDGE))/DS_EDGE*DS_MAX);
+  _dsEl=box; _dsSpeed=Math.max(-DS_MAX,Math.min(DS_MAX,sp));
+  if(_dsSpeed&&!_dsTimer) _dsTimer=setInterval(()=>{ if(!_dsSpeed){ stopDragScroll(); return; } if(_dsEl) _dsEl.scrollTop+=_dsSpeed; else window.scrollBy(0,_dsSpeed); },16);
+  else if(!_dsSpeed) stopDragScroll();
+}
+function stopDragScroll(){ if(_dsTimer){ clearInterval(_dsTimer); _dsTimer=null; } _dsSpeed=0; _dsEl=null; }
+document.addEventListener("dragover",dragAutoScroll,true);
+document.addEventListener("drop",stopDragScroll,true);
+document.addEventListener("dragend",stopDragScroll,true);
 /* 카드 드래그 정렬 */
 let dragDeptId=null;
 function cardDragStart(e){ const card=e.target.closest(".dept-card"); if(!card) return; dragDeptId=card.dataset.deptid; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragDeptId);}catch(_){}
@@ -1779,8 +1813,8 @@ function ivSessionRowHTML(s){ s=s||{};
   return `<div class="ivs-row"><div class="ivs-grid">
     <div class="ivs-f"><label>회차</label><select class="ivs-round">${IV_ROUNDS.map(r=>`<option ${s.round===r?'selected':''}>${r}</option>`).join("")}</select></div>
     <div class="ivs-f"><label>면접일</label><input class="ivs-date" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" value="${esc(s.date||'')}" oninput="this.value=maskDate(this.value)"></div>
-    <div class="ivs-f"><label>시작</label><input class="ivs-ts" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="${esc(s.ts||'')}" oninput="this.value=maskTime(this.value)"></div>
-    <div class="ivs-f"><label>종료</label><input class="ivs-te" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="${esc(s.te||'')}" oninput="this.value=maskTime(this.value)"></div>
+    <div class="ivs-f"><label>시작</label><input class="ivs-ts" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="${esc(s.ts||'')}" oninput="this.value=maskTime(this.value)" onblur="this.value=fixTime(this.value)"></div>
+    <div class="ivs-f"><label>종료</label><input class="ivs-te" type="text" inputmode="numeric" maxlength="5" placeholder="00:00" value="${esc(s.te||'')}" oninput="this.value=maskTime(this.value)" onblur="this.value=fixTime(this.value)"></div>
     <div class="ivs-f wide"><label>장소 <span style="font-weight:400">· 본사는 생략 가능</span></label><div style="display:flex;gap:6px"><select class="ivs-site" style="width:88px;flex:0 0 auto">${IV_SITES.map(v=>`<option ${(s.site||'본사')===v?'selected':''}>${v}</option>`).join("")}</select><input class="ivs-place" style="flex:1" value="${esc(s.place||'')}" placeholder="예: 중회의실"></div></div>
     <div class="ivs-f wide"><label>참석 면접관 <span style="font-weight:400">· 여러 명 쉼표로</span></label><input class="ivs-panel" value="${esc(s.panel||'')}" placeholder="예: 영업1팀장, 인사팀장"></div>
     <div class="ivs-f wide"><label>배석자 <span style="font-weight:400">· 이 회차 배석</span></label><input class="ivs-obs" value="${esc(s.obs||'')}" placeholder="예: 인사팀 김주임"></div>
@@ -2171,6 +2205,17 @@ function deleteTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) re
 function addSub(id){ const inp=document.getElementById("sub_"+id); if(!inp) return; const text=inp.value.trim(); if(!text) return; const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.subs.push({id:newTkId("ts"), text, done:false}); saveState({tasks:true}); afterTaskChange(); const ni=document.getElementById("sub_"+id); if(ni) ni.focus(); }
 function toggleSub(tid,sid){ const t=(state.tasks||[]).find(x=>x.id===tid); if(!t) return; const s=t.subs.find(x=>x.id===sid); if(!s) return; s.done=!s.done; saveState({tasks:true}); afterTaskChange(); }
 function deleteSub(tid,sid){ const t=(state.tasks||[]).find(x=>x.id===tid); if(!t) return; t.subs=t.subs.filter(x=>x.id!==sid); saveState({tasks:true}); afterTaskChange(); }
+/* 상세 업무(서브태스크) 드래그 정렬 — ★가드(if(!dragSubId) return)가 stopPropagation보다 먼저여야
+   상위 카드 드래그가 상세 업무 목록 위를 지날 때 taskDragOver로 정상 버블링된다 */
+let dragSubId=null, dragSubTid=null;
+function subDragStart(e){ const li=e.target.closest(".tk-sub"); if(!li) return; dragSubId=li.dataset.sid; dragSubTid=li.dataset.tid; e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",dragSubId);}catch(_){}
+  try{ const r=li.getBoundingClientRect(); e.dataTransfer.setDragImage(li, e.clientX-r.left, e.clientY-r.top); }catch(_){}
+  e.stopPropagation(); setTimeout(()=>li.classList.add("dragging"),0); }
+function subDragOver(e){ if(!dragSubId) return; const li=e.currentTarget; if(li.dataset.tid!==dragSubTid) return; e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect="move"; if(li.dataset.sid===dragSubId){ li.classList.remove("drop-before","drop-after"); return; } const r=li.getBoundingClientRect(); const before=(e.clientY-r.top)<r.height/2; li.classList.toggle("drop-before",before); li.classList.toggle("drop-after",!before); }
+function subDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-after"); }
+function subDrop(e){ if(!dragSubId) return; const li=e.currentTarget; if(li.dataset.tid!==dragSubTid) return; e.preventDefault(); e.stopPropagation(); const tgt=li.dataset.sid; const before=li.classList.contains("drop-before"); li.classList.remove("drop-before","drop-after"); if(tgt&&dragSubId!==tgt){ moveSub(dragSubTid,dragSubId,tgt,before); dragSubId=null; dragSubTid=null; afterTaskChange(); } }
+function subDragEnd(){ document.querySelectorAll(".tk-sub.dragging,.tk-sub.drop-before,.tk-sub.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragSubId=null; dragSubTid=null; }
+function moveSub(taskId,dragId,targetId,before){ const t=(state.tasks||[]).find(x=>x.id===taskId); if(!t||!Array.isArray(t.subs)) return; const arr=t.subs; const di=arr.findIndex(s=>s.id===dragId); if(di<0) return; const [m]=arr.splice(di,1); let ti=arr.findIndex(s=>s.id===targetId); if(ti<0){ arr.splice(di,0,m); return; } if(!before) ti++; arr.splice(ti,0,m); saveState({tasks:true}); }
 function tkDayChipHTML(t,wt){
   const dn=dnum(t.day), wn=dnum(wt); const diff=(dn!=null&&wn!=null)?dn-wn:null;
   let lbl,cls;
@@ -2189,7 +2234,7 @@ function taskCardHTML(t,bucket){
     ? `<button class="tk-move" onclick="moveTaskDay('${t.id}','tomorrow')" title="내일로 미루기">내일로 →</button>`
     : `<button class="tk-move" onclick="moveTaskDay('${t.id}','today')" title="오늘로 가져오기">← 오늘로</button>`);
   const dateBtn=t.done?'':`<input type="date" class="tk-carddate" value="${esc(t.day)}" onchange="setTaskDate('${t.id}',this.value)" title="날짜 지정">`;
-  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}"><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="상세 업무 삭제">×</button></li>`).join("");
+  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}" data-tid="${t.id}" data-sid="${s.id}" ondragover="subDragOver(event)" ondragleave="subDragLeave(event)" ondrop="subDrop(event)" ondragend="subDragEnd(event)"><span class="tk-subgrip" draggable="true" ondragstart="subDragStart(event)" title="드래그하여 순서 변경">⠿</span><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="상세 업무 삭제">×</button></li>`).join("");
   const impBtn=`<button class="tk-impbtn ${t.important?'on':''}" onclick="toggleImportant('${t.id}')" title="${t.important?'중요 해제':'중요로 표시'}">중요</button>`;
   const colorSel=t.done?'':`<select class="tk-cardcolor" title="업무 색상" onchange="setTaskColor('${t.id}',this.value)">${TASK_COLORS.map(c=>`<option value="${c.key}" ${(t.color||'green')===c.key?'selected':''}>${c.label}</option>`).join("")}</select>`;
   const dot=`<span class="tk-dot" style="background:${taskColor(t)}"></span>`;
@@ -2692,7 +2737,7 @@ function renderWkTaskBody(id){
   const t=(state.tasks||[]).find(x=>x.id===id); if(!t){ closeWkTask(); return; }
   const subDone=t.subs.filter(s=>s.done).length, subTot=t.subs.length; const pct=subTot?Math.round(subDone/subTot*100):0;
   const titleEl=document.getElementById("wkTaskTitle"); if(titleEl) titleEl.innerHTML=`<span class="tk-dot" style="background:${taskColor(t)}"></span>${t.important?'<span class="tk-impbadge">중요</span>':''}${esc(t.title)}`;
-  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}"><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="삭제">×</button></li>`).join("");
+  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}" data-tid="${t.id}" data-sid="${s.id}" ondragover="subDragOver(event)" ondragleave="subDragLeave(event)" ondrop="subDrop(event)" ondragend="subDragEnd(event)"><span class="tk-subgrip" draggable="true" ondragstart="subDragStart(event)" title="드래그하여 순서 변경">⠿</span><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="삭제">×</button></li>`).join("");
   document.getElementById("wkTaskBody").innerHTML=`
     <div class="cev-row"><span class="k">날짜</span><span class="v">${esc(t.day)} (${dowK(t.day)})${holidayName(t.day)?` · <span style="color:#c0504d">${esc(holidayName(t.day))}</span>`:''}</span></div>
     <div class="cev-row"><span class="k">상태</span><span class="v"><button class="mini ${t.done?'ok':''}" onclick="toggleTask('${t.id}')">${t.done?'✓ 완료됨 (취소)':'완료로 표시'}</button> <button class="mini ${t.important?'del':''}" onclick="toggleImportant('${t.id}')">${t.important?'중요 해제':'중요 표시'}</button></span></div>
