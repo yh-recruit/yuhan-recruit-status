@@ -70,5 +70,4 @@ git clone https://github.com/yh-recruit/yuhan-recruit-status.git
 ## 📄 관련 문서
 
 - [`FIREBASE-SETUP.md`](FIREBASE-SETUP.md) — Firebase 설정 방법 (이미 완료됨)
-- [`CLAUDE.md`](CLAUDE.md) — 코드 구조 / 작업 인수인계 상세
 - [`HANDOFF.md`](HANDOFF.md) — 프로젝트 전체 맥락
