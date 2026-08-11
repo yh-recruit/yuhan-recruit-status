@@ -633,6 +633,9 @@
   .tk-sub.drop-before::before,.tk-sub.drop-after::after{content:"";position:absolute;left:0;right:0;height:3px;border-radius:2px;background:var(--yh-green)}
   .tk-sub.drop-before::before{top:-4px}
   .tk-sub.drop-after::after{bottom:-4px}
+  /* 상세 업무 추가줄은 평소 접어 두고 메타줄의 '+ 상세'로 편다(세로 압축) */
+  .tk-subaddbtn{flex-shrink:0;border:1px dashed var(--line);background:#fff;color:var(--muted);border-radius:6px;font-size:11px;font-weight:700;padding:2px 9px;line-height:1.5;cursor:pointer}
+  .tk-subaddbtn:hover,.tk-subaddbtn.on{border-style:solid;border-color:var(--yh-green-light);background:var(--yh-green-tint);color:var(--yh-green-dark)}
   .tk-subadd{display:flex;gap:7px;margin:9px 0 2px;padding-left:35px}
   .tk-subinput{flex:1;min-width:0;padding:7px 11px;border:1px dashed var(--line);border-radius:8px;font-size:12.5px;outline:none;background:var(--bg)}
   .tk-subinput:focus{border-color:var(--yh-green-light);border-style:solid;background:#fff}
@@ -2197,7 +2200,18 @@ function taskDragStart(e){ const c=e.target.closest(".tk-card"); if(!c) return; 
   setTimeout(()=>c.classList.add("dragging"),0); }
 function taskDragOver(e){ if(!dragTaskId) return; e.preventDefault(); e.dataTransfer.dropEffect="move"; const c=e.currentTarget; if(c.dataset.id===dragTaskId){ c.classList.remove("drop-before","drop-after"); return; } const r=c.getBoundingClientRect(); const before=(e.clientY-r.top)<r.height/2; c.classList.toggle("drop-before",before); c.classList.toggle("drop-after",!before); }
 function taskDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-after"); }
-function taskDrop(e){ if(!dragTaskId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.id; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after"); if(tgt&&dragTaskId!==tgt){ moveTask(dragTaskId,tgt,before); dragTaskId=null; renderTasks(); } }
+function taskDrop(e){ if(!dragTaskId) return; e.preventDefault(); const c=e.currentTarget; const tgt=c.dataset.id; const before=c.classList.contains("drop-before"); c.classList.remove("drop-before","drop-after");
+  if(tgt&&dragTaskId!==tgt){
+    /* '전체' 탭은 날짜 오름차순으로 재정렬하므로(renderTasks의 sorted) 순서만 바꾸면 화면이 제자리로 돌아간다.
+       → 다른 날짜 카드 위에 놓으면 그 날짜로 변경한다. 업무 일정표에서 칩을 다른 날짜 칸으로 옮기는 것
+       (wkCellDrop → setTaskDate)과 같은 동작이며, 두 화면의 드래그 의미를 일치시키는 것이 목적. */
+    const dg=(state.tasks||[]).find(x=>x.id===dragTaskId), tt=(state.tasks||[]).find(x=>x.id===tgt);
+    const crossDay = taskFilter==='all' && dg && tt && !dg.done && dg.day!==tt.day;
+    const newDay = crossDay?tt.day:null;
+    moveTask(dragTaskId,tgt,before); dragTaskId=null;
+    if(crossDay){ setTaskDate(dg.id,newDay); toast(`‘${dg.title}’ 업무를 ${shortD(newDay)}로 옮겼습니다.`); }
+    else renderTasks();
+  } }
 function taskDragEnd(){ document.querySelectorAll(".tk-card.dragging,.tk-card.drop-before,.tk-card.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragTaskId=null; }
 function moveTask(dragId,targetId,before){ const arr=state.tasks; const di=arr.findIndex(t=>t.id===dragId); if(di<0) return; const [m]=arr.splice(di,1); let ti=arr.findIndex(t=>t.id===targetId); if(ti<0){ arr.splice(di,0,m); return; } if(!before) ti++; arr.splice(ti,0,m); saveState({tasks:true}); }
 function toggleTask(id){ const t=(state.tasks||[]).find(x=>x.id===id); if(!t) return; t.done=!t.done; saveState({tasks:true}); afterTaskChange(); }
@@ -2216,6 +2230,9 @@ function subDragLeave(e){ e.currentTarget.classList.remove("drop-before","drop-a
 function subDrop(e){ if(!dragSubId) return; const li=e.currentTarget; if(li.dataset.tid!==dragSubTid) return; e.preventDefault(); e.stopPropagation(); const tgt=li.dataset.sid; const before=li.classList.contains("drop-before"); li.classList.remove("drop-before","drop-after"); if(tgt&&dragSubId!==tgt){ moveSub(dragSubTid,dragSubId,tgt,before); dragSubId=null; dragSubTid=null; afterTaskChange(); } }
 function subDragEnd(){ document.querySelectorAll(".tk-sub.dragging,.tk-sub.drop-before,.tk-sub.drop-after").forEach(x=>x.classList.remove("dragging","drop-before","drop-after")); dragSubId=null; dragSubTid=null; }
 function moveSub(taskId,dragId,targetId,before){ const t=(state.tasks||[]).find(x=>x.id===taskId); if(!t||!Array.isArray(t.subs)) return; const arr=t.subs; const di=arr.findIndex(s=>s.id===dragId); if(di<0) return; const [m]=arr.splice(di,1); let ti=arr.findIndex(s=>s.id===targetId); if(ti<0){ arr.splice(di,0,m); return; } if(!before) ti++; arr.splice(ti,0,m); saveState({tasks:true}); }
+/* 상세 업무 추가줄 접기 — 펼친 카드 id만 보관(재렌더에도 유지) */
+const subAddOpen=new Set();
+function toggleSubAdd(id){ if(subAddOpen.has(id)) subAddOpen.delete(id); else subAddOpen.add(id); renderTasks(); const inp=document.getElementById("sub_"+id); if(inp) inp.focus(); }
 function tkDayChipHTML(t,wt){
   const dn=dnum(t.day), wn=dnum(wt); const diff=(dn!=null&&wn!=null)?dn-wn:null;
   let lbl,cls;
@@ -2238,13 +2255,15 @@ function taskCardHTML(t,bucket){
   const impBtn=`<button class="tk-impbtn ${t.important?'on':''}" onclick="toggleImportant('${t.id}')" title="${t.important?'중요 해제':'중요로 표시'}">중요</button>`;
   const colorSel=t.done?'':`<select class="tk-cardcolor" title="업무 색상" onchange="setTaskColor('${t.id}',this.value)">${TASK_COLORS.map(c=>`<option value="${c.key}" ${(t.color||'green')===c.key?'selected':''}>${c.label}</option>`).join("")}</select>`;
   const dot=`<span class="tk-dot" style="background:${taskColor(t)}"></span>`;
+  const subOpen=subAddOpen.has(t.id);
+  const subAddBtn=t.done?'':`<button class="tk-subaddbtn ${subOpen?'on':''}" onclick="toggleSubAdd('${t.id}')" title="상세 업무 추가">${subOpen?'− 닫기':'+ 상세'}</button>`;
   return `<div class="tk-card ${t.done?'done':''} ${t.important?'important':''}" data-id="${t.id}" ondragover="taskDragOver(event)" ondragleave="taskDragLeave(event)" ondrop="taskDrop(event)" ondragend="taskDragEnd(event)">
     <div class="tk-main">
       <span class="tk-grip" draggable="true" ondragstart="taskDragStart(event)" title="드래그하여 순서 변경">⠿</span>
       <button class="tk-check ${t.done?'on':''}" onclick="toggleTask('${t.id}')" title="${t.done?'완료 취소':'완료'}">${t.done?'✓':''}</button>
       <div class="tk-body">
         <div class="tk-title">${dot}${t.important?'<span class="tk-impbadge">중요</span>':''}${esc(t.title)}</div>
-        <div class="tk-meta">${tkDayChipHTML(t,wt)}${carried?'<span class="tk-carry">이월</span>':''}${t.author?`<span class="tk-author">${esc(t.author)}</span>`:''}${subTot?`<span class="tk-prog">상세 ${subDone}/${subTot} · ${pct}%</span>`:''}</div>
+        <div class="tk-meta">${tkDayChipHTML(t,wt)}${carried?'<span class="tk-carry">이월</span>':''}${t.author?`<span class="tk-author">${esc(t.author)}</span>`:''}${subTot?`<span class="tk-prog">상세 ${subDone}/${subTot} · ${pct}%</span>`:''}${subAddBtn}</div>
       </div>
       ${t.done?'':impBtn}
       ${colorSel}
@@ -2253,8 +2272,8 @@ function taskCardHTML(t,bucket){
       <button class="tk-del" onclick="deleteTask('${t.id}')" title="업무 삭제">삭제</button>
     </div>
     ${subTot?`<div class="tk-progwrap"><div class="tk-progbar"><div class="tk-progfill" style="width:${pct}%;background:${taskColor(t)}"></div></div></div>`:''}
-    <ul class="tk-subs">${subs}</ul>
-    <div class="tk-subadd"><input id="sub_${t.id}" class="tk-subinput" placeholder="상세 업무 추가 — Enter로 등록" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="tk-subbtn" onclick="addSub('${t.id}')">+ 추가</button></div>
+    ${subTot?`<ul class="tk-subs">${subs}</ul>`:''}
+    ${subOpen?`<div class="tk-subadd"><input id="sub_${t.id}" class="tk-subinput" placeholder="상세 업무 추가 — Enter로 등록" onkeydown="if(event.key==='Enter')addSub('${t.id}')"><button class="tk-subbtn" onclick="addSub('${t.id}')">+ 추가</button></div>`:''}
   </div>`;
 }
 function renderTasks(){
@@ -2764,26 +2783,27 @@ const MAIL_TEMPLATES = [
   { key:"notice-doc", label:"🔔 [부서안내] 평가자 계정·서류전형 안내", stageRef:"서류전형",
     fields:[
       {k:"writer",label:"작성자(인사팀)",type:"text",ph:"예: 홍길동 사원",default:"OOO 사원"},
+      {k:"initPw",label:"ATS 초기 비밀번호",type:"text",ph:"평가자 계정 초기 PW"},
       {k:"deadline",label:"평가 입력 완료 기한",type:"text",ph:"예: 6월 27일 금요일 18:00"},
       {k:"docMult",label:"서류합격 선정 배수",type:"text",ph:"예: 5~6배수",default:"5~6배수"},
       {k:"aiMult",label:"AI역량검사 진행 배수",type:"text",ph:"예: 4~5배수",default:"4~5배수"}
     ],
     build:(d,f)=>{
-      const w=f.writer||"OOO 사원"; const dl=f.deadline||"O월 O일 O요일 OO:OO"; const dm=f.docMult||"5~6배수"; const am=f.aiMult||"4~5배수";
+      const w=f.writer||"OOO 사원"; const dl=f.deadline||"O월 O일 O요일 OO:OO"; const dm=f.docMult||"5~6배수"; const am=f.aiMult||"4~5배수"; const pw=f.initPw||"(직접입력)";
       return { subject:`[인사팀] 평가자 계정 및 서류전형 안내(${d.name})`,
-      body:`안녕하세요,\n인사팀 ${w}입니다.\n\n채용공고 마감됨에 따라\n평가자 아이디 및 비밀번호 송부드립니다.\n\n1) ATS 평가자 시스템 링크\n: https://yuhan-cms.recruiter.co.kr/cus/login\n\n2) 평가자 계정 전달\n ID : 사번(예: 123456)\n 초기 PW : yh2025@@ (핸드폰 본인인증 후 변경가능)\n* 비밀번호를 변경하시고 분실하셨다면, 재설정 도와드리겠습니다.\n\n3) 평가 입력 완료 기한\n서류합격 대상자를 ${dl} 전까지 선정을 부탁드립니다.\n(서류합격 대상자를 PASS로 평가)\n* 평가 기간이 촉박할 경우, 요청 주시면 기간 연장 도와드리겠습니다.\n* 그 전에 완료하실 경우, 메일 회신 부탁드리겠습니다.\n\n서류합격 대상자는 채용 인원의 ${dm} 정도를 선정 부탁드립니다.\n\n* 지원자 이력서 조회 및 평가는 현재부터 가능합니다.\n\n추가 사항으로\n1) 인사팀에서도 서류 병행 검토 중에 있습니다.\n2) 이에 따라서 AI역량검사는 ${am}로 진행할 예정입니다.\n    * 기존 요청 : 서류평가 ${dm}\n3) 대상자 선정 후, ATS 내에서만 평가해주시면 되겠습니다.\n    * 모든 탈락자들에게 'Fail'를 누르지 않아도 되며, 합격자들에게만 'Pass' / 나머지는 '미평가'로 두셔도 무방합니다.\n\n감사합니다.\n${w.replace(/\s*사원$/,"")}드림` };
+      body:`안녕하세요,\n인사팀 ${w}입니다.\n\n채용공고 마감됨에 따라\n평가자 아이디 및 비밀번호 송부드립니다.\n\n1) ATS 평가자 시스템 링크\n: https://yuhan-cms.recruiter.co.kr/cus/login\n\n2) 평가자 계정 전달\n ID : 사번(예: 123456)\n 초기 PW : ${pw} (핸드폰 본인인증 후 변경가능)\n* 비밀번호를 변경하시고 분실하셨다면, 재설정 도와드리겠습니다.\n\n3) 평가 입력 완료 기한\n서류합격 대상자를 ${dl} 전까지 선정을 부탁드립니다.\n(서류합격 대상자를 PASS로 평가)\n* 평가 기간이 촉박할 경우, 요청 주시면 기간 연장 도와드리겠습니다.\n* 그 전에 완료하실 경우, 메일 회신 부탁드리겠습니다.\n\n서류합격 대상자는 채용 인원의 ${dm} 정도를 선정 부탁드립니다.\n\n* 지원자 이력서 조회 및 평가는 현재부터 가능합니다.\n\n추가 사항으로\n1) 인사팀에서도 서류 병행 검토 중에 있습니다.\n2) 이에 따라서 AI역량검사는 ${am}로 진행할 예정입니다.\n    * 기존 요청 : 서류평가 ${dm}\n3) 대상자 선정 후, ATS 내에서만 평가해주시면 되겠습니다.\n    * 모든 탈락자들에게 'Fail'를 누르지 않아도 되며, 합격자들에게만 'Pass' / 나머지는 '미평가'로 두셔도 무방합니다.\n\n감사합니다.\n${w.replace(/\s*사원$/,"")}드림` };
     } },
   { key:"join-doc-career", label:"🔔 [입사자안내] (경력) 입사 전 제출서류·절차", stageRef:"입사",
     fields:[
       {k:"name",label:"입사자 성명",type:"text",ph:"예: 홍길동"},
       {k:"examDate",label:"채용검진 완료 기한",type:"text",ph:"예: 6월 30일 월요일",default:"O월 O일 월요일"},
       {k:"docDeadline",label:"서류 제출 기한",type:"text",ph:"예: 6월 27일 금요일 18시",default:"O월 O일 O요일 OO시"},
-      {k:"replyMail",label:"서류 회신 메일",type:"text",ph:"예: sangok115@yuhan.co.kr",default:"sangok115@yuhan.co.kr"},
+      {k:"replyMail",label:"서류 회신 메일",type:"text",ph:"예: hong.gildong@company.co.kr"},
       {k:"joinDateTime",label:"입사 당일 일시",type:"text",ph:"예: 7월 1일(화요일) 오전 8시 30분",default:"O월 O일(O요일) 오전 8시 30분"},
       {k:"joinPlace",label:"입사 당일 장소",type:"text",ph:"예: 유한양행 본사 1층 로비"}
     ],
     build:(d,f)=>{
-      const nm=f.name||"OOO"; const ex=f.examDate||"O월 O일 월요일"; const dl=f.docDeadline||"O월 O일 O요일 OO시"; const rm=f.replyMail||"sangok115@yuhan.co.kr"; const jt=f.joinDateTime||"O월 O일(O요일) 오전 8시 30분"; const jp=f.joinPlace||"(직접입력)";
+      const nm=f.name||"OOO"; const ex=f.examDate||"O월 O일 월요일"; const dl=f.docDeadline||"O월 O일 O요일 OO시"; const rm=f.replyMail||"OOO"; const jt=f.joinDateTime||"O월 O일(O요일) 오전 8시 30분"; const jp=f.joinPlace||"(직접입력)";
       return { subject:`(주)유한양행 입사자 안내(${nm})`,
       body:`[입사 전 제출 서류 및 절차 안내]\n\n안녕하세요, 유한양행 인사팀입니다.\n최종 합격을 진심으로 축하드립니다.\n입사 전 제출이 필요한 설문 및 서류를 아래와 같이 안내드립니다.\n\n1. 즉시 응답 (설문조사)\n네이버폼 링크: https://naver.me/Go2tDSxw\n메일 확인 즉시 설문조사 응답 부탁드립니다.\n\n2. 채용검진\n· 26년 정밀건강검진 결과지가 있는 경우 → 채용검진 면제\n  (해당 결과지를 다른 서류와 함께 제출)\n· 정밀검사 결과지가 없는 경우 → 회사 지정 병원에서 신체검사 진행(${ex} 전까지 실시)\n  (검사 전 8시간 이상 공복 유지, 전화 사전 예약 필수)\n[병원 안내] 성애병원 (서울 영등포구 여의대방로53길 22) / Tel: 02-840-7384\n방문 시 "유한양행 채용검진"이라고 말씀해 주세요.\n\n3. 제출 서류 (${dl}까지 제출)\n메일 회신처: ${rm}\n① 경력: 경력증명서/재직증명서(가장 최근 재직한 회사), 건강보험득실확인서(기제출 서류 활용)\n② 사진: 증명사진 파일\n③ 자격/면허/어학/장애/보훈: 각종 증명서 사본 (원본 사진 가능)\n④ 통장사본: 급여계좌 (설문조사와 동일 계좌)\n⑤ 학력: 성적증명서, 졸업증명서 (석·박사는 대학원 포함)\n⑥ 병역(남성 군필자): 병적증명서 또는 주민등록초본 (병적사항 포함)\n⑦ 가족:\n  - 주민등록등본\n  - 아버지 쪽 가족관계증명서 (조부·조모 확인용)\n  - 어머니 쪽 가족관계증명서 (외조부·외조모 확인용)\n  - (기혼자의 경우) 배우자 부모님 가족관계증명서\n  ※ 혼인신고 미등록 시 청첩장 등 증빙자료 첨부\n  ※ 주민등록등본·가족관계증명서는 구성원(사망자 제외)들의 주민등록번호 뒷자리 표기\n\n[발급 경로]\n· 주민등록등(초)본, 병적증명서: 정부24(https://www.gov.kr/portal/main)\n· 부모님 가족관계증명서: 전자가족관계등록시스템(https://efamily.scourt.go.kr/index.jsp)\n\n[파일 제출 형식]\n· 파일명: 서류명(성명)  예) 토익(홍길동), 아버지 가족관계증명서(홍길동)\n· 제출 형식: 사진 또는 PDF\n· 발송한 메일은 입사일까지 보관 바랍니다.\n· 경력, 어학, 자격, 면허, 학력 등이 없으신 경우에는 제외하고 송부 부탁드립니다.\n\n4. 입사 당일 안내\n· 일시: ${jt}\n· 장소: ${jp}\n\n5. 기타(입사자 교육 관련)\n입사일 전까지 다음 안내사항을 참고하여 준비해주시면 감사하겠습니다.\n· 고용24(www.work24.go.kr) 접속 후, 회원가입(개인회원)\n· 휴대폰에 고용노동부 직업훈련 출결관리 어플리케이션 설치\n  (교육 시작 시 어플 실행 후 입실 QR 체크, 교육종료 후 퇴실 QR 체크)\n\n감사합니다.\n유한양행 인사팀 드림` };
     } },
@@ -2825,7 +2845,7 @@ function initMail(){
 function onMailDeptChange(){ const d=getDept(document.getElementById("mailDept").value); if(d){ const m=MAIL_TEMPLATES.find(t=>t.stageRef===d.stage); if(m) document.getElementById("mailTemplate").value=m.key; } renderMailFields(); }
 function currentTemplate(){ const k=document.getElementById("mailTemplate").value; return MAIL_TEMPLATES.find(t=>t.key===k); }
 /* 자주 쓰는 값(작성자·회신메일)은 브라우저에 기억해 자동 채움 */
-const MAIL_REMEMBER=["writer","replyMail"];
+const MAIL_REMEMBER=["writer","replyMail","initPw"];
 function mailPrefs(){ try{ return JSON.parse(localStorage.getItem("yh_mail_prefs")||"{}"); }catch(e){ return {}; } }
 function saveMailPref(k,v){ if(!MAIL_REMEMBER.includes(k)) return; const p=mailPrefs(); p[k]=v; try{ localStorage.setItem("yh_mail_prefs", JSON.stringify(p)); }catch(e){} }
 function mailFieldInput(k,el){ saveMailPref(k, el.value); renderMailOut(); }
@@ -2886,7 +2906,7 @@ function renderTeamDetail(deptId){
     <div class="panel" style="padding:22px 24px;margin-bottom:22px"><div class="section-title">전형 진행 단계</div>${stepperHTML(d.stage)}</div>
     <div class="panel ats-panel"><div class="ats-head"><div><div class="section-title" style="margin-bottom:0">평가 시스템(ATS) 바로가기</div><p class="ats-desc">각 전형 평가는 ATS(마이다스) 시스템에서 진행합니다.</p></div>
       <a class="ats-btn" href="https://yuhan-cms.recruiter.co.kr/cus/login" target="_blank" rel="noopener">ATS 평가자 시스템 접속 →</a></div>
-      <div class="ats-info"><b>평가자 계정</b><br>· ID : 사번 <span class="ats-mono">예) 123456</span><br>· 초기 PW : <span class="ats-mono">yh2025@@</span> <span class="ats-note">(휴대폰 본인인증 후 변경 가능)</span><br><span class="ats-note">* 비밀번호를 변경 후 분실하셨다면 채용담당자에게 연락 부탁드립니다.</span></div></div>
+      <div class="ats-info"><b>평가자 계정</b><br>· ID : 사번 <span class="ats-mono">예) 123456</span><br>· 초기 PW : <span class="ats-note">(초기 비밀번호는 담당자 안내 · 휴대폰 본인인증 후 변경 가능)</span><br><span class="ats-note">* 비밀번호를 변경 후 분실하셨다면 채용담당자에게 연락 부탁드립니다.</span></div></div>
     <div class="tl-grid">
       <div class="tl-stat"><div class="s-l">채용 형태</div><div class="s-v">${esc(d.type)}</div></div>
       <div class="tl-stat"><div class="s-l">채용요청인원</div><div class="s-v">${d.reqCount}명</div></div>

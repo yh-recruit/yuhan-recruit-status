@@ -66,8 +66,3 @@ git clone https://github.com/yh-recruit/yuhan-recruit-status.git
   앱 안의 `admin/0000` 로그인은 화면 가리개 수준입니다.
 - 저장 데이터는 대부분 숫자(지원자 수 등)와 부서 일정이지만,
   본격 운영 시 **실제 로그인(Firebase Auth)**으로 강화하는 것을 권장합니다.
-
-## 📄 관련 문서
-
-- [`FIREBASE-SETUP.md`](FIREBASE-SETUP.md) — Firebase 설정 방법 (이미 완료됨)
-- [`HANDOFF.md`](HANDOFF.md) — 프로젝트 전체 맥락
