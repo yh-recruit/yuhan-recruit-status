@@ -638,6 +638,28 @@
   .tk-subaddbtn:hover,.tk-subaddbtn.on{border-style:solid;border-color:var(--yh-green-light);background:var(--yh-green-tint);color:var(--yh-green-dark)}
   .tk-subadd{display:flex;gap:7px;margin:9px 0 2px;padding-left:35px}
   .tk-subinput{flex:1;min-width:0;padding:7px 11px;border:1px dashed var(--line);border-radius:8px;font-size:12.5px;outline:none;background:var(--bg)}
+  /* 할 일·상세 업무 제자리 수정(2026-09-19): ✎ 또는 글자 더블클릭 → 입력칸, Enter·바깥 클릭=저장, Esc=취소 */
+  .tk-editbtn{flex-shrink:0;border:none;background:none;color:var(--muted);cursor:pointer;font-size:12.5px;line-height:1;padding:2px 5px;border-radius:5px;margin-left:3px;vertical-align:1px}
+  .tk-editbtn:hover{background:var(--yh-green-tint);color:var(--yh-green-dark)}
+  .tk-title.editing{display:flex;align-items:center}
+  .tk-mtitle-edit{display:flex;align-items:center;width:100%}
+  #wkTaskTitle{flex:1;min-width:0;margin-right:10px}
+  .tk-editinput{flex:1;width:100%;min-width:0;padding:5px 9px;border:1px solid var(--yh-green);border-radius:7px;font-size:inherit;font-weight:inherit;color:var(--ink);outline:none;background:#fff;font-family:inherit}
+  .tk-sub .tk-editinput{font-size:13px;font-weight:400;padding:3px 8px}
+  /* 메모 탭(2026-09-19) */
+  .mm-add{display:flex;gap:10px;padding:16px 18px;margin-bottom:16px;align-items:flex-start;flex-wrap:wrap}
+  .mm-addtext{flex:1;min-width:260px;padding:10px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px;outline:none;background:#fff;font-family:inherit;resize:vertical;line-height:1.5}
+  .mm-addtext:focus{border-color:var(--yh-green-light)}
+  .mm-list{display:flex;flex-direction:column;gap:10px}
+  .mm-card{background:#fff;border:1px solid var(--line);border-left:4px solid var(--mm-c,#8895A0);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow)}
+  .mm-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .mm-cat{font-size:11px;font-weight:800;padding:2px 9px;border-radius:6px}
+  .mm-meta{font-size:11.5px;color:var(--muted);font-weight:600}
+  .mm-acts{margin-left:auto;display:flex;gap:6px}
+  .mm-text{margin-top:8px;font-size:14px;color:var(--ink);line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .mm-edit{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .mm-edit .mm-addtext{min-width:0;width:100%}
+  .mm-editrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .tk-subinput:focus{border-color:var(--yh-green-light);border-style:solid;background:#fff}
   .tk-subbtn{flex-shrink:0;border:1px solid var(--line);background:#fff;color:var(--text);border-radius:8px;font-size:12px;font-weight:600;padding:6px 12px;cursor:pointer}
   .tk-subbtn:hover{background:var(--yh-green-tint);border-color:var(--yh-green-light)}
@@ -754,6 +776,7 @@ window.YH_FIREBASE_CONFIG = {
       <button class="tab" data-tab="sched" onclick="switchTab('sched')">일정표</button>
       <button class="tab" data-tab="tasks" onclick="switchTab('tasks')">기타 업무</button>
       <button class="tab" data-tab="worksched" onclick="switchTab('worksched')">업무 일정표</button>
+      <button class="tab" data-tab="memo" onclick="switchTab('memo')">메모</button>
     </div>
 
     <section id="tab-dash">
@@ -776,7 +799,7 @@ window.YH_FIREBASE_CONFIG = {
 
     <section id="tab-completed" class="hidden">
       <div class="page-head">
-        <div><h1>완료된 전형</h1><div class="sub">‘채용 종료 → 그룹웨어 게시판 게재’까지 완료한 전형입니다. 통계에는 계속 포함됩니다.</div></div>
+        <div><h1>완료된 전형</h1><div class="sub">‘채용 종료 → 그룹웨어 게시판 게재’까지 완료한 전형입니다. 통계에는 계속 포함됩니다. 입사일이 최근인 전형이 위로 오고, 입사일이 없는 전형은 맨 아래에 놓입니다.</div></div>
       </div>
       <div class="dept-grid" id="completedGrid"></div>
     </section>
@@ -843,6 +866,16 @@ window.YH_FIREBASE_CONFIG = {
     <section id="tab-worksched" class="hidden">
       <div class="page-head"><div><h1>업무 일정표</h1><div class="sub">기타 업무를 달력으로 봅니다. 일정을 클릭하면 완료·상세를 확인하고, 바를 다른 날짜로 끌어다 놓으면 일정이 변경됩니다. 중요 업무는 빨간색으로 강조됩니다.</div></div></div>
       <div id="workSchedResult"></div>
+    </section>
+
+    <section id="tab-memo" class="hidden">
+      <div class="page-head"><div><h1>메모</h1><div class="sub">상사의 상시 지시, 바뀐 규칙·지침, 나중에 해 볼 일처럼 날짜가 없는 내용을 적어 둡니다. 할 일(기타 업무)과 달리 이월되거나 사라지지 않습니다.</div></div></div>
+      <div class="mm-add panel">
+        <select id="memoCat" class="tk-colorsel" title="분류"></select>
+        <textarea id="memoText" class="mm-addtext" rows="2" placeholder="메모 내용 (예: 면접이 잡히면 ○○팀에 면접 자료를 고정으로 전달) — Ctrl+Enter로 등록" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();addMemo();}"></textarea>
+        <button class="tk-addbtn" onclick="addMemo()">+ 메모 추가</button>
+      </div>
+      <div id="memoResult"></div>
     </section>
   </div>
   <div class="footer">유한양행 채용 전형 현황 시스템 · 프로토타입 · 데이터는 이 브라우저에만 저장됩니다.</div>
@@ -1074,6 +1107,13 @@ const TASK_COLORS = [
   {key:"gray",  label:"회색", c:"#8895A0"}
 ];
 function taskColor(t){ if(t&&t.important) return "#C0392B"; const f=TASK_COLORS.find(x=>x.key===(t&&t.color)); return f?f.c:"#00833D"; }
+// 메모 분류(2026-09-19) — normalize()가 참조하므로 normalize 호출보다 앞에 둔다
+const MEMO_CATS = [
+  {key:"order", label:"상시 지시", c:"#00833D"},
+  {key:"rule",  label:"바뀐 규칙·지침", c:"#3E8ED0"},
+  {key:"later", label:"나중에 해 볼 일", c:"#C28A2B"},
+  {key:"etc",   label:"기타", c:"#8895A0"}
+];
 // 공휴일(빨간날) — 2026년 기준 + 인접 연도 일부. 키: YYYY-MM-DD, 값: 명칭
 const HOLIDAYS = {
   "2025-12-25":"성탄절",
@@ -1175,6 +1215,10 @@ function migrateV1(old){
 function normalize(st){
   if(!Array.isArray(st.accounts)) st.accounts=[];
   if(!Array.isArray(st.tasks)) st.tasks=[];
+  // 메모(2026-09-19): 날짜 없는 기록(상시 지시·바뀐 규칙·나중에 할 일). 옛 데이터엔 없음 → 빈 배열
+  if(!Array.isArray(st.memos)) st.memos=[];
+  st.memos=st.memos.filter(m=>m&&typeof m==="object");
+  st.memos.forEach(m=>{ if(!m.id) m.id="mm"+Math.random().toString(36).slice(2,9); if(m.text==null) m.text=""; if(!MEMO_CATS.some(c=>c.key===m.cat)) m.cat="etc"; if(!m.createdAt) m.createdAt=today(); if(!m.updatedAt) m.updatedAt=m.createdAt; if(m.author==null) m.author=""; });
   st.tasks.forEach(t=>{ if(!Array.isArray(t.subs)) t.subs=[]; if(typeof t.done!=="boolean") t.done=false; if(typeof t.important!=="boolean") t.important=false; if(!t.id) t.id="tk"+Math.random().toString(36).slice(2,9); if(!t.createdAt) t.createdAt=today(); if(t.author==null) t.author=""; if(!t.color) t.color="green";
     if(!t.day) t.day=(t.due&&dnum(t.due)!=null)?t.due:today(); delete t.due;
     t.subs.forEach(s=>{ if(typeof s.done!=="boolean") s.done=false; if(!s.id) s.id="ts"+Math.random().toString(36).slice(2,9); }); });
@@ -1234,13 +1278,13 @@ state=normalize(state);
 try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){}  // 정규화 결과 초기 반영(클라우드는 준비 후)
 
 /* ===== 클라우드(Firebase) 실시간 동기화 =====
-   문서(app/state)를 필드로 분해 저장: { depts:{[id]:json}, accounts:json, tasks:json, order:[id], updatedAt }.
+   문서(app/state)를 필드로 분해 저장: { depts:{[id]:json}, accounts:json, tasks:json, memos:json, order:[id], updatedAt }.
    저장 시 '건드린 부서 키만' 부분 업데이트(update 필드 경로)하여 남의 부서를 통째로 덮어쓰지 않음(T-02 완화).
    구버전 단일 문자열 문서({s:...})도 읽어들일 수 있게 하위호환 유지.
    설정값이 비어 있으면 cloud.enabled=false 로 두고 기존 localStorage 모드 그대로 동작. */
 let cloud={ enabled:false, db:null, ref:null, ready:false, pending:false, applying:false, err:false, lastSaved:0 };
 /* saveState(dirty): dirty 미지정=전체 저장(set). dirty 지정 시 해당 축만 부분 업데이트(update).
-   dirty 형태: {deptId?, removeDept?, accounts?, tasks?, onlyOrder?} — 모호하면 인자 없이 호출(전체). */
+   dirty 형태: {deptId?, removeDept?, accounts?, tasks?, memos?, onlyOrder?} — 모호하면 인자 없이 호출(전체). */
 function saveState(dirty){ try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){} cloudSave(dirty); }
 function cloudConfigured(){ const c=window.YH_FIREBASE_CONFIG||{}; return !!(c.apiKey && c.projectId); }
 function anyModalOpen(){ return !!document.querySelector('.modal-back:not(.hidden), .board-back:not(.hidden)'); }
@@ -1249,7 +1293,7 @@ function cloudOk(){ cloud.err=false; cloud.lastSaved=Date.now(); updateSyncStatu
 function cloudSaveFull(){
   if(!cloud.ref) return;
   const depts={}; (state.departments||[]).forEach(d=>{ depts[d.id]=JSON.stringify(d); });
-  const payload={ depts, accounts:JSON.stringify(state.accounts||[]), tasks:JSON.stringify(state.tasks||[]), order:(state.departments||[]).map(d=>d.id), updatedAt:Date.now() };
+  const payload={ depts, accounts:JSON.stringify(state.accounts||[]), tasks:JSON.stringify(state.tasks||[]), memos:JSON.stringify(state.memos||[]), order:(state.departments||[]).map(d=>d.id), updatedAt:Date.now() };
   try{ cloud.ref.set(payload).then(cloudOk).catch(cloudErr); }catch(e){ cloudErr(e); }
 }
 function cloudSave(dirty){
@@ -1261,6 +1305,7 @@ function cloudSave(dirty){
     if(dirty.removeDept && firebase.firestore && firebase.firestore.FieldValue) upd["depts."+dirty.removeDept]=firebase.firestore.FieldValue.delete();
     if(dirty.accounts) upd.accounts=JSON.stringify(state.accounts||[]);
     if(dirty.tasks) upd.tasks=JSON.stringify(state.tasks||[]);
+    if(dirty.memos) upd.memos=JSON.stringify(state.memos||[]);
     cloud.ref.update(upd).then(cloudOk).catch(err=>{ /* 문서가 구버전(필드 없음)이면 전체 저장으로 폴백 */ cloudSaveFull(); });
   }catch(e){ cloudErr(e); }
 }
@@ -1268,8 +1313,8 @@ function cloudAssemble(data){
   const map=data.depts||{}; const order=Array.isArray(data.order)?data.order:[]; const depts=[]; const seen={};
   order.forEach(idv=>{ if(map[idv]!=null){ try{ depts.push(JSON.parse(map[idv])); seen[idv]=1; }catch(e){} } });
   Object.keys(map).forEach(idv=>{ if(!seen[idv]){ try{ depts.push(JSON.parse(map[idv])); }catch(e){} } });
-  let accounts=[],tasks=[]; try{ accounts=data.accounts?JSON.parse(data.accounts):[]; }catch(e){} try{ tasks=data.tasks?JSON.parse(data.tasks):[]; }catch(e){}
-  return { departments:depts, accounts, tasks };
+  let accounts=[],tasks=[],memos=[]; try{ accounts=data.accounts?JSON.parse(data.accounts):[]; }catch(e){} try{ tasks=data.tasks?JSON.parse(data.tasks):[]; }catch(e){} try{ memos=data.memos?JSON.parse(data.memos):[]; }catch(e){}
+  return { departments:depts, accounts, tasks, memos };
 }
 function cloudApplySnapshot(snap){
   if(snap.metadata && snap.metadata.hasPendingWrites) return;   // 내 변경 echo는 무시
@@ -1281,7 +1326,13 @@ function cloudApplySnapshot(snap){
   else if(data.depts && typeof data.depts==='object'){ incoming=cloudAssemble(data); }
   // T-04 가드: departments 배열이 없는 오염 문서는 반영하지 않음(전 사용자 렌더 중단·정상본 오염 방지)
   if(!incoming || !Array.isArray(incoming.departments)){ console.warn("cloud snapshot invalid — 무시됨"); try{ toast("동기화 데이터 형식 오류 — 무시했습니다."); }catch(_){} return; }
+  // ★메모 필드가 문서에 **아예 없으면** 이 브라우저의 메모를 지키고 다시 올린다(2026-09-19).
+  //   필드가 없는 경우 = 메모 기능 이전 문서이거나, 메모를 모르는 옛 화면(배포 전 열어 둔 탭)이 전체 저장(set)으로 필드를 지운 경우.
+  //   메모를 전부 지운 경우는 필드가 "[]"로 남으므로 여기 해당하지 않는다.
+  const memosLost=!legacyDoc && !("memos" in data) && Array.isArray(state&&state.memos) && state.memos.length>0;
+  if(memosLost) incoming.memos=state.memos;
   cloud.applying=true; state=normalize(incoming); cloud.applying=false; cloud.ready=true;
+  if(memosLost) cloudSave({memos:true});
   try{ localStorage.setItem(LS3, JSON.stringify(state)); }catch(e){}
   if(legacyDoc){ cloudSaveFull(); }   // 구 문서를 새 스키마(필드 분해)로 1회 전환(set → s 필드 제거)
   if(anyModalOpen()){ cloud.pending=true; return; }              // 편집 중이면 닫힌 뒤 반영
@@ -1318,6 +1369,7 @@ function rerenderCurrent(){
     else if(t==='stats') computeStats();
     else if(t==='tasks') renderTasks();
     else if(t==='worksched') renderWorkSched();
+    else if(t==='memo') renderMemos();
     else if(t==='manage') renderManage();
     else if(t==='completed') renderCompleted();
   } else {
@@ -1375,7 +1427,7 @@ function enterApp(){
 /* ===== 탭 ===== */
 function switchTab(t){
   document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
-  ["dash","completed","manage","mail","stats","sched","tasks","worksched"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("hidden",x!==t));
+  ["dash","completed","manage","mail","stats","sched","tasks","worksched","memo"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("hidden",x!==t));
   if(t==="completed") renderCompleted();
   if(t==="manage") renderManage();
   if(t==="mail") initMail();
@@ -1383,6 +1435,7 @@ function switchTab(t){
   if(t==="sched"){ const t0=new Date(); adminCal={y:t0.getFullYear(),m:t0.getMonth()}; renderScheduleTab(); }
   if(t==="tasks") renderTasks();
   if(t==="worksched"){ const t0=new Date(); workCal={y:t0.getFullYear(),m:t0.getMonth()}; renderWorkSched(); }
+  if(t==="memo") renderMemos();
 }
 
 /* ===== 대시보드 ===== */
@@ -1618,9 +1671,19 @@ function completeDept(i){ const d=getDept(i); if(!d) return;
 }
 
 /* ===== 완료된 전형 ===== */
+// 입사일 = 일정의 「입사」 시작일(입사는 시작일만 받는다). 날짜로 못 읽으면 없는 것으로 본다
+function hireDateOf(d){ const v=d&&d.schedule&&d.schedule["입사"]&&d.schedule["입사"].s; return (v&&dnum(v)!=null)?v:""; }
 function renderCompleted(){
   const el=document.getElementById("completedGrid"); if(!el) return;
-  const list=completedDepts();
+  // ★입사일 최근 순(2026-09-19 요청: 「완료된 전형 카드도 정렬을 입사일 순 정렬해줘. 지금 기준이 없어서 헷갈려」).
+  //   입사일이 없는 전형은 맨 아래에 두고, 그 안에서는 완료일 최근 순. 같으면 기존 배열 순서.
+  const list=completedDepts().map((d,i)=>({d,i})).sort((a,b)=>{
+    const ha=hireDateOf(a.d), hb=hireDateOf(b.d);
+    if(ha&&hb&&ha!==hb) return hb.localeCompare(ha);
+    if(!!ha!==!!hb) return ha?-1:1;
+    const ca=a.d.completedAt||a.d.updated||"", cb=b.d.completedAt||b.d.updated||"";
+    return cb.localeCompare(ca)||(a.i-b.i);
+  }).map(x=>x.d);
   if(!list.length){ el.innerHTML=`<div style="grid-column:1/-1;color:var(--muted);padding:20px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">완료된 전형이 없습니다. 전형 상세 보드의 ‘채용 종료 → 그룹웨어 게시판 게재’를 완료하면 이곳으로 이동합니다.</div>`; return; }
   el.innerHTML=list.map(d=>{ const c=d.counts||{}; return `
     <div class="dept-card completed-card">
@@ -1628,7 +1691,7 @@ function renderCompleted(){
         <div class="dc-top"><div><div class="dc-name">${esc(d.name)}<span class="arrow">전형 상세 ›</span></div>
           <div class="dc-type"><span class="type-tag">${esc(d.type)}</span>채용요청 ${d.reqCount}명${d.ftTO?` · 정규직 TO ${d.ftTO}`:''}</div></div>
           <span class="badge badge-done">채용 완료</span></div>
-        <div class="dc-meta"><span>완료일 <b>${d.completedAt||d.updated||'-'}</b></span><span>등록 계정 <b>${(d.accountUsers||[]).length}개</b></span></div>
+        <div class="dc-meta"><span>입사일 <b>${hireDateOf(d)||'미정'}</b></span><span>완료일 <b>${d.completedAt||d.updated||'-'}</b></span><span>등록 계정 <b>${(d.accountUsers||[]).length}개</b></span></div>
         ${stepperHTML(d.stage)}
         <div class="counts-row" style="margin-top:14px">
           <span class="count-pill">지원 <b>${c.applicants||0}</b></span><span class="count-pill">서류합격 <b>${c.doc||0}</b></span><span class="count-pill">AI합격 <b>${c.ai||0}</b></span><span class="count-pill">채용 <b>${c.hired||0}</b></span>
@@ -2251,7 +2314,7 @@ function taskCardHTML(t,bucket){
     ? `<button class="tk-move" onclick="moveTaskDay('${t.id}','tomorrow')" title="내일로 미루기">내일로 →</button>`
     : `<button class="tk-move" onclick="moveTaskDay('${t.id}','today')" title="오늘로 가져오기">← 오늘로</button>`);
   const dateBtn=t.done?'':`<input type="date" class="tk-carddate" value="${esc(t.day)}" onchange="setTaskDate('${t.id}',this.value)" title="날짜 지정">`;
-  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}" data-tid="${t.id}" data-sid="${s.id}" ondragover="subDragOver(event)" ondragleave="subDragLeave(event)" ondrop="subDrop(event)" ondragend="subDragEnd(event)"><span class="tk-subgrip" draggable="true" ondragstart="subDragStart(event)" title="드래그하여 순서 변경">⠿</span><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="상세 업무 삭제">×</button></li>`).join("");
+  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}" data-tid="${t.id}" data-sid="${s.id}" ondragover="subDragOver(event)" ondragleave="subDragLeave(event)" ondrop="subDrop(event)" ondragend="subDragEnd(event)"><span class="tk-subgrip" draggable="true" ondragstart="subDragStart(event)" title="드래그하여 순서 변경">⠿</span><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button>${subTextHTML(t,s)}<button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="상세 업무 삭제">×</button></li>`).join("");
   const impBtn=`<button class="tk-impbtn ${t.important?'on':''}" onclick="toggleImportant('${t.id}')" title="${t.important?'중요 해제':'중요로 표시'}">중요</button>`;
   const colorSel=t.done?'':`<select class="tk-cardcolor" title="업무 색상" onchange="setTaskColor('${t.id}',this.value)">${TASK_COLORS.map(c=>`<option value="${c.key}" ${(t.color||'green')===c.key?'selected':''}>${c.label}</option>`).join("")}</select>`;
   const dot=`<span class="tk-dot" style="background:${taskColor(t)}"></span>`;
@@ -2262,7 +2325,7 @@ function taskCardHTML(t,bucket){
       <span class="tk-grip" draggable="true" ondragstart="taskDragStart(event)" title="드래그하여 순서 변경">⠿</span>
       <button class="tk-check ${t.done?'on':''}" onclick="toggleTask('${t.id}')" title="${t.done?'완료 취소':'완료'}">${t.done?'✓':''}</button>
       <div class="tk-body">
-        <div class="tk-title">${dot}${t.important?'<span class="tk-impbadge">중요</span>':''}${esc(t.title)}</div>
+        ${taskTitleHTML(t,dot)}
         <div class="tk-meta">${tkDayChipHTML(t,wt)}${carried?'<span class="tk-carry">이월</span>':''}${t.author?`<span class="tk-author">${esc(t.author)}</span>`:''}${subTot?`<span class="tk-prog">상세 ${subDone}/${subTot} · ${pct}%</span>`:''}${subAddBtn}</div>
       </div>
       ${t.done?'':impBtn}
@@ -2308,6 +2371,105 @@ function renderTasks(){
 // 자정(00:00) 경계 통과 시 자동 이월·갱신(앱을 계속 켜둔 경우)
 let _tkWorkDay=workToday();
 setInterval(()=>{ const w=workToday(); if(w!==_tkWorkDay){ _tkWorkDay=w; if(typeof session!=='undefined'&&session&&session.role==="admin"){ carryOverTasks(); afterTaskChange(); } } },60000);
+
+/* ===== 할 일·상세 업무 제자리 수정 (2026-09-19) =====
+   요청: 「할 일 내가 기록해둔거에서 수정 기능도 있었으면 좋겠어. 계속 쓰고 틀리면 지웠다 써야돼 (꼬리 항목까지)」
+   ✎ 버튼 또는 글자 더블클릭 → 입력칸. Enter·바깥 클릭 = 저장, Esc = 취소. 비우면 저장하지 않는다(지우기는 삭제 버튼으로).
+   기타 업무 카드와 업무 일정표 상세 창 양쪽에 같은 함수로 붙는다(같은 state.tasks). */
+let tkEdit=null;   // {tid, sid|null}
+function taskTitleHTML(t,dot,inModal){
+  const imp=t.important?'<span class="tk-impbadge">중요</span>':'';
+  if(tkEdit&&tkEdit.tid===t.id&&!tkEdit.sid){
+    const inp=`<input id="tkEditInput" class="tk-editinput" value="${esc(t.title)}" onkeydown="tkEditKey(event)" onblur="commitTaskEdit()" title="Enter=저장 · Esc=취소">`;
+    return inModal?`<span class="tk-mtitle-edit">${dot}${inp}</span>`:`<div class="tk-title editing">${dot}${inp}</div>`;
+  }
+  const body=`${dot}${imp}<span ondblclick="startTaskEdit('${t.id}')" title="더블클릭하여 수정">${esc(t.title)}</span><button class="tk-editbtn" onclick="startTaskEdit('${t.id}')" title="업무 내용 수정">✎</button>`;
+  return inModal?body:`<div class="tk-title">${body}</div>`;
+}
+function subTextHTML(t,s){
+  if(tkEdit&&tkEdit.tid===t.id&&tkEdit.sid===s.id)
+    return `<input id="tkEditInput" class="tk-editinput" value="${esc(s.text)}" onkeydown="tkEditKey(event)" onblur="commitTaskEdit()" title="Enter=저장 · Esc=취소">`;
+  return `<span class="tk-sub-t" ondblclick="startTaskEdit('${t.id}','${s.id}')" title="더블클릭하여 수정">${esc(s.text)}</span><button class="tk-editbtn" onclick="startTaskEdit('${t.id}','${s.id}')" title="상세 업무 수정">✎</button>`;
+}
+function startTaskEdit(tid,sid){
+  if(tkEdit) commitTaskEdit();
+  tkEdit={tid, sid:sid||null}; afterTaskChange();
+  const el=document.getElementById("tkEditInput"); if(el){ el.focus(); const n=el.value.length; el.setSelectionRange(n,n); }
+}
+function tkEditKey(ev){
+  if(ev.isComposing) return;   // 한글 조합 중 Enter는 글자 확정용 — 저장하지 않는다
+  if(ev.key==='Enter'){ ev.preventDefault(); commitTaskEdit(); }
+  else if(ev.key==='Escape'){ ev.preventDefault(); cancelTaskEdit(); }
+}
+function commitTaskEdit(){
+  if(!tkEdit) return;                       // 이미 저장·취소됨(다시 그릴 때 따라오는 blur 무시)
+  const cur=tkEdit; tkEdit=null;
+  const el=document.getElementById("tkEditInput"); const v=el?el.value.trim():"";
+  const t=(state.tasks||[]).find(x=>x.id===cur.tid);
+  if(t&&el){
+    if(!v) toast("내용이 비어 있어 바꾸지 않았습니다. 지우려면 삭제 버튼을 쓰세요.");
+    else if(cur.sid){ const s=t.subs.find(x=>x.id===cur.sid); if(s&&s.text!==v){ s.text=v; saveState({tasks:true}); } }
+    else if(t.title!==v){ t.title=v; saveState({tasks:true}); }
+  }
+  afterTaskChange();
+}
+function cancelTaskEdit(){ tkEdit=null; afterTaskChange(); }
+
+/* ===== 메모 (2026-09-19) =====
+   요청: 상사의 상시 지시, 너무 먼 미래에 해 보라는 것, 규칙·지침이 바뀐 부분 → 「업무 일정표 옆에 메뉴 하나 더」.
+   날짜가 없어 이월·완료가 없다. state.memos = [{id, cat, text, author, createdAt, updatedAt}] — 새 메모가 맨 위. */
+let memoFilter='all', memoEditId=null;
+function memoCat(k){ return MEMO_CATS.find(c=>c.key===k)||MEMO_CATS[MEMO_CATS.length-1]; }
+function populateMemoCatSel(){ const sel=document.getElementById("memoCat"); if(!sel||sel.dataset.filled) return; sel.innerHTML=MEMO_CATS.map(c=>`<option value="${c.key}">${c.label}</option>`).join(""); sel.dataset.filled="1"; }
+function addMemo(){
+  const ta=document.getElementById("memoText"), sel=document.getElementById("memoCat");
+  const text=(ta.value||"").trim(); if(!text){ toast("메모 내용을 입력하세요."); ta.focus(); return; }
+  const cat=(sel&&sel.value)||"etc"; const d=today();
+  state.memos.unshift({id:newTkId("mm"), cat, text, author:currentUserName(), createdAt:d, updatedAt:d});
+  ta.value=""; saveState({memos:true}); renderMemos(); ta.focus();
+}
+function setMemoFilter(f){ memoFilter=f; renderMemos(); }
+function startMemoEdit(id){ memoEditId=id; renderMemos(); const el=document.getElementById("memoEditText"); if(el){ el.focus(); const n=el.value.length; el.setSelectionRange(n,n); } }
+function cancelMemoEdit(){ memoEditId=null; renderMemos(); }
+function saveMemoEdit(id){
+  const m=(state.memos||[]).find(x=>x.id===id); const ta=document.getElementById("memoEditText"), sel=document.getElementById("memoEditCat");
+  if(!m||!ta){ memoEditId=null; renderMemos(); return; }
+  const text=ta.value.trim(); if(!text){ toast("메모 내용이 비어 있습니다. 지우려면 삭제 버튼을 쓰세요."); ta.focus(); return; }
+  const cat=(sel&&sel.value)||m.cat;
+  if(text!==m.text||cat!==m.cat){ m.text=text; m.cat=cat; m.updatedAt=today(); saveState({memos:true}); }
+  memoEditId=null; renderMemos();
+}
+function deleteMemo(id){
+  const m=(state.memos||[]).find(x=>x.id===id); if(!m) return;
+  const head=m.text.split("\n")[0].slice(0,30);
+  if(!confirm(`'${head}${m.text.length>30?'…':''}' 메모를 삭제하시겠습니까?`)) return;
+  state.memos=state.memos.filter(x=>x.id!==id); if(memoEditId===id) memoEditId=null;
+  saveState({memos:true}); renderMemos();
+}
+function memoCardHTML(m){
+  const c=memoCat(m.cat);
+  const tag=`<span class="mm-cat" style="background:${hexA(c.c,.12)};color:${c.c}">${esc(c.label)}</span>`;
+  const meta=`<span class="mm-meta">${m.author?esc(m.author)+' · ':''}${esc(m.createdAt)}${m.updatedAt&&m.updatedAt!==m.createdAt?` · 수정 ${esc(m.updatedAt)}`:''}</span>`;
+  if(memoEditId===m.id){
+    return `<div class="mm-card" style="--mm-c:${c.c}"><div class="mm-head">${tag}${meta}</div>
+      <div class="mm-edit"><textarea id="memoEditText" class="mm-addtext" rows="${Math.min(12,Math.max(3,m.text.split("\n").length+1))}" onkeydown="if(event.key==='Escape'){event.preventDefault();cancelMemoEdit();}else if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();saveMemoEdit('${m.id}');}">${esc(m.text)}</textarea>
+        <div class="mm-editrow"><select id="memoEditCat" class="tk-colorsel" title="분류">${MEMO_CATS.map(x=>`<option value="${x.key}" ${x.key===c.key?'selected':''}>${x.label}</option>`).join("")}</select>
+          <button class="tk-addbtn" style="padding:8px 16px" onclick="saveMemoEdit('${m.id}')">저장</button><button class="tk-addbtn date" style="padding:8px 16px" onclick="cancelMemoEdit()">취소</button>
+          <span class="mm-meta">Ctrl+Enter=저장 · Esc=취소</span></div></div></div>`;
+  }
+  return `<div class="mm-card" style="--mm-c:${c.c}"><div class="mm-head">${tag}${meta}<span class="mm-acts"><button class="tk-move" onclick="startMemoEdit('${m.id}')" title="메모 수정">✎ 수정</button><button class="tk-del" onclick="deleteMemo('${m.id}')" title="메모 삭제">삭제</button></span></div>
+    <div class="mm-text" ondblclick="startMemoEdit('${m.id}')" title="더블클릭하여 수정">${esc(m.text)}</div></div>`;
+}
+function renderMemos(){
+  const el=document.getElementById("memoResult"); if(!el) return;
+  populateMemoCatSel();
+  const all=state.memos||[];
+  const fb=(f,label,n)=>`<button class="tk-fbtn ${memoFilter===f?'on':''}" onclick="setMemoFilter('${f}')">${label} <span>${n}</span></button>`;
+  let html=`<div class="tk-filter">${fb('all','전체',all.length)}${MEMO_CATS.map(c=>fb(c.key,esc(c.label),all.filter(m=>m.cat===c.key).length)).join("")}</div>`;
+  const list=memoFilter==='all'?all:all.filter(m=>m.cat===memoFilter);
+  html+=`<div class="mm-list">${list.length?list.map(memoCardHTML).join(""):`<div class="tk-emptybox">${all.length?'이 분류의 메모가 없습니다.':'등록된 메모가 없습니다. 위에서 분류를 고르고 내용을 적어 추가하세요.'}</div>`}</div>`;
+  el.innerHTML=html;
+}
 
 /* ===== 통계 ===== */
 function repDate(d){ const sc=d.schedule||{}; if(sc["공고진행"]&&sc["공고진행"].s) return sc["공고진행"].s; for(const s of STAGES){ if(sc[s]&&sc[s].s) return sc[s].s; } return d.updated||""; }
@@ -2755,8 +2917,8 @@ function closeWkTask(){ _wkOpenId=null; document.getElementById("wkTaskModal").c
 function renderWkTaskBody(id){
   const t=(state.tasks||[]).find(x=>x.id===id); if(!t){ closeWkTask(); return; }
   const subDone=t.subs.filter(s=>s.done).length, subTot=t.subs.length; const pct=subTot?Math.round(subDone/subTot*100):0;
-  const titleEl=document.getElementById("wkTaskTitle"); if(titleEl) titleEl.innerHTML=`<span class="tk-dot" style="background:${taskColor(t)}"></span>${t.important?'<span class="tk-impbadge">중요</span>':''}${esc(t.title)}`;
-  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}" data-tid="${t.id}" data-sid="${s.id}" ondragover="subDragOver(event)" ondragleave="subDragLeave(event)" ondrop="subDrop(event)" ondragend="subDragEnd(event)"><span class="tk-subgrip" draggable="true" ondragstart="subDragStart(event)" title="드래그하여 순서 변경">⠿</span><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button><span class="tk-sub-t">${esc(s.text)}</span><button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="삭제">×</button></li>`).join("");
+  const titleEl=document.getElementById("wkTaskTitle"); if(titleEl) titleEl.innerHTML=taskTitleHTML(t,`<span class="tk-dot" style="background:${taskColor(t)}"></span>`,true);
+  const subs=t.subs.map(s=>`<li class="tk-sub ${s.done?'done':''}" data-tid="${t.id}" data-sid="${s.id}" ondragover="subDragOver(event)" ondragleave="subDragLeave(event)" ondrop="subDrop(event)" ondragend="subDragEnd(event)"><span class="tk-subgrip" draggable="true" ondragstart="subDragStart(event)" title="드래그하여 순서 변경">⠿</span><button class="tk-cb" onclick="toggleSub('${t.id}','${s.id}')" title="완료 토글">${s.done?'✓':''}</button>${subTextHTML(t,s)}<button class="tk-x" onclick="deleteSub('${t.id}','${s.id}')" title="삭제">×</button></li>`).join("");
   document.getElementById("wkTaskBody").innerHTML=`
     <div class="cev-row"><span class="k">날짜</span><span class="v">${esc(t.day)} (${dowK(t.day)})${holidayName(t.day)?` · <span style="color:#c0504d">${esc(holidayName(t.day))}</span>`:''}</span></div>
     <div class="cev-row"><span class="k">상태</span><span class="v"><button class="mini ${t.done?'ok':''}" onclick="toggleTask('${t.id}')">${t.done?'✓ 완료됨 (취소)':'완료로 표시'}</button> <button class="mini ${t.important?'del':''}" onclick="toggleImportant('${t.id}')">${t.important?'중요 해제':'중요 표시'}</button></span></div>
